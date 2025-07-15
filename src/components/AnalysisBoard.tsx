@@ -9,6 +9,8 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import { playSound } from "../utils/chessHelpers";
 import type { Dests, Key } from "chessground/types";
+import { createChessInstance, calculateDests, getCheckHighlights } from "../utils/chessHelpers";
+import '../App.css';
 
 
 type AnalysisBoardProps = {
@@ -29,7 +31,6 @@ export default function AnalysisBoard({
 
    //move handling function
   const handleMove = (from: string, to: string) => {
-    console.log("called")
      if (!chess) return;
     console.log(`Move attempted: ${from} to ${to}`);
     const fromSquare = parseSquare(from);
@@ -51,17 +52,12 @@ export default function AnalysisBoard({
         } else {
           playSound("move");
         }
-        const ctx = chess.ctx();
-        const newDests: Dests = new Map();
-        for (const [from, targets] of chess.allDests(ctx)) {
-          const fromStr: Key = makeSquare(from);
-          const targetStrs: Key[] = [...targets].map(t => makeSquare(t));
-          newDests.set(fromStr, targetStrs);
-        }
+        const newDests = calculateDests(chess);
         groundRef.current?.set({
           fen: newFen,
           movable: { color: chess.turn, dests:newDests },
           lastMove: [from, to],
+          highlight: {check: true, custom : getCheckHighlights(chess)}
         });
       } else {
         console.log("Move is not legal!");
@@ -85,6 +81,7 @@ export default function AnalysisBoard({
     setFen(makeFen(newChess.toSetup()));
   }, [initialFen]);
 
+  //initialize chessground instance
   useEffect(() => {
     if(!chess) return;
     const ctx = chess.ctx();
@@ -153,6 +150,28 @@ export default function AnalysisBoard({
     }
   }, [fen, chess]);
 
+    const resetBoard = () => {
+    if (!chess) return;
+    const newChess = createChessInstance("start");
+    setChess(newChess);
+    setFen(makeFen(newChess.toSetup()));
+
+    if (!groundRef.current) return;
+
+    const dests = calculateDests(newChess);
+    groundRef.current.set({
+      fen: makeFen(newChess.toSetup()),
+      lastMove: undefined,
+      movable: {
+        color: newChess.turn,
+        free: false,
+        dests,
+        showDests: true,
+        events: { after: handleMove! },
+      },
+    });
+  };
+
 
   return (
     <div>
@@ -175,39 +194,7 @@ export default function AnalysisBoard({
         </div>
       )}
       <div style={{ marginTop: 10 }}>
-        <button 
-          onClick={() => {
-           const newChess = Chess.default(); // or fromSetup for a custom fen
-setChess(newChess);
-const newFen = makeFen(newChess.toSetup());
-setFen(newFen);
-
-const ctx = newChess.ctx();
-const newDests: Dests = new Map();
-for (const [from, targets] of newChess.allDests(ctx)) {
-  const fromStr: Key = makeSquare(from);
-  const targetStrs: Key[] = [...targets].map(t => makeSquare(t));
-  newDests.set(fromStr, targetStrs);
-}
-
-if (groundRef.current) {
-  groundRef.current.set({
-    fen: newFen,
-    lastMove: undefined,
-    movable: {
-      color: newChess.turn,
-      free: false,
-      dests: newDests,
-      showDests: true,
-      events: {
-        after: handleMove,
-      },
-    },
-  });
-}
-          }}
-          style={{ marginRight: 10 }}
-        >
+      <button onClick={resetBoard} style={{ marginRight: 10 }}>
           Reset Board
         </button>
         <button 
