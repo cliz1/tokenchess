@@ -1,0 +1,33 @@
+
+QUESTIONS: 
+
+1. what is let? 
+
+
+2. what is const? why is it that const is sometimes like a function, sometimes like a variable despite supposedly staying the same? is it just that the pointer is constant and the value can change? 
+
+3. if you have a useEffect inside a function, when is that block of code called? is each useeffctinside a function called once per function call? 
+
+4. what is unwrap() when called like this? const setup = parseFen(initialFen).unwrap();
+(alias) parseFen(fen: string): Result<Setup, FenError>
+
+5. what does the question mark do: chess?.isLegal(move) and here onMove?.(from, to);
+
+6. const ctx = chess.ctx(); what does context do
+
+7. what is useRef? what is useState?
+
+useState creates a piece of state that React watches.
+When you update it, the component re-renders.
+
+
+7/27 
+
+1. makeSan seems to play the move. check to see if subsequent play move call is returning an error in handleMove()
+
+2. pgn being printed has a header. remove the header
+
+3. pgn is adding a new branch even if the move matches the main line or another branch. example: 1. e4 (1. e4)
+
+
+

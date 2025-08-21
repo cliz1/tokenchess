@@ -44,3 +44,12 @@
 .cg-square.check::before {
     background: radial-gradient(ellipse at center, rgb(255, 0, 0) 0%, rgb(231, 0, 0) 25%, rgba(169, 0, 0, 0) 89%, rgba(158, 0, 0, 0) 100%);
 }
+
+.cg-piece.bH {
+    border:2px solid red;
+}
+
+.cg-piece.bH {
+    background-image: url('../public/images/knook/Chess_cdt45.svg');
+    background-size: contain;
+}

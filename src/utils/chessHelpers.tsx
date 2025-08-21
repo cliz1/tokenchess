@@ -37,6 +37,7 @@ export function createChessInstance(fen: string): Chess {
   return Chess.fromSetup(setupResult.unwrap()).unwrap();
 }
 
+// highlights the king when its in check
 export function getCheckHighlights(chess: Chess): Map<Key, string> {
   const highlights = new Map<Key, string>();
   if (chess.isCheck()) {
@@ -45,3 +46,5 @@ export function getCheckHighlights(chess: Chess): Map<Key, string> {
   }
   return highlights;
 }
+
+// determine wheter the given move

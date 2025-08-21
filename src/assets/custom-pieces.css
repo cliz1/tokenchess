@@ -1,0 +1,8 @@
+/* Custom Knook piece (replaces knight) */
+.cg-wrap piece.knook.white {
+    background-image: url('/images/knook/Chess_clt45.svg');
+  }
+
+  .cg-wrap piece.knook.black {
+    background-image: url('/images/knook/Chess_cdt45.svg');
+  }

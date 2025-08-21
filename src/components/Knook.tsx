@@ -7,6 +7,7 @@ import { parseSquare, makeSquare } from "../../chessops/src/util.ts";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
+import "../assets/custom-pieces.css";
 import { playSound } from "../utils/chessHelpers";
 import type { Dests, Key } from "chessground/types";
 import { createChessInstance, calculateDests, getCheckHighlights } from "../utils/chessHelpers";
@@ -16,17 +17,18 @@ import { makeSan } from '../../chessops/src/san';
 import '../App.css';
 
 
-type AnalysisBoardProps = {
+
+type KnookProps = {
   initialFen?: string;
   orientation?: "white" | "black";
   onMove?: (from: string, to: string) => void;
 };
 
-export default function AnalysisBoard({
+export default function Knook({
   initialFen = "start",
   orientation = "white",
   onMove,
-}: AnalysisBoardProps) {
+}: KnookProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<any>(null);
   const [fen, setFen] = useState(initialFen);
@@ -172,7 +174,7 @@ export default function AnalysisBoard({
 
   const resetBoard = () => {
   if (!chess) return;
-  const newChess = createChessInstance("start");
+  const newChess = createChessInstance("kh6/1r6/8/8/8/8/6R1/5HK1 w - - 0 1");
   setChess(newChess);
   setFen(makeFen(newChess.toSetup()));
   if (!groundRef.current) return;
