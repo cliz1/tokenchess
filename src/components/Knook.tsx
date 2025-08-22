@@ -177,7 +177,7 @@ export default function Knook({
 
   const resetBoard = () => {
   if (!chess) return;
-  const newChess = createChessInstance("4k2r/5ppp/8/8/8/8/5PPP/H3K2H w KQkq - 0 1");
+  const newChess = createChessInstance("1k2a3/1b6/8/8/8/8/4N3/4AK2 w - - 0 1");
   setChess(newChess);
   setFen(makeFen(newChess.toSetup()));
   if (!groundRef.current) return;

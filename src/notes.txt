@@ -1,13 +1,32 @@
 
 NOTES FOR FUTURE DEVELOPEMENT:
+---------------------------------------------------
+BUGS
+---------------------------------------------------
+
+- Castling plays a capture sound
+
+- Pawn promotion does not work
+
+
+
+---------------------------------------------------
+DESIRED FEATURES
+---------------------------------------------------
+
+- Flip the analysis board with the f button
+
+- Board editor with drag and drop
 
 Sounds:
-
 - checkmate
 - en passant
 
+---------------------------------------------------
+FAIRY PIECES
+---------------------------------------------------
 
-Fairy Chess Pieces of the Base Game:
+Base Game: 
 
 - Knook (aka Rorsey, Chancellor, Empress)
 
@@ -19,12 +38,31 @@ Fairy Chess Pieces of the Base Game:
 
 - Crook
 
+- Royal Painter: a pawn that can paint pieces
+
 - Elephant (chataranga)
 
-- Guard: stays in the palace (3x3 area around the king or set area of board), only moves one square diagonally
+- Commoner: moves like a king but is not royal
 
 
 DLC?
+
+- Ferz: One square diagonally
+
+- Giraffe: elongated knight move.[1] 
+It can jump four squares vertically and one square horizontally or 
+four squares horizontally and one square vertically, 
+regardless of intervening pieces; thus, it is a (1,4)-leaper.[1][2]
+
+- Ship: - can move any distance orthogonally. The ship can share a square with an ally piece 
+by moving into them or them moving into the Ship. The other piece is then "boarded".
+When the ship move you can choose to take the boarded piece with it. 
+If you do, use the Ships move. There can only be one boarded piece on a Ship. 
+An boarded piece can leave the Ship with its normal jump/move/capture.
+
+- Camel: 2 squares orthogonally followed by 1 square diagonally
+
+- Wizard: Camel + Ferz
 
 - Dragon
 
@@ -33,14 +71,42 @@ DLC?
 
 - Cannon: from Xianqui
 
-- Guard
+- Guard: protects the king
 
-- Royal Painter: a pawn that can paint pieces
+- Goblin
 
 - Bomber: plant and defuse bombs
 
 - Ninja (temporary invisibility) OR Ghost (permanent invisibility)
 
 
+ABSTRACT IDEAS:
+
+- Salt pillar that can't be captured
+
+- A piece that slowly gets stronger every time it is moved. Good for slow, build-up decks
+
+- A piece that moves again every time it captures
+
+- Pieces that can be moved by either side
+
+- Kings have special powers. Ex: If you choose Chinese king, you win on stalemate. 
+
+
+Inspiration from Thomas Rayner Dawson, the Godfather of Fairy Chess:
+
+- The grasshopper is a fairy chess piece that moves along ranks, files, 
+and diagonals (like a queen) but only by hopping over another piece. 
+The piece to be hopped may be of either color and any distance away, 
+but the grasshopper must land on the square immediately beyond it in the same direction. 
+If there is no piece to hop over, it cannot move. 
+If the square beyond a piece is occupied by a piece of the opposite color, the grasshopper can capture that piece.
+
+- The nightrider, alternatively spelled knightrider and also known as the knightmare or unicorn 
+(though the latter term sometimes refers to the bishop+nightrider compound), 
+is a fairy chess piece that can move any number of steps as a knight in the same direction. 
+The nightrider is often represented by an altered version of the knight's icon.[1]
+ In this article, the nightrider is represented by an inverted knight and notated as N,
+  while the knight is abbreviated as S for the German name Springer.
 
 
