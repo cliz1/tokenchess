@@ -35,8 +35,6 @@ export default function Knook({
   const [chess, setChess] = useState<Chess | null>(null);
   const pgnRef = useRef<Game<PgnNodeData>>( defaultGame<PgnNodeData>() );
   const currentNodeRef = useRef<Node<PgnNodeData>>(pgnRef.current.moves);
-
-
    //move handling function
   const handleMove = (from: string, to: string) => {
      if (!chess) return;
@@ -81,7 +79,7 @@ export default function Knook({
         const newDests = calculateDests(chess);
         groundRef.current?.set({
           fen: newFen,
-          movable: { color: chess.turn, dests:newDests },
+          movable: { color: chess.turn, dests:newDests, events: { after: handleMove }, free: false, showDests: true },
           lastMove: [from, to],
           highlight: {check: true, custom : getCheckHighlights(chess)}
         });
@@ -120,13 +118,14 @@ export default function Knook({
     if (!containerRef.current || !chess) return;
     const config: Config = {
       fen: makeFen(chess.toSetup()),
+      turnColor: chess.turn,
       orientation,
       highlight: {
         lastMove: true,
         check: true,
       },
       movable: {
-        color: "both", 
+        color: chess.turn, 
         free: false, 
         showDests: true,
         dests,
@@ -157,6 +156,10 @@ export default function Knook({
     // create Chessground instance
     groundRef.current = Chessground(containerRef.current, config);
     console.log("Chessground instance created:", groundRef.current);
+    console.log("FEN passed to Chessground:", makeFen(chess.toSetup()));
+    console.log("movable.color:", chess.turn);
+    console.log("dests keys:", [...calculateDests(chess).keys()]);
+
     return () => {
       // clean up on unmount
       groundRef.current?.destroy();
@@ -174,7 +177,7 @@ export default function Knook({
 
   const resetBoard = () => {
   if (!chess) return;
-  const newChess = createChessInstance("1kh5/1n6/8/8/8/8/6B1/5HK1 w - - 0 1");
+  const newChess = createChessInstance("4k2r/5ppp/8/8/8/8/5PPP/H3K2H w KQkq - 0 1");
   setChess(newChess);
   setFen(makeFen(newChess.toSetup()));
   if (!groundRef.current) return;
@@ -183,7 +186,7 @@ export default function Knook({
     fen: makeFen(newChess.toSetup()),
     lastMove: undefined,
     movable: {
-      color: newChess.turn,
+      color: chess.turn,
       free: false,
       dests,
       showDests: true,
