@@ -1,5 +1,18 @@
 
-NOTES FOR FUTURE DEVELOPEMENT:
+---------------------------------------------------
+TODO
+---------------------------------------------------
+
+2. Fix pawn promotion
+
+3. Make chessops a sibling directory, properly forked, just like chessground is set up now. Clean up code before pushing
+
+4. Allow flipping the analysis board with the f key
+
+5. Allow replay of moves via PGN in analysis board
+
+6. Add Snare piece
+
 ---------------------------------------------------
 BUGS
 ---------------------------------------------------
@@ -8,6 +21,8 @@ BUGS
 
 - Pawn promotion does not work
 
+- note that the hybrid pieces (amazon/commoner/knook etc) do NOT have any code in the play() function. 
+this likely causes some hidden bugs in the internal game state. 
 
 
 ---------------------------------------------------
@@ -18,9 +33,16 @@ DESIRED FEATURES
 
 - Board editor with drag and drop
 
+- Navigate through PGN with arrows
+
+- painter should be able to paint while being pinned
+
 Sounds:
 - checkmate
 - en passant
+- promotion
+- painter
+- piece gets snared
 - wizard teleport
 - archer shot
 
@@ -58,7 +80,7 @@ Base Game: Western Fairy Pieces (8 Fairy Pieces)
     - FEN: W 
     - Value: 
 
-8. Archer/Sniper: Bishop that can only move one square at a time. 4 Square Bishop Capture Range. Doesn't move to where it captures. 
+8. Archer/Sniper: Bishop that can only move one square at a time. 4 Square Bishop Capture Range. Doesn't move to where it captures. Maybe the knight is immune to archer.
     - FEN: 
     - Value:
 
@@ -70,7 +92,7 @@ DLC?
 
 - Prawn: a rook that can capture like a pawn (including en passant, in which case it is called en prawnsant)
 
-- Crook
+- Crook: it looks exactly like a rook, but its actually slightly weaker.
 
 - Elephant (chataranga)
 

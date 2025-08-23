@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
-import { Chess } from "../../chessops/src/chess.ts";
-import { parseFen, makeFen } from "../../chessops/src/fen.ts";
-import { parseSquare, makeSquare } from "../../chessops/src/util.ts";
+import { Chess } from "chessops/chess";
+import { parseFen, makeFen } from "chessops/fen";
+import { parseSquare, makeSquare } from "chessops/util";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
@@ -11,9 +11,9 @@ import "../assets/custom-pieces.css";
 import { playSound } from "../utils/chessHelpers";
 import type { Dests, Key } from "chessground/types";
 import { createChessInstance, calculateDests, getCheckHighlights } from "../utils/chessHelpers";
-import { defaultGame, Node, ChildNode, extend, makePgn } from '../../chessops/src/pgn';
-import type { PgnNodeData, Game } from '../../chessops/src/pgn';
-import { makeSan } from '../../chessops/src/san';
+import { defaultGame, Node, ChildNode, extend, makePgn } from 'chessops/pgn';
+import type { PgnNodeData, Game } from 'chessops/pgn';
+import { makeSan } from 'chessops/san';
 import '../App.css';
 
 
@@ -42,7 +42,15 @@ export default function Knook({
     const fromSquare = parseSquare(from);
     const toSquare = parseSquare(to);
     if (fromSquare !== undefined && toSquare !== undefined) {
-      const move = { from: fromSquare, to: toSquare };
+      const move: any = { from: fromSquare, to: toSquare };
+      ///
+      const fromPiece = chess.board.get(fromSquare);
+      const toRank = Math.floor(toSquare / 8);
+      if (fromPiece?.role === 'pawn' && (toRank === 0 || toRank === 7)) {
+        move.promotion = 'queen'; // Auto promote to queen
+        console.log('Auto-promotion to queen applied:', move);
+      }
+      ///
       if (chess?.isLegal(move)) {
         const captured = chess.board.get(toSquare);
         // TEST: BEFORE PLAYING MOVE
@@ -177,7 +185,7 @@ export default function Knook({
 
   const resetBoard = () => {
   if (!chess) return;
-  const newChess = createChessInstance("1k2a3/1i6/8/8/8/8/4NM2/4AK2 w - - 0 1");
+  const newChess = createChessInstance("1k6/6P1/8/8/8/8/5p2/1K6 w - - 0 1");
   setChess(newChess);
   setFen(makeFen(newChess.toSetup()));
   if (!groundRef.current) return;

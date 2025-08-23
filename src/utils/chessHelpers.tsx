@@ -1,7 +1,7 @@
 import type { Dests, Key } from "chessground/types";
-import { Chess } from "../../chessops/src/chess.ts";
-import { makeSquare, parseSquare } from "../../chessops/src/util.ts";
-import { parseFen, makeFen } from "../../chessops/src/fen.ts";
+import { Chess } from "chessops/chess";
+import { makeSquare, parseSquare } from "chessops/util";
+import { parseFen, makeFen } from "chessops/fen";
 import '../App.css';
 
 export function playSound(type: "move" | "capture" | "check") {

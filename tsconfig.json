@@ -10,7 +10,11 @@
     "paths": {
       "chessops/*": ["./chessops/src/*"]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "../chessops/src"   // 🚫 don’t compile raw sources from linked chessops
+  ]
 
 }
 
