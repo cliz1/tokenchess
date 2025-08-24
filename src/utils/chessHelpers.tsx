@@ -47,4 +47,14 @@ export function getCheckHighlights(chess: Chess): Map<Key, string> {
   return highlights;
 }
 
-// determine wheter the given move
+export function moveToUci(m: any) {
+  const fromStr = makeSquare(m.from);
+  const toStr = makeSquare(m.to);
+  // map standard promotions to uci suffix; unknown roles skip suffix
+  const promoMap: Record<string, string> = { queen: "q", rook: "r", bishop: "b", knight: "n" };
+  const suffix = m.promotion && promoMap[m.promotion] ? promoMap[m.promotion] : "";
+  return `${fromStr}${toStr}${suffix}`;
+}
+export function movesEqual(a: any, b: any) {
+  return a?.from === b?.from && a?.to === b?.to && (a?.promotion ?? null) === (b?.promotion ?? null);
+}

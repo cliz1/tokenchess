@@ -3,7 +3,7 @@
 TODO
 ---------------------------------------------------
 
-2. Pawn promotion allows piece choice
+2. Allow the painter to promote
 
 5. Allow replay of moves via PGN in analysis board
 
@@ -78,6 +78,8 @@ Base Game: Western Fairy Pieces (8 Fairy Pieces)
     - FEN: 
     - Value:
 
+9. Picasso: Painter that moves like a king. Can only be obtained by promoting a painter. 
+
 DLC?
 
 - Cook
@@ -128,6 +130,8 @@ An boarded piece can leave the Ship with its normal jump/move/capture.
 
 
 ABSTRACT IDEAS:
+
+- PAINTER has its own special promiton: Picasso/Painter King, moves like a king but PAINTS instead of capturing
 
 - Salt pillar that can't be captured
 
