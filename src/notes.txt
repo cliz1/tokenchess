@@ -3,11 +3,7 @@
 TODO
 ---------------------------------------------------
 
-2. Fix pawn promotion
-
-3. Make chessops a sibling directory, properly forked, just like chessground is set up now. Clean up code before pushing
-
-4. Allow flipping the analysis board with the f key
+2. Pawn promotion allows piece choice
 
 5. Allow replay of moves via PGN in analysis board
 
@@ -19,17 +15,13 @@ BUGS
 
 - Castling plays a capture sound
 
-- Pawn promotion does not work
-
 - note that the hybrid pieces (amazon/commoner/knook etc) do NOT have any code in the play() function. 
-this likely causes some hidden bugs in the internal game state. 
+this may cause some hidden bugs in the internal game state. 
 
 
 ---------------------------------------------------
 DESIRED FEATURES
 ---------------------------------------------------
-
-- Flip the analysis board with the f button
 
 - Board editor with drag and drop
 

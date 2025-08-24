@@ -15,7 +15,7 @@ import { defaultGame, Node, ChildNode, extend, makePgn } from 'chessops/pgn';
 import type { PgnNodeData, Game } from 'chessops/pgn';
 import { makeSan } from 'chessops/san';
 import '../App.css';
-
+ 
 
 
 type KnookProps = {
@@ -35,6 +35,7 @@ export default function Knook({
   const [chess, setChess] = useState<Chess | null>(null);
   const pgnRef = useRef<Game<PgnNodeData>>( defaultGame<PgnNodeData>() );
   const currentNodeRef = useRef<Node<PgnNodeData>>(pgnRef.current.moves);
+  const [currentOrientation, setCurrentOrientation] = useState<"white" | "black">(orientation);
    //move handling function
   const handleMove = (from: string, to: string) => {
      if (!chess) return;
@@ -127,7 +128,7 @@ export default function Knook({
     const config: Config = {
       fen: makeFen(chess.toSetup()),
       turnColor: chess.turn,
-      orientation,
+      orientation: currentOrientation,
       highlight: {
         lastMove: true,
         check: true,
@@ -173,7 +174,7 @@ export default function Knook({
       groundRef.current?.destroy();
       groundRef.current = null;
     };
-  }, [orientation, chess]);
+  }, [currentOrientation, chess]);
 
 /*   // Update fen externally (if needed)
   useEffect(() => {
@@ -183,28 +184,48 @@ export default function Knook({
     }
   }, [fen, chess]); */
 
-  const resetBoard = () => {
+const resetBoard = () => {
   if (!chess) return;
+
+  // Create a fresh Chess instance (your custom starting FEN)
   const newChess = createChessInstance("1k6/6P1/8/8/8/8/5p2/1K6 w - - 0 1");
   setChess(newChess);
-  setFen(makeFen(newChess.toSetup()));
+
+  const newFen = makeFen(newChess.toSetup());
+  setFen(newFen);
+
   if (!groundRef.current) return;
+
   const dests = calculateDests(newChess);
+
   groundRef.current.set({
-    fen: makeFen(newChess.toSetup()),
+    fen: newFen,
     lastMove: undefined,
+    orientation: currentOrientation, // preserve current board orientation
     movable: {
-      color: chess.turn,
+      color: newChess.turn, // use the new chess instance's turn
       free: false,
       dests,
       showDests: true,
       events: { after: handleMove! },
-      },
-    });
-    pgnRef.current = defaultGame<PgnNodeData>();
-    currentNodeRef.current = pgnRef.current.moves; // reset node for PGN 
-  };
+    },
+  });
 
+  // Reset PGN tracking
+  pgnRef.current = defaultGame<PgnNodeData>();
+  currentNodeRef.current = pgnRef.current.moves;
+};
+
+
+  const flipBoard = () => {
+  if (!groundRef.current) return;
+
+  const newOrientation = currentOrientation === "white" ? "black" : "white";
+  setCurrentOrientation(newOrientation);
+
+  // Update chessground with new orientation
+  groundRef.current.set({ orientation: newOrientation });
+};
 
   return (
     <div>
@@ -229,17 +250,10 @@ export default function Knook({
       <button onClick={resetBoard} style={{ marginRight: 10 }}>
           Reset Board
         </button>
-        <button 
-          onClick={() => {
-            if (chess) {
-              const ctx = chess.ctx();
-              const allDests = chess.allDests(ctx);
-              console.log("All legal moves:", allDests);
-            }
-          }}
-        >
-          Log Legal Moves
-        </button>
+        <button onClick={flipBoard} style={{ marginRight: 10 }}>
+        Flip Board
+      </button>
+
       </div>
     </div>
   );
