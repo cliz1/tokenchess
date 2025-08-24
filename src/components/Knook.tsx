@@ -36,70 +36,87 @@ export default function Knook({
   const pgnRef = useRef<Game<PgnNodeData>>( defaultGame<PgnNodeData>() );
   const currentNodeRef = useRef<Node<PgnNodeData>>(pgnRef.current.moves);
   const [currentOrientation, setCurrentOrientation] = useState<"white" | "black">(orientation);
-   //move handling function
-  const handleMove = (from: string, to: string) => {
-     if (!chess) return;
-    console.log(`Move attempted: ${from} to ${to}`);
-    const fromSquare = parseSquare(from);
-    const toSquare = parseSquare(to);
-    if (fromSquare !== undefined && toSquare !== undefined) {
-      const move: any = { from: fromSquare, to: toSquare };
-      ///
-      const fromPiece = chess.board.get(fromSquare);
-      const toRank = Math.floor(toSquare / 8);
-      if (fromPiece?.role === 'pawn' && (toRank === 0 || toRank === 7)) {
-        move.promotion = 'queen'; // Auto promote to queen
-        console.log('Auto-promotion to queen applied:', move);
-      }
-      ///
-      if (chess?.isLegal(move)) {
-        const captured = chess.board.get(toSquare);
-        // TEST: BEFORE PLAYING MOVE
-        //// PGN HANDLING
-        // 1. make a san of the move
-        const san = makeSan(chess, move); 
-        // BEFORE ADDING NODE, CHECK IF IT IS THE MAIN LINE FOR THIS MOVE, OR, AN EXISTING SIDELINE
-        const moveAlreadyExists = currentNodeRef.current.children.some(
-        (child) => child.data.san == san
-        );
-        // 2. append the san to PGN
-        if (!moveAlreadyExists){
-        currentNodeRef.current = extend(currentNodeRef.current, [{san}]);}
-        // 3. print the new PGN, stripping the header
-        const pgnText = makePgn(pgnRef.current)
-        console.log(pgnText)
-        // END TEST
-        chess.play(move);
-        const newFen = makeFen(chess.toSetup());
-        setFen(newFen);
-        onMove?.(from, to); // notifies App.tsx that a move was made so it can log to console
-        // Play sound
-         if (chess.isCheck()) {
-          if (captured) {playSound("capture");} 
-          else {playSound("move");}
-          playSound("check");
-        } 
-        else if (captured){
-          playSound("capture");
-        }
-        else {
-          playSound("move");
-        }
-        const newDests = calculateDests(chess);
-        groundRef.current?.set({
-          fen: newFen,
-          movable: { color: chess.turn, dests:newDests, events: { after: handleMove }, free: false, showDests: true },
-          lastMove: [from, to],
-          highlight: {check: true, custom : getCheckHighlights(chess)}
-        });
-      } else {
-        console.log("Move is not legal!");
-        groundRef.current?.set({ fen: makeFen(chess.toSetup()) });
-      }
-    } else {
-      console.log("Invalid squares:", { from, to, fromSquare, toSquare });
-    }
-  };
+  const [pendingPromotion, setPendingPromotion] = useState<{
+  from: string;
+  to: string;
+  color: "white" | "black";
+} | null>(null);
+
+// Handle move
+const handleMove = (from: string, to: string) => {
+  if (!chess) return;
+
+  const fromSquare = parseSquare(from);
+  const toSquare = parseSquare(to);
+  if (fromSquare === undefined || toSquare === undefined) return;
+
+  const move: any = { from: fromSquare, to: toSquare };
+  const fromPiece = chess.board.get(fromSquare);
+  const toRank = Math.floor(toSquare / 8);
+
+  // INTERCEPT promotion
+  if (fromPiece?.role === "pawn" && (toRank === 0 || toRank === 7)) {
+    setPendingPromotion({ from, to, color: chess.turn });
+    return; // wait for modal
+  }
+
+  playMove(move, from, to);
+};
+
+// Play a move helper
+const playMove = (move: any, from: string, to: string) => {
+  if (!chess) return;
+
+  if (!chess.isLegal(move)) {
+    groundRef.current?.set({ fen: makeFen(chess.toSetup()) });
+    return;
+  }
+
+  const captured = chess.board.get(parseSquare(to)!);
+
+  // PGN
+  const san = makeSan(chess, move);
+  if (!currentNodeRef.current.children.some(child => child.data.san === san)) {
+    currentNodeRef.current = extend(currentNodeRef.current, [{ san }]);
+  }
+
+  chess.play(move);
+  const newFen = makeFen(chess.toSetup());
+  setFen(newFen);
+  onMove?.(from, to);
+
+  // Sounds
+  if (chess.isCheck()) {
+    if (captured) playSound("capture");
+    else playSound("move");
+    playSound("check");
+  } else if (captured) {
+    playSound("capture");
+  } else {
+    playSound("move");
+  }
+
+  // Update Chessground
+  const newDests = calculateDests(chess);
+  groundRef.current?.set({
+    fen: newFen,
+    movable: { color: chess.turn, dests: newDests, events: { after: handleMove }, free: false, showDests: true },
+    lastMove: [from, to],
+    highlight: { check: true, custom: getCheckHighlights(chess) }
+  });
+};
+
+// Called from modal when piece is picked
+const promotePawn = (role: "queen" | "rook" | "bishop" | "knight") => {
+  if (!pendingPromotion || !chess) return;
+
+  const { from, to } = pendingPromotion;
+  const move: any = { from: parseSquare(from), to: parseSquare(to), promotion: role };
+
+  playMove(move, from, to);
+  setPendingPromotion(null);
+};
+
 
   // Initialize chessops Chess instance
   useEffect(() => {
@@ -176,14 +193,6 @@ export default function Knook({
     };
   }, [currentOrientation, chess]);
 
-/*   // Update fen externally (if needed)
-  useEffect(() => {
-    if (groundRef.current && chess) {
-      const currentFen = makeFen(chess.toSetup());
-      groundRef.current.set({ fen: currentFen });
-    }
-  }, [fen, chess]); */
-
 const resetBoard = () => {
   if (!chess) return;
 
@@ -216,7 +225,6 @@ const resetBoard = () => {
   currentNodeRef.current = pgnRef.current.moves;
 };
 
-
   const flipBoard = () => {
   if (!groundRef.current) return;
 
@@ -228,33 +236,100 @@ const resetBoard = () => {
 };
 
   return (
-    <div>
-      <div
-        ref={containerRef}
-        className="cg-wrap" 
-        style={{ width: 600, height: 600 }}
-      />
-      <div style={{ marginTop: 10, fontFamily: "monospace" }}>
-        Current FEN: {fen}
-      </div>
-      {chess && (
-        <div style={{ marginTop: 5, fontFamily: "monospace" }}>
-          Turn: {chess.turn === "white" ? "White" : "Black"}
-          {chess.isCheck() && " (Check!)"}
-          {chess.isCheckmate() && " (Checkmate!)"}
-          {chess.isStalemate() && " (Stalemate!)"}
-          {chess.isInsufficientMaterial() && " (Insufficient Material!)"}
-        </div>
-      )}
-      <div style={{ marginTop: 10 }}>
-      <button onClick={resetBoard} style={{ marginRight: 10 }}>
-          Reset Board
-        </button>
-        <button onClick={flipBoard} style={{ marginRight: 10 }}>
-        Flip Board
-      </button>
-
-      </div>
+   <div style={{ position: "relative" }}>
+  <div
+    ref={containerRef}
+    className="cg-wrap"
+    style={{ width: 600, height: 600 }}
+  />
+  <div style={{ marginTop: 10, fontFamily: "monospace" }}>
+    Current FEN: {fen}
+  </div>
+  {chess && (
+    <div style={{ marginTop: 5, fontFamily: "monospace" }}>
+      Turn: {chess.turn === "white" ? "White" : "Black"}
+      {chess.isCheck() && " (Check!)"}
+      {chess.isCheckmate() && " (Checkmate!)"}
+      {chess.isStalemate() && " (Stalemate!)"}
+      {chess.isInsufficientMaterial() && " (Insufficient Material!)"}
     </div>
+  )}
+  <div style={{ marginTop: 10 }}>
+    <button onClick={resetBoard} style={{ marginRight: 10 }}>
+      Reset Board
+    </button>
+    <button onClick={flipBoard} style={{ marginRight: 10 }}>
+      Flip Board
+    </button>
+  </div>
+
+  {/* Promotion modal */}
+{pendingPromotion && (
+  <div
+onClick={() => {
+  if (chess && groundRef.current) {
+    // Stop any ongoing move/drag inside Chessground
+    groundRef.current.stop?.();
+
+    const newFen = makeFen(chess.toSetup());
+    const dests = calculateDests(chess);
+
+    // Fully reset Chessground state
+    groundRef.current.set({
+      fen: newFen,
+      turnColor: chess.turn,
+      lastMove: undefined,
+      movable: {
+        color: chess.turn,
+        free: false,
+        showDests: true,
+        dests,
+        events: { after: handleMove },
+      },
+      highlight: { check: true, custom: getCheckHighlights(chess) },
+    });
+  }
+
+  // Clear pending promotion state
+  setPendingPromotion(null);
+}}
+
+    style={{
+      position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+      zIndex: 900, backgroundColor: "rgba(0,0,0,0.3)",
+      display: "flex", alignItems: "center", justifyContent: "center"
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+      style={{
+        backgroundColor: "white",
+        border: "2px solid black",
+        borderRadius: "8px",
+        padding: 10,
+        zIndex: 1000,
+        display: "flex",
+        gap: 10,
+        boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
+      }}
+    >
+      {["queen", "rook", "bishop", "knight", "knook", "knishop"].map(role => (
+        <button
+          key={role}
+          onClick={() => promotePawn(role as any)}
+          style={{ padding: 0, border: "none", background: "none", cursor: "pointer" }}
+        >
+          <div
+            className={`cg-piece ${role} ${pendingPromotion.color}`}
+            style={{ width: 45, height: 45 }}
+          />
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
+</div>
+
   );
 }

@@ -18,6 +18,8 @@ BUGS
 - note that the hybrid pieces (amazon/commoner/knook etc) do NOT have any code in the play() function. 
 this may cause some hidden bugs in the internal game state. 
 
+- flipping the board gets rid of the last move highlight
+
 
 ---------------------------------------------------
 DESIRED FEATURES
