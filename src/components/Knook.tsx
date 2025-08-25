@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import type { JSX } from 'react'
 import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
 import { Chess } from "chessops/chess";
@@ -9,10 +8,9 @@ import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
-import { playSound } from "../utils/chessHelpers";
-import type { Dests, Key } from "chessground/types";
-import { createChessInstance, calculateDests, getCheckHighlights, moveToUci, movesEqual } from "../utils/chessHelpers";
-import { defaultGame, extend, makePgn } from 'chessops/pgn';
+import type { Dests } from "chessground/types";
+import { createChessInstance, calculateDests, getCheckHighlights, moveToUci, movesEqual, playSound } from "../utils/chessHelpers";
+import { defaultGame, extend } from 'chessops/pgn';
 import type { PgnNodeData, Game, Node as PNode, ChildNode as CNode } from 'chessops/pgn';
 import { makeSan } from 'chessops/san';
 import '../App.css';
@@ -38,103 +36,98 @@ export default function Knook({
   const currentNodeRef = useRef<PNode<MyNodeData>>(pgnRef.current.moves);
   const pathRef = useRef<Array<PNode<MyNodeData> | CNode<MyNodeData>>>([pgnRef.current.moves]);
   const [currentOrientation, setCurrentOrientation] = useState<"white" | "black">(orientation);
-  const [pendingPromotion, setPendingPromotion] = useState<{
-  from: string;
-  to: string;
-  color: "white" | "black";
-} | null>(null);
+  const [pendingPromotion, setPendingPromotion] = useState<{from: string;to: string;color: "white" | "black";} | null>(null);
+  const lastMoveRef = useRef<[string, string] | undefined>(undefined);
+  const chessRef = useRef<Chess | null>(null); // for quick access without re-renders
 
-// Handle move
-const handleMove = (from: string, to: string) => {
-  if (!chess) return;
+  // Handle move
+  const handleMove = (from: string, to: string) => {
+    if (!chess) return;
 
-  const fromSquare = parseSquare(from);
-  const toSquare = parseSquare(to);
-  if (fromSquare === undefined || toSquare === undefined) return;
+    const fromSquare = parseSquare(from);
+    const toSquare = parseSquare(to);
+    if (fromSquare === undefined || toSquare === undefined) return;
 
-  const move: any = { from: fromSquare, to: toSquare };
-  const fromPiece = chess.board.get(fromSquare);
-  const toRank = Math.floor(toSquare / 8);
+    const move: any = { from: fromSquare, to: toSquare };
+    const fromPiece = chess.board.get(fromSquare);
+    const toRank = Math.floor(toSquare / 8);
 
-  // INTERCEPT promotion
-  if ((fromPiece?.role === "pawn" || fromPiece?.role === "painter") && (toRank === 0 || toRank === 7)) {
-    setPendingPromotion({ from, to, color: chess.turn });
-    return; // wait for modal
-  }
+    // Intercept promotion
+    if ((fromPiece?.role === "pawn" || fromPiece?.role === "painter") && (toRank === 0 || toRank === 7)) {
+      setPendingPromotion({ from, to, color: chess.turn });
+      return; // wait for modal
+    }
 
-  playMove(move, from, to);
-};
+    playMove(move, from, to);
+  };
 
-// Play a move helper
-const playMove = (move: any, from: string, to: string) => {
-  if (!chess) return;
+  const playMove = (move: any, from: string, to: string) => {
+    if (!chess) return;
 
-  if (!chess.isLegal(move)) {
-    groundRef.current?.set({ fen: makeFen(chess.toSetup()) });
-    return;
-  }
+    if (!chess.isLegal(move)) {
+      groundRef.current?.set({ fen: makeFen(chess.toSetup()) });
+      return;
+    }
 
-  const captured = chess.board.get(parseSquare(to)!);
+    const captured = chess.board.get(parseSquare(to)!);
 
-  // PGN: store SAN (if available) and the raw move object for replay
-  let san = "";
-  try {
-    san = makeSan(chess, move);
-  } catch {
-    san = moveToUci(move); // fallback if SAN can’t be made (custom pieces, etc.)
-  }
-  const color = chess.turn;
-  // find or create the next node
-  let nextNode = currentNodeRef.current.children.find(
-    (child) => child.data.san === san && movesEqual(child.data.move, move)
-  );
-  if (!nextNode) {
-    // chessops/pgn extend mutates the parent; then we grab the new child
-    extend(currentNodeRef.current, [{ san, move, color } as any]);
-    nextNode = currentNodeRef.current.children.find(
+    // PGN: store SAN and the raw move object for replay
+    let san = "";
+    try {
+      san = makeSan(chess, move);
+    } catch {
+      san = moveToUci(move); // fallback if SAN can’t be made
+    }
+    const color = chess.turn;
+    // find or create the next node
+    let nextNode = currentNodeRef.current.children.find(
       (child) => child.data.san === san && movesEqual(child.data.move, move)
-    )!;
-  }
-  currentNodeRef.current = nextNode;
-  pathRef.current = [...pathRef.current, nextNode];
+    );
+    if (!nextNode) {
+      // chessops/pgn extend mutates the parent; get the new child
+      extend(currentNodeRef.current, [{ san, move, color } as any]);
+      nextNode = currentNodeRef.current.children.find(
+        (child) => child.data.san === san && movesEqual(child.data.move, move)
+      )!;
+    }
+    currentNodeRef.current = nextNode;
+    pathRef.current = [...pathRef.current, nextNode];
 
-  chess.play(move);
-  const newFen = makeFen(chess.toSetup());
-  setFen(newFen);
-  onMove?.(from, to);
+    chess.play(move);
+    const newFen = makeFen(chess.toSetup());
+    setFen(newFen);
+    onMove?.(from, to);
 
-  // Sounds
-  if (chess.isCheck()) {
-    if (captured) playSound("capture");
-    else playSound("move");
-    playSound("check");
-  } else if (captured) {
-    playSound("capture");
-  } else {
-    playSound("move");
-  }
+    if (chess.isCheck()) {
+      if (captured) playSound("capture");
+      else playSound("move");
+      playSound("check");
+    } else if (captured) {
+      playSound("capture");
+    } else {
+      playSound("move");
+    }
 
-  // Update Chessground
-  const newDests = calculateDests(chess);
-  groundRef.current?.set({
-    fen: newFen,
-    movable: { color: chess.turn, dests: newDests, events: { after: handleMove }, free: false, showDests: true },
-    lastMove: [from, to],
-    highlight: { check: true, custom: getCheckHighlights(chess) }
-  });
-};
+    lastMoveRef.current = [from, to];
+    const newDests = calculateDests(chess);
+    groundRef.current?.set({
+      fen: newFen,
+      movable: { color: chess.turn, dests: newDests, events: { after: handleMove }, free: false, showDests: true },
+      lastMove: [from, to],
+      highlight: { check: true, custom: getCheckHighlights(chess) }
+    });
+  };
 
-// Called from modal when piece is picked
-const promotePawn = (role: "queen" | "rook" | "bishop" | "knight") => {
-  if (!pendingPromotion || !chess) return;
+  // Called from modal when piece is picked
+  const promotePawn = (role: "queen" | "rook" | "bishop" | "knight") => {
+    if (!pendingPromotion || !chess) return;
 
-  const { from, to } = pendingPromotion;
-  const move: any = { from: parseSquare(from), to: parseSquare(to), promotion: role };
+    const { from, to } = pendingPromotion;
+    const move: any = { from: parseSquare(from), to: parseSquare(to), promotion: role };
 
-  playMove(move, from, to);
-  setPendingPromotion(null);
-};
-
+    playMove(move, from, to);
+    setPendingPromotion(null);
+  };
 
   // Initialize chessops Chess instance
   useEffect(() => {
@@ -142,96 +135,110 @@ const promotePawn = (role: "queen" | "rook" | "bishop" | "knight") => {
     if (initialFen === "start") {
       newChess = Chess.default();
     } else {
-      const setup = parseFen(initialFen).unwrap(); // parseFen() returns Result<Setup, FenError>
+      const setup = parseFen(initialFen).unwrap();
       newChess = Chess.fromSetup(setup).unwrap();
     }
     setChess(newChess);
     setFen(makeFen(newChess.toSetup()));
   }, [initialFen]);
 
-  //initialize chessground instance
+    // 1) create Chessground 
   useEffect(() => {
-    if(!chess) return;
-    const ctx = chess.ctx();
-    const dests: Dests = new Map();
-    for (const [from, targets] of chess.allDests(ctx)) {
-      const fromStr = makeSquare(from);
-      const targetStrs = [...targets].map(t => makeSquare(t));
-      dests.set(fromStr, targetStrs);
-    }
-    if (!containerRef.current || !chess) return;
-    const config: Config = {
-      fen: makeFen(chess.toSetup()),
-      turnColor: chess.turn,
+    if (!containerRef.current) return;
+    const initialConfig: Config = {
+      fen: makeFen(Chess.default().toSetup()), // safe default
       orientation: currentOrientation,
-      highlight: {
-        lastMove: true,
-        check: true,
-      },
-      movable: {
-        color: chess.turn, 
-        free: false, 
-        showDests: true,
-        dests,
-        events: {
-          after: handleMove
-        }
-      },
-      animation: {
-        enabled: true,
-        duration: 300,
-      },
-      drawable: {
-        enabled: true,
-      },
-      draggable:{
-        enabled:true
-      },
-      events: {
-        move: (from: string, to: string) => {
-          //console.log("Chessground move event:", from, to);
-        },
-        select: (key: string) => {
-          //console.log("Chessground select event:", key);
-        },
-      },
+      highlight: { lastMove: true, check: true },
+      movable: { color: "white", free: false, showDests: true, dests: new Map(), events: { after: handleMove } },
+      animation: { enabled: true, duration: 300 },
+      drawable: { enabled: true },
+      draggable: { enabled: true },
     };
-    // create Chessground instance
-    groundRef.current = Chessground(containerRef.current, config);
+    groundRef.current = Chessground(containerRef.current, initialConfig);
 
     return () => {
-      // clean up on unmount
       groundRef.current?.destroy();
       groundRef.current = null;
     };
-  }, [currentOrientation, chess]);
+  }, []);
 
-const resetBoard = () => {
-  if (!chess) return;
+  // 2) update Chessground 
+  useEffect(() => {
+    if (!groundRef.current || !chess) return;
 
-  // Create a fresh Chess instance (your custom starting FEN)
-  const newChess = createChessInstance("start");
-  setChess(newChess);
+    // ref copy for quick access in handlers
+    chessRef.current = chess;
 
-  const newFen = makeFen(newChess.toSetup());
-  setFen(newFen);
+    // compute dests the same as you did before
+    const dests: Dests = new Map();
+    const ctx = chess.ctx();
+    for (const [from, targets] of chess.allDests(ctx)) {
+      dests.set(makeSquare(from), [...targets].map((t) => makeSquare(t)));
+    }
 
-  if (!groundRef.current) return;
+    // apply lastMove we've stored earlier (playMove / goToPath should set lastMoveRef.current)
+    const lastMove = lastMoveRef.current;
 
-  const dests = calculateDests(newChess);
+    groundRef.current.set({
+      fen: makeFen(chess.toSetup()),
+      turnColor: chess.turn,
+      orientation: currentOrientation,
+      movable: {
+        color: chess.turn,
+        free: false,
+        showDests: true,
+        dests,
+        events: { after: handleMove },
+      },
+      lastMove,
+      highlight: { check: true, custom: getCheckHighlights(chess) },
+    });
+  }, [chess, currentOrientation]);
 
-  groundRef.current.set({
-    fen: newFen,
-    lastMove: undefined,
-    orientation: currentOrientation, // preserve current board orientation
-    movable: {
-      color: newChess.turn, // use the new chess instance's turn
-      free: false,
-      dests,
-      showDests: true,
-      events: { after: handleMove! },
-    },
-  });
+  // Arrow key navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        goToNext();
+      } else if (e.key === "ArrowLeft") {
+        goToPrev();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [goToNext, goToPrev]);
+
+
+  const resetBoard = () => {
+    if (!chess) return;
+
+    const newChess = createChessInstance("himakbnr/ppyppppp/8/8/8/8/PPYPPPPP/HIMAKBNR w KQkq - 0 1");
+    setChess(newChess);
+
+    const newFen = makeFen(newChess.toSetup());
+    setFen(newFen);
+
+    if (!groundRef.current) return;
+
+    const dests = calculateDests(newChess);
+
+    lastMoveRef.current = undefined;
+
+    groundRef.current.set({
+      fen: newFen,
+      lastMove: undefined,
+      orientation: currentOrientation,
+      movable: {
+        color: newChess.turn,
+        free: false,
+        dests,
+        showDests: true,
+        events: { after: handleMove! },
+      },
+    });
 
   // Reset PGN tracking
   pgnRef.current = defaultGame<MyNodeData>();
@@ -240,100 +247,122 @@ const resetBoard = () => {
 };
 
   const flipBoard = () => {
-  if (!groundRef.current) return;
+    if (!groundRef.current) return;
 
-  const newOrientation = currentOrientation === "white" ? "black" : "white";
-  setCurrentOrientation(newOrientation);
+    const newOrientation = currentOrientation === "white" ? "black" : "white";
+    setCurrentOrientation(newOrientation);
 
-  // Update chessground with new orientation
-  groundRef.current.set({ orientation: newOrientation });
+    // Update chessground with new orientation
+    groundRef.current.set({ orientation: newOrientation });
 };
 
-function renderPgn(
-  node: PNode<MyNodeData> | CNode<MyNodeData>,
-  depth = 0,
-  path: Array<PNode<MyNodeData> | CNode<MyNodeData>> = []
-): JSX.Element[] {
-  const elements: JSX.Element[] = [];
-  node.children.forEach((child, idx) => {
-    const label = child.data.san ?? moveToUci(child.data.move);
-    const newPath = [...path, child];
-    elements.push(
-      <span
-        key={`${path.length}-${idx}-${label}`}
-        onClick={() => goToNode(child, newPath)}
-        style={{
-          marginLeft: depth * 12,
-          cursor: "pointer",
-          fontWeight: child === currentNodeRef.current ? "bold" : "normal",
-          display: "inline-block",
-          marginRight: 6,
-        }}
-      >
-        {label}
-      </span>
-    );
-    elements.push(...renderPgn(child, depth + 1, newPath));
-  });
-  return elements;
-}
+  function goToPath(path: Array<PNode<MyNodeData> | CNode<MyNodeData>>) {
+    // rebuild from start position
+    const newChess =
+      initialFen === "start"
+        ? Chess.default()
+        : Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
 
+    for (const n of path.slice(1)) {
+      const mv = (n as CNode<MyNodeData>).data.move;
+      newChess.play(mv);
+    }
 
-function goToPath(path: Array<PNode<MyNodeData> | CNode<MyNodeData>>) {
-  // rebuild from the same start position you used initially
-  const newChess =
-    initialFen === "start"
-      ? Chess.default()
-      : Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
+    let lastMove: [string, string] | undefined = undefined;
+    if (path.length > 1) {
+      const lastNode = path[path.length - 1] as CNode<MyNodeData>;
+      if (lastNode?.data?.move) {
+        const m = lastNode.data.move;
+        try {
+          lastMove = [makeSquare(m.from), makeSquare(m.to)];
+        } catch {
+          lastMove = undefined;
+        }
+      }
+    }
+    if (lastMove) lastMoveRef.current = lastMove;
+    setChess(newChess);
+    const newFen = makeFen(newChess.toSetup());
+    setFen(newFen);
+    currentNodeRef.current = path[path.length - 1] as any;
+    pathRef.current = path;
 
-  for (const n of path.slice(1)) {
-    const mv = (n as CNode<MyNodeData>).data.move;
-    newChess.play(mv);
+    const dests = calculateDests(newChess);
+    console.log("lastMove", lastMove);
+    groundRef.current?.set({
+      fen: newFen,
+      turnColor: newChess.turn,
+      movable: { color: newChess.turn, dests, events: { after: handleMove }, free: false, showDests: true },
+      lastMove,
+      highlight: { check: true, custom: getCheckHighlights(newChess) },
+    });
   }
 
-  setChess(newChess);
-  const newFen = makeFen(newChess.toSetup());
-  setFen(newFen);
-  currentNodeRef.current = path[path.length - 1] as any;
-  pathRef.current = path;
-
-  const dests = calculateDests(newChess);
-  groundRef.current?.set({
-    fen: newFen,
-    movable: { color: newChess.turn, dests, events: { after: handleMove }, free: false, showDests: true },
-    highlight: { check: true, custom: getCheckHighlights(newChess) },
-  });
-}
-
-function goToNode(node: CNode<MyNodeData>, path: Array<PNode<MyNodeData> | CNode<MyNodeData>>) {
-  goToPath(path);
-}
-
-function goToNext() {
-  const curr = currentNodeRef.current;
-  const child = curr.children[0];
-  if (child) {
-    goToNode(child, [...pathRef.current, child]);
+  function goToNode(node: CNode<MyNodeData>, path: Array<PNode<MyNodeData> | CNode<MyNodeData>>) {
+    goToPath(path);
   }
-}
 
-function goToPrev() {
-  if (pathRef.current.length > 1) {
-    const newPath = pathRef.current.slice(0, -1);
+  function goToNext() {
+    const curr = currentNodeRef.current;
+    const child = curr.children[0];
+    if (child) {
+      goToNode(child, [...pathRef.current, child]);
+    }
+  }
+
+  function goToPrev() {
+    console.log(pathRef.current.length)
+    if (pathRef.current.length === 2){
+      lastMoveRef.current = undefined;
+      groundRef.current?.set({ lastMove: undefined });
+    }
+    if (pathRef.current.length > 1) {
+      const newPath = pathRef.current.slice(0, -1);
+      goToPath(newPath);
+    } 
+  }
+
+  function goToFirst() {
+    if (pathRef.current.length === 1) {
+      lastMoveRef.current = undefined;
+      groundRef.current?.set({ lastMove: undefined });
+      return;
+    }
+
+    // reset the highlight (no previous move)
+    lastMoveRef.current = undefined;
+    groundRef.current?.set({ lastMove: undefined });
+
+    // first node is the root, so path is just [root]
+    const rootNode = pathRef.current[0];
+    goToPath([rootNode]);
+  }
+
+  function goToLast() {
+    const curr = currentNodeRef.current;
+
+    // Traverse down to the last child
+    let lastNode = curr;
+    const newPath = [...pathRef.current];
+
+    while (lastNode.children.length > 0) {
+      const child = lastNode.children[0];
+      newPath.push(child);
+      lastNode = child;
+    }
+
     goToPath(newPath);
   }
-}
 
-// --- Replace renderPgn + call site with the following ---
 
+
+// PGN rendering helpers
 function getSan(node: PNode<MyNodeData> | CNode<MyNodeData>): string {
   if ("data" in node) {
     return node.data.san ?? moveToUci(node.data.move);
   }
   return ""; // root node has no SAN
 }
-
-
 /**
  * Build the mainline as an array of rows, where each row is a full move:
  * { moveNum, whiteNode, whitePath, blackNode?, blackPath?, whiteVariations[], blackVariations[] }
@@ -342,7 +371,7 @@ function buildMainlineRows() {
   const root = pgnRef.current.moves;
   const rows: Array<any> = [];
 
-  let parent = root; // start at root
+  let parent = root;
   let parentPath: Array<PNode<MyNodeData> | CNode<MyNodeData>> = [root];
   let moveNum = 1;
 
@@ -403,7 +432,7 @@ function variationText(startNode: CNode<MyNodeData> | PNode<MyNodeData>, maxPly 
   return parts.join(" ");
 }
 
-/** Render a single variation line (small text, clickable) */
+/** Render a single variation line */
 function renderVariation(v: { node: CNode<MyNodeData> | PNode<MyNodeData>; path: Array<any> }, keySuffix: string) {
   const text = variationText(v.node, 10);
   return (
@@ -470,12 +499,12 @@ function renderMoveList() {
               )}
             </div>
 
-            {/* Variations for the white ply (small, beneath the mainline row) */}
+            {/* Variations for the white ply (small) */}
             <div style={{ display: "flex", gap: 8, marginLeft: 36, flexWrap: "wrap" }}>
               {row.whiteVariations.map((v: any, idx: number) => renderVariation(v, `w-${row.moveNum}-${idx}`))}
             </div>
 
-            {/* Variations for the black ply (small, beneath the mainline row) */}
+            {/* Variations for the black ply (small) */}
             <div style={{ display: "flex", gap: 8, marginLeft: 36, marginTop: 2, flexWrap: "wrap" }}>
               {row.blackVariations.map((v: any, idx: number) => renderVariation(v, `b-${row.moveNum}-${idx}`))}
             </div>
@@ -536,12 +565,12 @@ function renderMoveList() {
       {renderMoveList()}
     </div>
     <div style={{ marginTop: 10 }}>
-      <button onClick={() => goToPrev()} style={{ marginRight: 10 }}>
-        Prev
-      </button>
-      <button onClick={() => goToNext()}>Next</button>
-    </div>
+       <button onClick={() => goToFirst()} style={{ marginRight: 10 }}>&lt;&lt;</button>
+      <button onClick={() => goToPrev()} style={{ marginRight: 10 }}>&lt;</button>
+      <button onClick={() => goToNext()}>&gt;</button>
+      <button onClick={() => goToLast()} style={{ marginRight: 10 }}>&gt;&gt;</button>
   </div>
+    </div>
 
   {/* Promotion Modal */}
   {pendingPromotion && (
