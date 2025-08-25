@@ -3,11 +3,13 @@
 TODO
 ---------------------------------------------------
 
-2. Allow the painter to promote
+1. add arrow key navigation and f = flip board
 
-5. Allow replay of moves via PGN in analysis board
+2. debug PGN viewer: move/check highlights, special piece compatibility
 
-6. Add Snare piece
+3. code review: understanding the component, removing unecessary comments
+
+4. Create the Snare piece
 
 ---------------------------------------------------
 BUGS
@@ -19,6 +21,8 @@ BUGS
 this may cause some hidden bugs in the internal game state. 
 
 - flipping the board gets rid of the last move highlight
+
+- last move/check highlights disappear when reverting to previous state
 
 
 ---------------------------------------------------

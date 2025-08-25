@@ -324,6 +324,167 @@ function goToPrev() {
   }
 }
 
+// --- Replace renderPgn + call site with the following ---
+
+function getSan(node: PNode<MyNodeData> | CNode<MyNodeData>): string {
+  if ("data" in node) {
+    return node.data.san ?? moveToUci(node.data.move);
+  }
+  return ""; // root node has no SAN
+}
+
+
+/**
+ * Build the mainline as an array of rows, where each row is a full move:
+ * { moveNum, whiteNode, whitePath, blackNode?, blackPath?, whiteVariations[], blackVariations[] }
+ */
+function buildMainlineRows() {
+  const root = pgnRef.current.moves;
+  const rows: Array<any> = [];
+
+  let parent = root; // start at root
+  let parentPath: Array<PNode<MyNodeData> | CNode<MyNodeData>> = [root];
+  let moveNum = 1;
+
+  while (true) {
+    const whiteNode = parent.children[0];
+    if (!whiteNode) break;
+
+    const whitePath = [...parentPath, whiteNode];
+
+    // Variations that start at this ply (excluding the mainline child)
+    const whiteVariations = parent.children.slice(1).map((v) => ({
+      node: v,
+      path: [...parentPath, v],
+    }));
+
+    // See if there is a black reply on the mainline
+    const blackNode = whiteNode.children[0] ?? null;
+    const blackPath = blackNode ? [...whitePath, blackNode] : null;
+
+    // Black-side variations (siblings of blackNode under whiteNode)
+    const blackVariations: Array<any> = [];
+    if (whiteNode.children.length > 1) {
+      // variations that branch from the black ply (i.e., children[1..])
+      for (const v of whiteNode.children.slice(1)) {
+        blackVariations.push({ node: v, path: [...whitePath, v] });
+      }
+    }
+
+    rows.push({
+      moveNum,
+      whiteNode,
+      whitePath,
+      whiteVariations,
+      blackNode,
+      blackPath,
+      blackVariations,
+    });
+
+    // advance parent to either blackNode (if exists) or whiteNode (if no black reply)
+    parent = blackNode ?? whiteNode;
+    parentPath = blackPath ?? whitePath;
+    moveNum += 1;
+  }
+
+  return rows;
+}
+
+/** produce condensed text for a variation by following first-child chain */
+function variationText(startNode: CNode<MyNodeData> | PNode<MyNodeData>, maxPly = 8) {
+  const parts: string[] = [];
+  let node: any = startNode;
+  let count = 0;
+  while (node && count < maxPly) {
+    parts.push(getSan(node));
+    node = node.children[0];
+    count++;
+  }
+  return parts.join(" ");
+}
+
+/** Render a single variation line (small text, clickable) */
+function renderVariation(v: { node: CNode<MyNodeData> | PNode<MyNodeData>; path: Array<any> }, keySuffix: string) {
+  const text = variationText(v.node, 10);
+  return (
+    <div
+      key={`var-${keySuffix}-${text}`}
+      onClick={() => goToNode(v.node as any, v.path)}
+      style={{
+        fontSize: 12,
+        color: "#cfcfcf",
+        marginLeft: 8,
+        marginTop: 2,
+        cursor: "pointer",
+      }}
+      title={text}
+    >
+      ({text})
+    </div>
+  );
+}
+
+/** Render the whole move list as lines */
+function renderMoveList() {
+  const rows = buildMainlineRows();
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {rows.map((row) => {
+        const whiteLabel = getSan(row.whiteNode);
+        const blackLabel = row.blackNode ? getSan(row.blackNode) : null;
+
+        return (
+          <div key={`row-${row.moveNum}`} style={{ display: "flex", flexDirection: "column" }}>
+            {/* Mainline row: "1. e4 e5" */}
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+                lineHeight: "1.4",
+                fontSize: 14,
+              }}
+            >
+              <div style={{ minWidth: 28, textAlign: "right", color: "#ddd" }}>
+                {row.moveNum}.
+              </div>
+
+              <div
+                onClick={() => goToNode(row.whiteNode, row.whitePath)}
+                style={{ cursor: "pointer", fontWeight: row.whiteNode === currentNodeRef.current ? "bold" : "normal" }}
+                title={whiteLabel}
+              >
+                {whiteLabel}
+              </div>
+
+              {blackLabel ? (
+                <div
+                  onClick={() => row.blackNode && goToNode(row.blackNode, row.blackPath)}
+                  style={{ cursor: "pointer", fontWeight: row.blackNode === currentNodeRef.current ? "bold" : "normal" }}
+                  title={blackLabel}
+                >
+                  {blackLabel}
+                </div>
+              ) : (
+                <div style={{ color: "#777" }} />
+              )}
+            </div>
+
+            {/* Variations for the white ply (small, beneath the mainline row) */}
+            <div style={{ display: "flex", gap: 8, marginLeft: 36, flexWrap: "wrap" }}>
+              {row.whiteVariations.map((v: any, idx: number) => renderVariation(v, `w-${row.moveNum}-${idx}`))}
+            </div>
+
+            {/* Variations for the black ply (small, beneath the mainline row) */}
+            <div style={{ display: "flex", gap: 8, marginLeft: 36, marginTop: 2, flexWrap: "wrap" }}>
+              {row.blackVariations.map((v: any, idx: number) => renderVariation(v, `b-${row.moveNum}-${idx}`))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
   return (
 <div style={{ position: "relative", display: "flex", gap: "20px" }}>
@@ -372,7 +533,7 @@ function goToPrev() {
         whiteSpace: "normal",
       }}
     >
-      {renderPgn(pgnRef.current.moves, 0, [pgnRef.current.moves])}
+      {renderMoveList()}
     </div>
     <div style={{ marginTop: 10 }}>
       <button onClick={() => goToPrev()} style={{ marginRight: 10 }}>

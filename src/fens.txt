@@ -7,7 +7,7 @@ PAINTER
 
 "2k5/4p3/8/3Y4/8/8/8/2K5 w - - 0 1" en passant
 
-"2k5/8/8/8/4p3/3Y4/8/2K5 w - - 0 1" painting a pawn
+"2k5/Y7/8/8/4p3/3Y4/8/2K5 w - - 0 1" painting a pawn
 
 ---------------------------------
 PAWN
