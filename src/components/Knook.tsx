@@ -372,7 +372,7 @@ function goToPrev() {
         whiteSpace: "normal",
       }}
     >
-      {renderPgn(pgnRef.current.moves)}
+      {renderPgn(pgnRef.current.moves, 0, [pgnRef.current.moves])}
     </div>
     <div style={{ marginTop: 10 }}>
       <button onClick={() => goToPrev()} style={{ marginRight: 10 }}>
