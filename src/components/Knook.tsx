@@ -9,7 +9,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import type { Dests } from "chessground/types";
-import { createChessInstance, calculateDests, getCheckHighlights, moveToUci, movesEqual, playSound } from "../utils/chessHelpers";
+import { calculateDests, getCheckHighlights, moveToUci, movesEqual, playSound } from "../utils/chessHelpers";
 import { defaultGame, extend } from 'chessops/pgn';
 import type { PgnNodeData, Game, Node as PNode, ChildNode as CNode } from 'chessops/pgn';
 import { makeSan } from 'chessops/san';
@@ -50,10 +50,12 @@ export default function Knook({
 
     const move: any = { from: fromSquare, to: toSquare };
     const fromPiece = chess.board.get(fromSquare);
+    const toPiece = chess.board.get(toSquare);
     const toRank = Math.floor(toSquare / 8);
+    const fromRank = Math.floor(fromSquare / 8);
 
     // Intercept promotion
-    if ((fromPiece?.role === "pawn" || fromPiece?.role === "painter") && (toRank === 0 || toRank === 7)) {
+    if ((fromPiece?.role === "pawn" || fromPiece?.role === "painter") && (toRank === 0 || toRank === 7) || (fromPiece?.role==="wizard" && toPiece?.role==="pawn" && (fromRank === 0 || fromRank === 7))) {
       setPendingPromotion({ from, to, color: chess.turn });
       return; // wait for modal
     }
@@ -215,7 +217,9 @@ export default function Knook({
   const resetBoard = () => {
     if (!chess) return;
 
-    const newChess = createChessInstance("himakbnr/ppyppppp/8/8/8/8/PPYPPPPP/HIMAKBNR w KQkq - 0 1");
+    const newChess = initialFen === "start" ? Chess.default(): Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
+
+    //const newChess = createChessInstance("rnbqkbnr/ppppyppp/8/8/8/8/PPSPPPPP/RNBQKBNR w KQkq - 0 1");
     setChess(newChess);
 
     const newFen = makeFen(newChess.toSetup());

@@ -17,7 +17,55 @@ PAWN
 "1k6/6P1/8/8/8/8/5p2/1K6 w - - 0 1" pawn promotion
 
 ---------------------------------
+SNARE
+---------------------------------
+"3k4/8/8/8/2nSb3/8/8/3K4 w - - 0 1" 2 snared pieces
+
+"3k4/8/8/3n4/3S4/8/8/3K4 w - - 0 1" snare cannot capture
+
+"8/8/8/3k4/3S4/8/8/3K4 w - - 0 1" snaring a king
+
+"3k4/8/8/5n2/8/8/3S4/3K4 w - - 0 1" snare movement
+
+"n7/2k5/2S5/8/8/8/8/2K1B3 w - - 0 1" snare checkmate
+
+"5rk1/3y1ppp/8/8/1NSP4/2P5/5PPP/5RK1 w - - 0 1" snare gets painted
+
+"rnbqkbnr/ppppyppp/8/8/8/8/PPSPPPPP/RNBQKBNR w KQkq - 0 1" c-snare vs e-painter opening
+
+---------------------------------
+WIZARD
+---------------------------------
+
+"2k5/8/6n1/8/4W3/8/8/2K5 w - - 0 1" standard wizard moves
+
+"7k/8/8/8/2N1W3/8/8/2K5 w - - 0 1" simple wizard swap
+
+"7k/8/8/8/1N1N1N1W/7B/8/2K5 w - - 0 1" more swapping + "leapfrogging"
+
+"3r3k/8/8/8/8/3W1N2/3K4/8 w - - 0 1" pinned wizard teleport
+
+"3r3k/8/8/8/8/3N1W2/3K4/8 w - - 0 1" reverse pinned wizard teleport
+
+"3k4/3w1n2/8/8/8/3R4/3K4/8 w - - 0 1" black wizard
+
+"8/8/8/4k3/5w2/8/6K1/8 b - - 17 11" beautiful solo wizard mate
+
+"6rk/6pw/8/4N3/8/8/8/6K1 w - - 0 1" wizard escapes checkmate
+
+"W3k3/8/P7/8/8/7p/8/4K3 b - - 0 1" swapping a pawn into promotion
+
+---------------------------------
 GENERAL
 ---------------------------------
 
 "himakbnr/ppyppppp/8/8/8/8/PPYPPPPP/HIMAKBNR w KQkq - 0 1" full cast of characters
+
+
+---------------------------------
+BUGS
+---------------------------------
+
+"3k4/3w1n2/8/3R4/8/8/3K4/8 b - - 1 1" wizard cannot capture here
+
+"3k4/3R1w2/8/8/8/8/3K4/8 b - - 0 2" wizard cannot capture the rook here

@@ -6,7 +6,7 @@ function App() {
   return (
     <div>
       <Knook
-        initialFen="himakbnr/ppyppppp/8/8/8/8/PPYPPPPP/HIMAKBNR w KQkq - 0 1"
+        initialFen="W3k3/8/P7/8/8/7p/8/4K3 b - - 0 1"
         orientation="white"
         onMove={(from, to) => {
           console.log(`Moved from ${from} to ${to}`);

@@ -1,12 +1,18 @@
 
 ---------------------------------------------------
-TODO
+TODO / DEVELOPMENT PATH
 ---------------------------------------------------
 
+1. Add new pieces: Snare/Wizard/Archer/Picasso
 
-3. code review: understanding the component, removing unecessary comments. fix public folder reminder.
+2. Create a tutorials page with a tutorial for every new piece (and standard pieces)
+    - tutorial pages have quotes
 
-4. Create the Snare piece
+3. Create a board editor page
+
+4. Re use board editor logic to create a "deck building page" with token allotment
+
+5. begin developement of online multiplayer
 
 ---------------------------------------------------
 BUGS
@@ -14,12 +20,9 @@ BUGS
 
 - Castling plays a capture sound
 
-- note that the hybrid pieces (amazon/commoner/knook etc) do NOT have any code in the play() function. 
-this may cause some hidden bugs in the internal game state. 
+- insufficient material in many positions involving new pieces
 
-- flipping the board gets rid of the last move highlight
-
-- last move/check highlights disappear when reverting to previous state
+- wizard does not give check
 
 
 ---------------------------------------------------
@@ -49,17 +52,17 @@ Base Game: Western Fairy Pieces (8 Fairy Pieces)
 
 1. Chancellor (Knook)
     - FEN: H
-    - Value: 
+    - Value: 8
 
 2. Paladin (Knishop)
     - FEN: I
-    - Value: 
+    - Value: 6
 
 3. Amazon
     - FEN: A 
     - Value: 13
 
-4. Peasant/Commoner
+4. Peasant/Commoner (moes like a king but is not royal)
     - FEN: M 
     - Value:
 
@@ -73,7 +76,7 @@ Base Game: Western Fairy Pieces (8 Fairy Pieces)
 
 7. Wizard: Moves up to 2 squares orthogonally and can jump. Can swap places with a friendly piece. Teleport range: 3 squares. Need open lines to swap?
     - FEN: W 
-    - Value: 
+    - Value: 7
 
 8. Archer/Sniper: Bishop that can only move one square at a time. 4 Square Bishop Capture Range. Doesn't move to where it captures. Maybe the knight is immune to archer.
     - FEN: 
@@ -164,3 +167,34 @@ The nightrider is often represented by an altered version of the knight's icon.[
   while the knight is abbreviated as S for the German name Springer.
 
 
+---------------------------------------------------
+QUOTES FOR TUTORIAL PAGES 
+---------------------------------------------------
+
+Pawn: "Pawns are the soul of chess." - Philidor
+
+Knight: 
+
+Bishop: 
+
+Rook:
+
+Queen: "I will not be triumphed over." - Cleopatra
+
+King: "I am the state." - Louis XIV
+
+Knook: 
+
+Knishop:
+
+Amazon:
+
+Commoner: 
+
+Painter: "I dream my painting, and then I paint my dream." -van Gogh
+
+Snare: "It's a trap!" - Admiral Ackbar
+
+Wizard: "A wizard is never late. Nor is he early. He arrives precisely when he means to." - Gandalf
+
+Archer: 
