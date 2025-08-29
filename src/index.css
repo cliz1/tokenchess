@@ -25,10 +25,12 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  justify-content: center; 
+  align-items: center;  
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 100vh;      
 }
+
 
 h1 {
   font-size: 3.2em;
@@ -66,3 +68,30 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Palette thumbnails: show a single piece image, not repeated sprite tiles */
+.palette .cg-piece {
+  background-repeat: no-repeat !important;     /* stop repeating */
+  background-position: center center !important;
+  background-size: 64px 64px !important;       /* make the sprite fit the thumb */
+  width: 64px !important;                      /* ensure piece div matches expected size */
+  height: 64px !important;
+  display: block;
+  image-rendering: auto;
+}
+
+/* Ensure the palette tile box doesn't overflow the piece */
+.palette > div {
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lesson-text {
+  white-space: pre-line;
+}
+
+

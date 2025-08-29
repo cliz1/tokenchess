@@ -5,14 +5,25 @@ TODO / DEVELOPMENT PATH
 
 1. Add new pieces: Snare/Wizard/Archer/Picasso
 
+    - debugging edge cases for special pieces
+    - new sprites/names/FEN for Knishop and maybe Knook
+    - rename anarchychess repo to tokenchess
+
 2. Create a tutorials page with a tutorial for every new piece (and standard pieces)
     - tutorial pages have quotes
 
 3. Create a board editor page
+    - button to open an analysis board with the given fen
 
 4. Re use board editor logic to create a "deck building page" with token allotment
+    - allow toggling "perspective", which flips the board and mirrors the pieces
+    - bug: when placing a piece on top of another, the tokens for removed piece not reallocated
+    - rules: pawn/painter/snare can only go on second rank, rest can only go on first 
+    - no king in editor, kings permanently on E1
 
-5. begin developement of online multiplayer
+5. create a page for theoretical discussion topics (more in depth than tutorials)
+
+6. begin developement of online multiplayer
 
 ---------------------------------------------------
 BUGS
@@ -22,18 +33,24 @@ BUGS
 
 - insufficient material in many positions involving new pieces
 
-- wizard does not give check
 
+---------------------------------------------------
+THEORY
+---------------------------------------------------
+- When is a hybrid better than two separate pieces?
+
+- What is the value of the Commoner?
+
+- Is KM v KA a draw??
 
 ---------------------------------------------------
 DESIRED FEATURES
 ---------------------------------------------------
 
-- Board editor with drag and drop
+- Forum page
+- Login Feature: starter account info is a set of 5 customized armies
+- Blinkerton's Token Chess theory 
 
-- Navigate through PGN with arrows
-
-- painter should be able to paint while being pinned
 
 Sounds:
 - checkmate
@@ -50,39 +67,51 @@ FAIRY PIECES
 
 Base Game: Western Fairy Pieces (8 Fairy Pieces)
 
-1. Chancellor (Knook)
+1. Knook
     - FEN: H
     - Value: 8
 
-2. Paladin (Knishop)
+    - new name proposal: Chancellor, Champion, Empress, Marshall
+
+2. Knishop
     - FEN: I
     - Value: 6
+
+    - new name proposals: Paladin, Princess, Archbishop, Cardinal, Centaur, Minister
 
 3. Amazon
     - FEN: A 
     - Value: 13
 
-4. Peasant/Commoner (moes like a king but is not royal)
+4. Peasant (moves like a king but is not royal)
     - FEN: M 
-    - Value:
+    - Value: 4
+
+    - new name proposals: Commoner, Guard, Mann, Squire
 
 5. Royal Painter: a pawn that paints enemy pieces instead of capturing
     - FEN: Y 
-    - Value:
+    - Value: 2-3
 
 6. Snare: any enemy adjacent orthogonally to the snare cannot move. cannot move backwards or sideways. cannot capture.
     - FEN: S 
-    - Value: 
+    - Value: 2
 
 7. Wizard: Moves up to 2 squares orthogonally and can jump. Can swap places with a friendly piece. Teleport range: 3 squares. Need open lines to swap?
     - FEN: W 
-    - Value: 7
+    - Value: 5-7
 
 8. Archer/Sniper: Bishop that can only move one square at a time. 4 Square Bishop Capture Range. Doesn't move to where it captures. Maybe the knight is immune to archer.
     - FEN: 
     - Value:
 
 9. Picasso: Painter that moves like a king. Can only be obtained by promoting a painter. 
+
+KING VARIANTS:
+
+- Flying General: Gives the flying general check from Xianqi, stalemate wins game
+
+- Honorless King: Can capture own pieces
 
 DLC?
 
@@ -136,6 +165,8 @@ An boarded piece can leave the Ship with its normal jump/move/capture.
 ABSTRACT IDEAS:
 
 - PAINTER has its own special promiton: Picasso/Painter King, moves like a king but PAINTS instead of capturing
+
+- SNARE has its own special promotion: King Snare, moves like a king and snares in 4 directions
 
 - Salt pillar that can't be captured
 

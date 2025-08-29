@@ -3,7 +3,7 @@ import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
 import { Chess } from "chessops/chess";
 import { parseFen, makeFen } from "chessops/fen";
-import { parseSquare, makeSquare } from "chessops/util";
+import { parseSquare, makeSquare  } from "chessops/util";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
@@ -72,6 +72,9 @@ export default function Knook({
     }
 
     const captured = chess.board.get(parseSquare(to)!);
+    const piece = chess.board.get(move.from)!;
+    const toRank = Math.floor(move.to / 8);
+    const fromRank = Math.floor(move.from / 8);
 
     // PGN: store SAN and the raw move object for replay
     let san = "";
@@ -100,13 +103,21 @@ export default function Knook({
     setFen(newFen);
     onMove?.(from, to);
 
-    if (chess.isCheck()) {
-      if (captured) playSound("capture");
-      else playSound("move");
-      playSound("check");
-    } else if (captured) {
-      playSound("capture");
-    } else {
+    // sounds logic
+    if (captured){
+      if (piece.role === "painter") playSound("paint");
+      else if (piece.role === "wizard" && captured.color === piece.color) playSound("wizard");
+      else if (piece.role === "archer" && Math.abs(toRank-fromRank)>1) {playSound("archer"); playSound("x_capture");}
+      else playSound("capture");
+      if (chess.isCheck()){
+        playSound("check");
+      }
+    }
+    else {
+      if (piece.role === "snare") {playSound("move");}
+      if (chess.isCheck()){
+        playSound("check");
+      }
       playSound("move");
     }
 

@@ -33,6 +33,8 @@ SNARE
 
 "rnbqkbnr/ppppyppp/8/8/8/8/PPSPPPPP/RNBQKBNR w KQkq - 0 1" c-snare vs e-painter opening
 
+"3k4/3n4/8/3Sy3/5N2/8/3K4/8 b - - 0 1" can the painter paint while snared?
+
 ---------------------------------
 WIZARD
 ---------------------------------
@@ -49,11 +51,21 @@ WIZARD
 
 "3k4/3w1n2/8/8/8/3R4/3K4/8 w - - 0 1" black wizard
 
-"8/8/8/4k3/5w2/8/6K1/8 b - - 17 11" beautiful solo wizard mate
+"8/8/8/8/8/4k1w1/8/5K2 b - - 25 15" beautiful solo wizard mate
 
 "6rk/6pw/8/4N3/8/8/8/6K1 w - - 0 1" wizard escapes checkmate
 
 "W3k3/8/P7/8/8/7p/8/4K3 b - - 0 1" swapping a pawn into promotion
+
+---------------------------------
+ARCHER
+---------------------------------
+"4k3/8/8/8/4C3/8/8/4K3 w - - 0 1" standard archer movement
+
+"4k3/7n/n7/1n6/8/3C4/8/4Kn2 w - - 0 1" archer capture
+
+"8/8/6k1/5n2/8/3C4/8/4K3 w - - 0 1" capture resulting in check
+
 
 ---------------------------------
 GENERAL
@@ -61,11 +73,14 @@ GENERAL
 
 "himakbnr/ppyppppp/8/8/8/8/PPYPPPPP/HIMAKBNR w KQkq - 0 1" full cast of characters
 
+"4k3/himayswc/8/8/8/8/HIMAYSWC/4K3 b - - 0 1" 
+
+"8/3k4/3m4/8/3P4/3K4/8/8 b - - 0 1" - Commoner v Pawn ending
+
+"8/3k4/3m4/8/8/4PP2/6K1/8 b - - 0 1" - Commoner vs 2
+
 
 ---------------------------------
 BUGS
 ---------------------------------
 
-"3k4/3w1n2/8/3R4/8/8/3K4/8 b - - 1 1" wizard cannot capture here
-
-"3k4/3R1w2/8/8/8/8/3K4/8 b - - 0 2" wizard cannot capture the rook here
