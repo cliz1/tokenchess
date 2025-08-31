@@ -67,7 +67,7 @@ const LESSONS = {
       {
         text: "The Champion combines the movement of the Rook and Knight pieces. It a classic addition in chess variants. \n José Raúl Capablanca called it the “Chancellor,“ a popular name for the piece, but Token Chess refers to it by the name given by its first introduction to western chess by Italian priest Pietro Carrera.",
         challenge: {
-          initialFen: "8/3k4/8/1b2r12/2H5/8/8/3K4 w - - 0 1",
+          initialFen: "8/3k4/8/1b2r12/2C5/8/8/3K4 w - - 0 1",
           steps: [
             { white: { from: "c4", to: "e5" }, black: { from: "d7", to: "d6" } },
             { white: { from: "e5", to: "b5" } },
@@ -78,7 +78,7 @@ const LESSONS = {
           {
         text: "You can castle with the Champion, just as you would a rook!",
         challenge: {
-          initialFen: "4k3/8/8/8/8/8/5PPP/4K2H w kKQq - 0 1",
+          initialFen: "4k3/8/8/8/8/8/5PPP/4K2C w kKQq - 0 1",
           steps: [
             { white: { from: "e1", to: "h1" } }
           ],
@@ -292,7 +292,7 @@ const LESSONS = {
       {
         text: "The Archer is a slow piece, moving one square diagonally at a time. This makes it a color-bound piece, like the Bishop.",
         challenge: {
-          initialFen: "4k3/8/8/4p3/3p4/4C3/8/4K3 w - - 0 1",
+          initialFen: "4k3/8/8/4p3/3p4/4X3/8/4K3 w - - 0 1",
           steps: [
              { white: { from: "e3", to: "d4" }, black: { from: "e8", to: "d8" } },
             { white: { from: "d4", to: "e5" } },
@@ -303,7 +303,7 @@ const LESSONS = {
             {
         text: "The Archer has the unique ability to capture without moving, given that the captured piece is 2 to 3 diagonal squares away.",
         challenge: {
-          initialFen: "n3k3/7p/8/8/4C3/8/6r1/1n2K3 w - - 0 1",
+          initialFen: "n3k3/7p/8/8/4X3/8/6r1/1n2K3 w - - 0 1",
           steps: [
              { white: { from: "e4", to: "b1" }, black: { from: "e8", to: "d8" } },
               { white: { from: "e4", to: "g2" }, black: { from: "d8", to: "e8" } },

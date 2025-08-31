@@ -42,7 +42,14 @@ export default function BoardEditor() {
     if (r.includes("pawn")) return "p";
     if (r.includes("knight") || r === "n") return "n";
     if (r.includes("bishop")) return "b";
-    if (r.includes("rook") || r.includes("knook")) return "r";
+    if (r.includes("rook")) return "r";
+    if (r.includes("champion")) return "c";
+    if (r.includes("princess")) return "i";
+    if (r.includes("commoner")) return "m";
+    if (r.includes("painter")) return "y";
+    if (r.includes("snare")) return "s";
+    if (r.includes("wizard")) return "w";
+    if (r.includes("archer")) return "x";
     if (r.includes("queen")) return "q";
     if (r.includes("king")) return "k";
     return r.charAt(0) || "p";
@@ -228,10 +235,10 @@ export default function BoardEditor() {
     "rook",
     "queen",
     "king",
-    "knook",
-    "knishop",
+    "champion",
+    "princess",
     "amazon",
-    "peasant",
+    "commoner",
     "painter",
     "snare",
     "wizard",
@@ -249,6 +256,21 @@ export default function BoardEditor() {
     node.style.left = "-9999px";
     node.style.top = "-9999px";
     node.style.pointerEvents = "none";
+
+
+    // inline styles: ensure drag preview shows a single piece (not tiled sprite)
+    node.innerHTML = `
+      <div class="cg-piece ${piece.role} ${piece.color}"
+           style="
+             width:64px;
+             height:64px;
+             background-repeat:no-repeat;
+             background-position:center center;
+             background-size:64px 64px;
+             image-rendering: auto;
+           ">
+      </div>
+    `;
 
     document.body.appendChild(node);
     e.dataTransfer.setDragImage(node, 32, 32);

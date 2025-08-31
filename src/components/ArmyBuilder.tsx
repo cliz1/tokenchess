@@ -5,7 +5,7 @@ import type { Config } from "chessground/config";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
-import "../assets/custom-pieces.css";
+import "../assets/custom-pieces.css"; 
 
 const FILES = "abcdefgh";
 type PalettePiece = { role: string; color: "white" | "black" };
@@ -40,13 +40,13 @@ export default function ArmyBuilder() {
     if (r.includes("pawn")) return 1;
     if (r.includes("knight") || r === "n") return 3;
     if (r.includes("bishop")) return 3;
-    if (r.includes("rook") || r.includes("knook")) return 5;
+    if (r.includes("rook") || r.includes("champion")) return 5;
     if (r.includes("queen")) return 9;
-    if (r.includes("knook")) return 9;
+    if (r.includes("champion")) return 9;
     if (r.includes("king")) return 0;
-    if (r.includes("knishop")) return 8;
+    if (r.includes("princess")) return 8;
     if (r.includes("amazon")) return 12;
-    if (r.includes("peasant")) return 3;
+    if (r.includes("commoner")) return 3;
     if (r.includes("painter")) return 2;
     if (r.includes("snare")) return 2;
     if (r.includes("wizard")) return 5;
@@ -74,7 +74,7 @@ export default function ArmyBuilder() {
     if (r.includes("pawn")) return "p";
     if (r.includes("knight") || r === "n") return "n";
     if (r.includes("bishop")) return "b";
-    if (r.includes("rook") || r.includes("knook")) return "r";
+    if (r.includes("rook") || r.includes("champion")) return "r";
     if (r.includes("queen")) return "q";
     if (r.includes("king")) return "k";
     return r.charAt(0) || "p";
@@ -480,10 +480,10 @@ export default function ArmyBuilder() {
     "bishop",
     "rook",
     "queen",
-    "knook",
-    "knishop",
+    "champion",
+    "princess",
     "amazon",
-    "peasant",
+    "commoner",
     "painter",
     "snare",
     "wizard",

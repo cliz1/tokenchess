@@ -640,7 +640,7 @@ function renderMoveList() {
           boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
         }}
       >
-        {["queen", "rook", "bishop", "knight", "knook", "knishop"].map(
+        {["queen", "rook", "bishop", "knight", "champion", "princess"].map(
           (role) => (
             <button
               key={role}
