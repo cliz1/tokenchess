@@ -4,7 +4,7 @@ import { makeSquare, parseSquare } from "chessops/util";
 import { parseFen, makeFen } from "chessops/fen";
 import '../App.css';
 
-export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard" | "archer" | "x_capture") {
+export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard" | "archer" | "x_capture" | "snare") {
   const src = {
     move: "/sounds/move.mp3",
     capture: "/sounds/capture.mp3",
@@ -12,7 +12,8 @@ export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard
     paint: "/sounds/paint.mp3",
     wizard: "/sounds/wizard.mp3",
     archer: "sounds/arrow.mp3",
-    x_capture: "sounds/x_capture.mp3"
+    x_capture: "sounds/x_capture.mp3",
+    snare: "sounds/snare.mp3"
   }[type];
   const audio = new Audio(src);
   audio.play().catch((err) => {

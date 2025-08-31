@@ -216,6 +216,34 @@ useEffect(() => {
       setInternalFen(newFen);
       onMove?.(fromAlg ?? makeSquare(move.from), toAlg ?? makeSquare(move.to));
 
+            // call this after you compute `toIdx` (or replace your existing neighbor logic)
+      const toIdx = typeof move.to === "number" ? move.to : parseSquare(move.to)!;
+      const toFile = toIdx % 8;
+      const toRankIdx = Math.floor(toIdx / 8);
+
+      const leftIdx = toFile > 0 ? toIdx - 1 : undefined;
+      const rightIdx = toFile < 7 ? toIdx + 1 : undefined;
+      const frontIdx = toRankIdx < 7 ? toIdx + 8 : undefined;
+      const behindIdx = toRankIdx > 0 ? toIdx - 8 : undefined;
+
+      // chosen neighbors relative to white perspective
+      const relIdxs = piece.color === "white"
+        ? [leftIdx, rightIdx, frontIdx]
+        : [leftIdx, rightIdx, behindIdx];
+
+      // map to pieces (null if off-board/empty)
+      const neighbors = relIdxs.map((idx) => (idx !== undefined ? ch.board.get(idx) ?? null : null));
+
+      // did the move place a snare next to an enemy piece?
+      const hasEnemyAdjacent = neighbors.some((n) => n !== null && n.color !== piece.color);
+
+      // did the move put the moved piece next to an enemy snare?
+      const hasEnemySnareAdjacent = neighbors.some((n) => n !== null && n.color !== piece.color && n.role === "snare");
+
+      // final boolean
+      const isSnaredMove = (piece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent;
+
+
       // sounds
       if (captured) {
         if (piece.role === "painter") playSound("paint");
@@ -224,10 +252,16 @@ useEffect(() => {
           playSound("archer"); playSound("x_capture");
         } else playSound("capture");
         if (ch.isCheck()) playSound("check");
+         if (isSnaredMove){
+        playSound("snare")
+      }
       } else {
         if (piece.role === "snare") playSound("move");
         if (ch.isCheck()) playSound("check");
         playSound("move");
+         if (isSnaredMove){
+        playSound("snare")
+      }
       }
 
       lastMoveRef.current = [fromAlg ?? makeSquare(move.from), toAlg ?? makeSquare(move.to)];
