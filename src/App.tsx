@@ -1,13 +1,21 @@
 // src/App.tsx
 import React from "react";
-import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
 import BoardEditor from "./components/BoardEditor";
-import ArmyBuilder from "./components/ArmyBuilder"; // adjust if different
-import AnalysisBoard from "./components/Knook"; // your existing analysis board (Knook)
+import ArmyBuilder from "./components/ArmyBuilder"; 
+import AnalysisBoard from "./components/AnalysisBoard"; 
 
 import "./App.css";
+
+function AnalysisRouteWrapper() {
+  const location = useLocation();
+  const initialFen =
+    (location.state && (location.state as any).initialFen) ??
+    "3k4/8/1m1i4/Y7/8/4C1W1/8/4K3 w - - 0 1";
+  return <AnalysisBoard initialFen={initialFen} />;
+}
 
 export default function App() {
   return (
@@ -26,7 +34,7 @@ export default function App() {
         <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/analysis" element={<AnalysisBoard initialFen="3k4/8/1m1i4/Y7/8/4C1W1/8/4K3 w - - 0 1" />} />
+            <Route path="/analysis" element={<AnalysisRouteWrapper />} />
             <Route path="/editor" element={<BoardEditor />} />
             <Route path="/army" element={<ArmyBuilder />} />
             <Route path="/tutorials/*" element={<TutorialsPage />} />

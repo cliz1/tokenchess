@@ -1,6 +1,6 @@
 import './App.css'
 //import AnalysisBoard from "./components/AnalysisBoard"
-import Knook from "./components/Knook";
+import Knook from "./components/AnalysisBoard";
 
 function App() {
   return (

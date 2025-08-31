@@ -15,13 +15,13 @@ export default function ArmyBuilder() {
   const groundRef = useRef<any>(null);
 
   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  const EMPTY_FEN = "8/8/8/8/8/8/8/8 w - - 0 1";
+  const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const INITIAL_TOKENS = 39;
 
   const [fen, setFen] = useState<string>(EMPTY_FEN);
-  const [orientation] = useState<"white" | "black">("white");
+  const [orientation, setOrientation] = useState<"white" | "black">("white");
+  const [perspective, setPerspective] = useState<"white" | "black">("white");
 
-  // Tokens state + ref (ref used by handlers so we don't need to re-create handlers on every token change)
   const [tokens, setTokens] = useState<number>(INITIAL_TOKENS);
   const tokensRef = useRef<number>(tokens);
   useEffect(() => {
@@ -35,17 +35,15 @@ export default function ArmyBuilder() {
     setTimeout(() => setWarning(null), ms);
   }
 
-  // ---- token cost table (tweak values as you like) ----
   function getCost(role: string) {
     const r = role.toLowerCase();
-    // standard pieces
     if (r.includes("pawn")) return 1;
     if (r.includes("knight") || r === "n") return 3;
     if (r.includes("bishop")) return 3;
-    if (r.includes("rook")) return 5;
+    if (r.includes("rook") || r.includes("knook")) return 5;
     if (r.includes("queen")) return 9;
-    if (r.includes("king")) return 0; 
     if (r.includes("knook")) return 9;
+    if (r.includes("king")) return 0;
     if (r.includes("knishop")) return 8;
     if (r.includes("amazon")) return 12;
     if (r.includes("peasant")) return 3;
@@ -53,12 +51,10 @@ export default function ArmyBuilder() {
     if (r.includes("snare")) return 2;
     if (r.includes("wizard")) return 5;
     if (r.includes("archer")) return 3;
-    // fallback
     return 2;
   }
-  // ----------------------------------------------------
 
-  function squareFromClientPos(x: number, y: number, rect: DOMRect, orientation: "white" | "black") {
+  function squareFromClientPos(x: number, y: number, rect: DOMRect, orientationLocal: "white" | "black") {
     const relX = x - rect.left;
     const relY = y - rect.top;
     if (relX < 0 || relY < 0 || relX > rect.width || relY > rect.height) return null;
@@ -66,7 +62,7 @@ export default function ArmyBuilder() {
     const rankIndexFromTop = Math.floor((relY / rect.height) * 8);
     let file = Math.max(0, Math.min(7, fileIndex));
     let rankFromBottom = 7 - Math.max(0, Math.min(7, rankIndexFromTop));
-    if (orientation === "black") {
+    if (orientationLocal === "black") {
       file = 7 - file;
       rankFromBottom = 7 - rankFromBottom;
     }
@@ -124,33 +120,107 @@ export default function ArmyBuilder() {
     return out;
   }
 
-  // compute total cost of white pieces from a FEN piece placement string
-  function costOfWhitePiecesFromFen(fenStr: string) {
-    // fenStr may be full FEN; take piece placement (first field)
+  function rankOfSquare(sq: string) {
+    const r = parseInt(sq.slice(1), 10);
+    return Number.isNaN(r) ? null : r;
+  }
+
+  function mirrorSquare(sq: string) {
+    const file = sq[0];
+    const rank = rankOfSquare(sq);
+    if (!rank) return sq;
+    const mirroredRank = 9 - rank;
+    return `${file}${mirroredRank}`;
+  }
+
+  function allowedRanksForPerspective(p: "white" | "black") {
+    return p === "white" ? [1, 2] : [7, 8];
+  }
+
+  function allowedRankForPiece(piece: PalettePiece){
+    if (piece.role === 'pawn' || piece.role === 'painter' || piece.role === 'snare'){
+      return piece.color === 'white' ? 2 : 7;
+    }
+    else{
+      return piece.color === 'white' ? 1 : 8;
+    }
+  }
+
+  function isSquareAllowedInPerspective(sq: string, p: "white" | "black") {
+    const r = rankOfSquare(sq);
+    if (!r) return false;
+    return allowedRanksForPerspective(p).includes(r);
+  }
+
+  function isSquareAllowedForPiece(sq: string, p: "white" | "black", piece: PalettePiece) {
+    const r = rankOfSquare(sq);
+    if (!r) return false;
+    return allowedRankForPiece(piece) === r
+  }
+
+  function computeCostOfColorFromPieces(statePieces: any, color: "white" | "black") {
+    let total = 0;
+    if (!statePieces) return total;
+    if (statePieces instanceof Map) {
+      for (const [, p] of statePieces.entries()) {
+        if (p && p.color === color) total += getCost(p.role);
+      }
+      return total;
+    }
+    if (Array.isArray(statePieces)) {
+      for (const [, p] of statePieces) {
+        if (p && p.color === color) total += getCost(p.role);
+      }
+      return total;
+    }
+    for (const k of Object.keys(statePieces)) {
+      const p = (statePieces as any)[k];
+      if (p && p.color === color) total += getCost(p.role);
+    }
+    return total;
+  }
+
+  function computeCostOfColorFromFen(fenStr: string, color: "white" | "black") {
     const parts = fenStr.split(" ");
     const placement = parts[0] ?? fenStr;
     let total = 0;
     for (const ch of placement) {
       if (ch === "/" || (ch >= "1" && ch <= "8")) continue;
-      // uppercase letters are white pieces
-      if (ch >= "A" && ch <= "Z") {
-        // map letter to role name
-        let role = "pawn";
-        switch (ch) {
-          case "P": role = "pawn"; break;
-          case "N": role = "knight"; break;
-          case "B": role = "bishop"; break;
-          case "R": role = "rook"; break;
-          case "Q": role = "queen"; break;
-          case "K": role = "king"; break;
-          default:
-            // custom char: fallback map (if you used different letters for custom pieces)
-            role = "pawn";
-        }
+      const isWhite = ch >= "A" && ch <= "Z";
+      const letter = ch.toUpperCase();
+      let role = "pawn";
+      switch (letter) {
+        case "P":
+          role = "pawn";
+          break;
+        case "N":
+          role = "knight";
+          break;
+        case "B":
+          role = "bishop";
+          break;
+        case "R":
+          role = "rook";
+          break;
+        case "Q":
+          role = "queen";
+          break;
+        case "K":
+          role = "king";
+          break;
+        default:
+          role = "pawn";
+      }
+      if ((color === "white" && isWhite) || (color === "black" && !isWhite)) {
         total += getCost(role);
       }
     }
     return total;
+  }
+
+  function remainingTokensForStatePieces(statePieces: any, color: "white" | "black") {
+    const used = computeCostOfColorFromPieces(statePieces, color);
+    return Math.max(0, INITIAL_TOKENS - used);
   }
 
   useEffect(() => {
@@ -160,8 +230,42 @@ export default function ArmyBuilder() {
       fen,
       orientation,
       draggable: { enabled: true },
-      // allow moving pieces of either color on the board
-      movable: { free: true, color: "both" },
+      movable: {
+        free: true,
+        color: "both",
+        events: {
+          // after a move, if the moved piece is a king, revert it back
+          // and also revert any move that places a piece outside allowed ranks
+          after: (orig: string, dest: string, metadata: any) => {
+            try {
+              const pieces = groundRef.current?.state?.pieces;
+              const getPiece = (m: any, sq: string) => (m.get ? m.get(sq) : m[sq]);
+              const movedPiece = getPiece(pieces, dest);
+              if (!movedPiece) return;
+
+              // If the moved piece is a king, revert it
+              if (movedPiece.role === "king") {
+                const newPieces = new Map(pieces);
+                newPieces.delete(dest);
+                newPieces.set(orig, movedPiece);
+                groundRef.current.set({ pieces: newPieces });
+                return;
+              }
+
+              const allowed = isSquareAllowedInPerspective(dest, perspective);
+              const allowedForPiece = isSquareAllowedForPiece(dest, perspective, movedPiece);
+              if (!allowed || !allowedForPiece) {
+                const newPieces = new Map(pieces);
+                newPieces.delete(dest);
+                newPieces.set(orig, movedPiece);
+                groundRef.current.set({ pieces: newPieces });
+                return;
+              }
+            } catch (err) {
+            }
+          },
+        },
+      },
       highlight: { lastMove: false, check: false },
       drawable: { enabled: false },
       animation: { enabled: true, duration: 180 },
@@ -189,7 +293,6 @@ export default function ArmyBuilder() {
 
     const onDragOver = (e: DragEvent) => e.preventDefault();
 
-    // onDrop handles placing a palette piece onto the board, with token checks & refunds (if replacing)
     const onDrop = (e: DragEvent) => {
       e.preventDefault();
       if (!groundRef.current || !el) return;
@@ -206,6 +309,17 @@ export default function ArmyBuilder() {
       const sq = squareFromClientPos(e.clientX, e.clientY, rect, orientation);
       if (!sq) return;
 
+      // **ENFORCE placement into allowed ranks for current perspective and piece type**
+      if (!isSquareAllowedInPerspective(sq, perspective)) {
+        flashWarning(`You can only place pieces on ranks ${allowedRanksForPerspective(perspective).join(" & ")} for the ${perspective} perspective.`);
+        return;
+      }
+      if (!isSquareAllowedForPiece(sq, perspective, piece)) {
+        flashWarning(`You can only place ${piece.role}s on rank ${allowedRankForPiece(piece)} for the ${perspective} perspective.`);
+        return;
+      }
+
+
       // current pieces (normalize into Map)
       const curr = groundRef.current.state.pieces;
       const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
@@ -213,11 +327,9 @@ export default function ArmyBuilder() {
       // existing piece at target square (if any)
       const existing = baseMap.get(sq) as { role: string; color: string } | undefined;
 
-      // compute token effect:
-      // - refund existing white piece (if present)
-      // - subtract cost of new piece if it's white
-      const refund = existing && existing.color === "white" ? getCost(existing.role) : 0;
-      const costNew = piece.color === "white" ? getCost(piece.role) : 0;
+      // compute token effect relative to current perspective:
+      const refund = existing && existing.color === perspective ? getCost(existing.role) : 0;
+      const costNew = piece.color === perspective ? getCost(piece.role) : 0;
 
       const currentTokens = tokensRef.current;
       const effective = currentTokens + refund - costNew;
@@ -238,6 +350,8 @@ export default function ArmyBuilder() {
           groundRef.current.set({ pieces: copy });
         }
         setTokens(effective);
+        tokensRef.current = effective;
+
         const newFen = typeof groundRef.current.getFen === "function"
           ? groundRef.current.getFen()
           : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
@@ -249,6 +363,7 @@ export default function ArmyBuilder() {
       groundRef.current.set({ pieces: baseMap });
 
       setTokens(effective);
+      tokensRef.current = effective;
       const newFen = typeof groundRef.current.getFen === "function"
         ? groundRef.current.getFen()
         : piecesToFen(statePiecesToObject(baseMap));
@@ -262,13 +377,8 @@ export default function ArmyBuilder() {
     const onPointerDownCapture = (ev: PointerEvent) => {
       if (!boardRef.current || !groundRef.current) return;
       const rect = boardRef.current.getBoundingClientRect();
+      // ignore clicks outside board
       if (ev.clientX < rect.left || ev.clientX > rect.right || ev.clientY < rect.top || ev.clientY > rect.bottom) return;
-
-      const wantDelete = ev.altKey || ev.button === 2;
-      if (!wantDelete) return;
-
-      try { (ev as any).stopImmediatePropagation?.(); } catch {}
-      ev.preventDefault();
 
       const sq = squareFromClientPos(ev.clientX, ev.clientY, rect, orientation);
       if (!sq) return;
@@ -278,10 +388,33 @@ export default function ArmyBuilder() {
       const existing = baseMap.get(sq);
       if (!existing) return;
 
-      // refund tokens if white
-      if (existing.color === "white") {
+      // ---------- BLOCK KING DRAGGING (left click) ----------
+      if (ev.button === 0 && !ev.altKey && existing.role === "king") {
+        try { (ev as any).stopImmediatePropagation?.(); } catch {}
+        ev.preventDefault();
+        return;
+      }
+
+      // ---------- DELETION (Alt+click or right-click only) ----------
+      const wantDelete = ev.altKey || ev.button === 2;
+      if (!wantDelete) return;
+
+      try { (ev as any).stopImmediatePropagation?.(); } catch {}
+      ev.preventDefault();
+
+      // cannot delete kings
+      if (existing.role === "king") {
+        return;
+      }
+
+      // refund tokens if piece matches current perspective color
+      if (existing.color === perspective) {
         const refundAmt = getCost(existing.role);
-        setTokens((t) => t + refundAmt);
+        setTokens((t) => {
+          const next = t + refundAmt;
+          tokensRef.current = next;
+          return next;
+        });
       }
 
       baseMap.delete(sq);
@@ -307,10 +440,15 @@ export default function ArmyBuilder() {
       const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
       const existing = baseMap.get(sq);
       if (!existing) return;
+      if (existing.role === "king") return;
 
-      if (existing.color === "white") {
+      if (existing.color === perspective) {
         const refundAmt = getCost(existing.role);
-        setTokens((t) => t + refundAmt);
+        setTokens((t) => {
+          const next = t + refundAmt;
+          tokensRef.current = next;
+          return next;
+        });
       }
 
       baseMap.delete(sq);
@@ -334,17 +472,14 @@ export default function ArmyBuilder() {
       groundRef.current?.destroy();
       groundRef.current = null;
     };
-    // note: we intentionally do NOT depend on `tokens` here because we use tokensRef to read current value inside handlers
-  }, [orientation, fen]);
+  }, [orientation, fen, perspective]);
 
-  // list of custom piece roles (no color here)
   const pieceRoles = [
     "pawn",
     "knight",
     "bishop",
     "rook",
     "queen",
-    "king",
     "knook",
     "knishop",
     "amazon",
@@ -355,9 +490,7 @@ export default function ArmyBuilder() {
     "archer",
   ];
 
-  // NEW: palette color state (white or black)
-  const [paletteColor, setPaletteColor] = useState<"white" | "black">("white");
-  // build current palette using the selected paletteColor
+  const paletteColor: "white" | "black" = perspective;
   const palette: PalettePiece[] = pieceRoles.map((role) => ({ role, color: paletteColor }));
 
   function handlePaletteDragStart(e: React.DragEvent, piece: PalettePiece) {
@@ -391,10 +524,51 @@ export default function ArmyBuilder() {
     }, 0);
   }
 
-  // ---------- NEW: handlers to set start / empty fen and adjust tokens ----------
+  // flip perspective: mirror board pieces & swap colors, flip orientation and palette
+  function handleTogglePerspective() {
+    const newPerspective = perspective === "white" ? "black" : "white";
+    const newOrientation = newPerspective; // keep orientation in sync
+
+    // mirror pieces
+    try {
+      const curr = groundRef.current?.state?.pieces;
+      const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
+
+      const newMap = new Map<string, { role: string; color: string }>();
+      for (const [sq, piece] of baseMap.entries()) {
+        const mirrored = mirrorSquare(sq);
+        // swap colors so the same physical pieces appear as opposite color under opposite perspective
+        const newColor = piece.color === "white" ? "black" : "white";
+        newMap.set(mirrored, { role: piece.role, color: newColor });
+      }
+
+      groundRef.current?.set({ pieces: newMap, orientation: newOrientation });
+
+      // recompute tokens for new perspective using the mirrored pieces
+      const newTokens = remainingTokensForStatePieces(newMap, newPerspective);
+      setTokens(newTokens);
+      tokensRef.current = newTokens;
+
+      // update fen from chessground if available
+      const newFen = typeof groundRef.current.getFen === "function"
+        ? groundRef.current.getFen()
+        : piecesToFen(statePiecesToObject(newMap));
+      setFen(newFen);
+    } catch (err) {
+      // fallback: just flip orientation and perspective and recompute from fen
+      setOrientation(newOrientation);
+      const cost = computeCostOfColorFromFen(fen, newPerspective);
+      const next = Math.max(0, INITIAL_TOKENS - cost);
+      setTokens(next);
+      tokensRef.current = next;
+    }
+
+    setPerspective(newPerspective);
+    setOrientation(newOrientation);
+  }
+
   function handleSetStartPosition() {
-    // compute cost of white pieces in start fen and deduct from initial allotment
-    const cost = costOfWhitePiecesFromFen(START_FEN);
+    const cost = computeCostOfColorFromFen(START_FEN, perspective);
     const newTokens = Math.max(0, INITIAL_TOKENS - cost);
     setTokens(newTokens);
     tokensRef.current = newTokens;
@@ -403,7 +577,6 @@ export default function ArmyBuilder() {
     try { groundRef.current?.set?.({ fen: START_FEN }); } catch {}
   }
   function handleSetEmptyPosition() {
-    // empty board => no white pieces => full allotment
     const newTokens = INITIAL_TOKENS;
     setTokens(newTokens);
     tokensRef.current = newTokens;
@@ -411,7 +584,6 @@ export default function ArmyBuilder() {
     setFen(EMPTY_FEN);
     try { groundRef.current?.set?.({ fen: EMPTY_FEN }); } catch {}
   }
-  // ----------------------------------------------------------
 
   return (
     <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: 24 }}>
@@ -467,7 +639,7 @@ export default function ArmyBuilder() {
           <div style={{ fontSize: 40, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{tokens}</div>
 
           <div style={{ fontSize: 12, color: "#aaa" }}>
-            Placing <strong style={{ color: "#fff" }}>white</strong> pieces consumes tokens. If a placement would make tokens go below 0 it will be blocked.
+            Placing <strong style={{ color: "#fff" }}>{perspective}</strong> pieces consumes tokens. If a placement would make tokens go below 0 it will be blocked.
           </div>
 
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: 8 }}>
@@ -544,8 +716,9 @@ export default function ArmyBuilder() {
 
           <div style={{ display: "flex", justifyContent: "center" }}>
             <button
-              onClick={() => setPaletteColor((c) => (c === "white" ? "black" : "white"))}
-              aria-label="Toggle palette color"
+              onClick={handleTogglePerspective}
+              aria-label="Toggle perspective"
+              title={`Switch to ${perspective === "white" ? "black" : "white"} perspective`}
               style={{
                 background: "transparent",
                 border: "1px solid rgba(255,255,255,0.06)",
@@ -554,10 +727,10 @@ export default function ArmyBuilder() {
                 color: "#ddd",
                 fontSize: 13,
                 cursor: "pointer",
-                minWidth: 120,
+                minWidth: 160,
               }}
             >
-              Show {paletteColor === "white" ? "Black" : "White"} Pieces
+              Show {perspective === "white" ? "Black" : "White"} Perspective
             </button>
           </div>
         </div>

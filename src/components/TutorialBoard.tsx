@@ -175,7 +175,6 @@ export default function TutorialBoard({
   // init / when challenge or initial fen changes
   useEffect(() => {
     resetChallengeAndBoard(null, "deps: controlledFen|initialFen|challenge");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controlledFen, initialFen, challenge]);
 
   // log challengeIndex transitions
@@ -281,7 +280,6 @@ const handleMove = (from: string, to: string) => {
 
     const piece = ch.board.get(fromSq);
 
-    // ---- NEW: handle promotion ----
     if (
       piece &&
       piece.role === "pawn" &&

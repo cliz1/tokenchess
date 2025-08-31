@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
+import { useNavigate } from "react-router-dom";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
@@ -15,8 +16,10 @@ export default function BoardEditor() {
   const groundRef = useRef<any>(null);
   const [fen, setFen] = useState<string>("8/8/8/8/8/8/8/8 w - - 0 1");
   const [orientation] = useState<"white" | "black">("white");
+  const navigate = useNavigate();
 
-  // NEW: palette color state (white or black)
+  const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  const EMPTY_FEN = "8/8/8/8/8/8/8/8 w - - 0 1";
   const [paletteColor, setPaletteColor] = useState<"white" | "black">("white");
 
   function squareFromClientPos(x: number, y: number, rect: DOMRect, orientation: "white" | "black") {
@@ -91,13 +94,10 @@ export default function BoardEditor() {
       fen,
       orientation,
       draggable: { enabled: true },
-      // allow moving pieces of either color on the board
       movable: { free: true, color: "both" },
       highlight: { lastMove: false, check: false },
       drawable: { enabled: false },
       animation: { enabled: true, duration: 180 },
-
-      // listen for internal state changes (user moves, drops, newPiece, etc.)
       events: {
         // called after any change to the state (baseMove, baseNewPiece, etc.)
         change: () => {
@@ -221,7 +221,6 @@ export default function BoardEditor() {
     };
   }, [orientation, fen]);
 
-  // list of custom piece roles (no color here)
   const pieceRoles = [
     "pawn",
     "knight",
@@ -239,7 +238,6 @@ export default function BoardEditor() {
     "archer",
   ];
 
-  // build current palette using the selected paletteColor
   const palette: PalettePiece[] = pieceRoles.map((role) => ({ role, color: paletteColor }));
 
   function handlePaletteDragStart(e: React.DragEvent, piece: PalettePiece) {
@@ -252,26 +250,75 @@ export default function BoardEditor() {
     node.style.top = "-9999px";
     node.style.pointerEvents = "none";
 
-    // IMPORTANT: inline styles here override chessground's sprite tiling rules
-    node.innerHTML = `
-      <div class="cg-piece ${piece.role} ${piece.color}"
-           style="
-             width:64px;
-             height:64px;
-             background-repeat:no-repeat;
-             background-position:center center;
-             background-size:64px 64px;
-             image-rendering: auto;
-           ">
-      </div>
-    `;
-
     document.body.appendChild(node);
     e.dataTransfer.setDragImage(node, 32, 32);
     setTimeout(() => {
       try { document.body.removeChild(node); } catch {}
     }, 0);
   }
+
+  // --------- VALIDATION + NAVIGATION ----------
+  function countKingsFromState(): { white: number; black: number } {
+    try {
+      const piecesState = groundRef.current?.state?.pieces;
+      if (piecesState) {
+        const obj = statePiecesToObject(piecesState);
+        let white = 0;
+        let black = 0;
+        for (const sq in obj) {
+          const p = obj[sq];
+          if (!p) continue;
+          if (p.role && p.role.toLowerCase().includes("king")) {
+            if (p.color === "white") white++;
+            else if (p.color === "black") black++;
+          }
+        }
+        return { white, black };
+      }
+    } catch (e) {
+      // ignore, fallback to fen parsing below
+    }
+
+    // fallback: parse FEN first field and count K/k
+    const placement = fen.split(" ")[0] ?? fen;
+    let white = 0;
+    let black = 0;
+    for (const ch of placement) {
+      if (ch === "K") white++;
+      if (ch === "k") black++;
+    }
+    return { white, black };
+  }
+
+  function validateFenForAnalysis(): { ok: boolean; reason?: string } {
+    const { white, black } = countKingsFromState();
+    if (white !== 1 || black !== 1) {
+      return { ok: false, reason: `Need exactly one king of each color — currently white=${white}, black=${black}` };
+    }
+    return { ok: true };
+  }
+
+  function handleOpenInAnalysis() {
+    const res = validateFenForAnalysis();
+    if (!res.ok) {
+      alert(res.reason ?? "FEN is not valid for analysis");
+      return;
+    }
+    // pass fen via react-router state
+    navigate("/analysis", { state: { initialFen: fen } });
+  }
+
+    function handleSetStartPosition() {
+    setFen(START_FEN);
+    try { groundRef.current?.set?.({ fen: START_FEN }); } catch {}
+    }
+
+    function handleSetEmptyPosition() {
+    setFen(EMPTY_FEN);
+    try { groundRef.current?.set?.({ fen: EMPTY_FEN }); } catch {}
+  }
+
+
 
   return (
     <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: 24 }}>
@@ -288,7 +335,54 @@ export default function BoardEditor() {
               overflow: "hidden",
             }}
           />
-          <div style={{ marginTop: 10, fontFamily: "monospace", color: "#ddd" }}>FEN: {fen}</div>
+          <div style={{ marginTop: 10, marginBottom: 10, fontFamily: "monospace", color: "#ddd" }}>FEN: {fen} </div>
+          <div>
+                  <button
+              onClick={handleSetStartPosition}
+              style={{
+                padding: "6px 8px",
+                borderRadius: 6,
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.06)",
+                color: "#ddd",
+                cursor: "pointer",
+                fontSize: 13,
+              }}
+            >
+              Start Position
+            </button>
+              <button
+              onClick={handleOpenInAnalysis}
+              aria-label="Open in analysis"
+              style={{
+                background: "#3d3b3bff",
+                border: "none",
+                padding: "6px 10px",
+                borderRadius: 6,
+                color: "#fff",
+                fontSize: 13,
+                cursor: "pointer",
+                minWidth: 80,
+              }}
+            >
+              Analyze
+            </button>
+             <button
+              onClick={handleSetEmptyPosition}
+              style={{
+                flex: 1,
+                padding: "6px 8px",
+                borderRadius: 6,
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.06)",
+                color: "#ddd",
+                cursor: "pointer",
+                fontSize: 13,
+              }}
+            >
+              Empty Board
+            </button>
+            </div>
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
             Tip: Alt+click or right-click a square to remove a piece.
           </div>
@@ -328,7 +422,7 @@ export default function BoardEditor() {
           </div>
 
           {/* SMALL BUTTON: swap palette color */}
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={() => setPaletteColor((c) => (c === "white" ? "black" : "white"))}
               aria-label="Toggle palette color"

@@ -2,14 +2,6 @@
 import React from "react";
 import TutorialBoard from "./TutorialBoard";
 
-/**
- * Step shape (kept permissive so you can extend it quickly)
- * - text: paragraph text
- * - fen: FEN for an example board
- * - note: small caption under the board
- * - boardSize: optional px size
- * - challenge: optional challenge object to pass to TutorialBoard
- */
 type Step = {
   text?: string;
   fen?: string;
@@ -47,8 +39,8 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
         // boardFen: prefer explicit fen; fallback to challenge.initialFen; final fallback "start"
         const boardFen = s.fen ?? s.challenge?.initialFen ?? "start";
 
-        // Make a compact stable key so the board remounts when the step/challenge changes.
-        // We stringify only the challenge.steps if present to avoid massive keys.
+        // make a compact stable key so the board remounts when the step/challenge changes.
+        // stringify only the challenge.steps if present to avoid massive keys.
         const challengeFingerprint = s.challenge ? JSON.stringify(s.challenge.steps ?? s.challenge) : "";
         const boardKey = `tutorial-${title.replace(/\s+/g, "_")}-${i}-${boardFen}-${challengeFingerprint}`;
 
