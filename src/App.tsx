@@ -13,7 +13,7 @@ function AnalysisRouteWrapper() {
   const location = useLocation();
   const initialFen =
     (location.state && (location.state as any).initialFen) ??
-    "3k4/8/1m1i4/Y7/8/4C1W1/8/4K3 w - - 0 1";
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/XXXAKXXX w - - 0 1";
   return <AnalysisBoard initialFen={initialFen} />;
 }
 

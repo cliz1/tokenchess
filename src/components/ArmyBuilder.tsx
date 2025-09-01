@@ -271,21 +271,34 @@ export default function ArmyBuilder() {
       animation: { enabled: true, duration: 180 },
 
       // keep fen in sync when internal state changes
-      events: {
-        change: () => {
+    events: {
+      change: () => {
+        try {
+          const api = groundRef.current;
+          if (!api) return;
+
+          const newFen =
+            typeof api.getFen === "function"
+              ? api.getFen()
+              : piecesToFen(statePiecesToObject(api.state.pieces));
+          setFen(newFen);
+
+          // ---- NEW: recompute tokens from the current board pieces ----
           try {
-            const api = groundRef.current;
-            if (!api) return;
-            const newFen =
-              typeof api.getFen === "function"
-                ? api.getFen()
-                : piecesToFen(statePiecesToObject(api.state.pieces));
-            setFen(newFen);
-          } catch (err) {
-            // ignore
+            const piecesObj = statePiecesToObject(api.state.pieces);
+            const newTokens = remainingTokensForStatePieces(piecesObj, perspective);
+            setTokens(newTokens);
+            tokensRef.current = newTokens;
+          } catch (tokErr) {
+            // swallow token recompute errors so change handler doesn't fail
           }
-        },
+          // ------------------------------------------------------------
+        } catch (err) {
+          // ignore
+        }
       },
+    },
+
     };
 
     groundRef.current = Chessground(boardRef.current, cfg);
