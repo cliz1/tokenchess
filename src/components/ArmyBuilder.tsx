@@ -40,17 +40,17 @@ export default function ArmyBuilder() {
     if (r.includes("pawn")) return 1;
     if (r.includes("knight") || r === "n") return 3;
     if (r.includes("bishop")) return 3;
-    if (r.includes("rook") || r.includes("champion")) return 5;
+    if (r.includes("rook")) return 5;
     if (r.includes("queen")) return 9;
     if (r.includes("champion")) return 9;
     if (r.includes("king")) return 0;
-    if (r.includes("princess")) return 8;
-    if (r.includes("amazon")) return 12;
+    if (r.includes("princess")) return 8; // figure out
+    if (r.includes("amazon")) return 13;
     if (r.includes("commoner")) return 3;
     if (r.includes("painter")) return 2;
     if (r.includes("snare")) return 2;
     if (r.includes("wizard")) return 5;
-    if (r.includes("archer")) return 3;
+    if (r.includes("archer")) return 3; // figure out
     return 2;
   }
 

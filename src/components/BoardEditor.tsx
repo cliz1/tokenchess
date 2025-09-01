@@ -7,6 +7,9 @@ import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
+import { parseFen } from "chessops/fen";
+import { Chess } from "chessops/chess";
+
 
 const FILES = "abcdefgh";
 type PalettePiece = { role: string; color: "white" | "black" };
@@ -16,6 +19,7 @@ export default function BoardEditor() {
   const groundRef = useRef<any>(null);
   const [fen, setFen] = useState<string>("8/8/8/8/8/8/8/8 w - - 0 1");
   const [orientation] = useState<"white" | "black">("white");
+  const [sideToMove, setSideToMove] = useState<"white" | "black">("white");
   const navigate = useNavigate();
 
   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -55,30 +59,34 @@ export default function BoardEditor() {
     return r.charAt(0) || "p";
   }
 
-  function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
-    const ranks: string[] = [];
-    for (let rank = 7; rank >= 0; rank--) {
-      let empty = 0;
-      let rankStr = "";
-      for (let file = 0; file < 8; file++) {
-        const sq = `${FILES[file]}${rank + 1}`;
-        const p = pieces[sq];
-        if (!p) {
-          empty++;
-        } else {
-          if (empty > 0) {
-            rankStr += String(empty);
-            empty = 0;
-          }
-          const letter = roleToFenLetter(p.role);
-          rankStr += p.color === "white" ? letter.toUpperCase() : letter.toLowerCase();
+function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
+  const ranks: string[] = [];
+  for (let rank = 7; rank >= 0; rank--) {
+    let empty = 0;
+    let rankStr = "";
+    for (let file = 0; file < 8; file++) {
+      const sq = `${FILES[file]}${rank + 1}`;
+      const p = pieces[sq];
+      if (!p) {
+        empty++;
+      } else {
+        if (empty > 0) {
+          rankStr += String(empty);
+          empty = 0;
         }
+        const letter = roleToFenLetter(p.role);
+        rankStr += p.color === "white" ? letter.toUpperCase() : letter.toLowerCase();
       }
-      if (empty > 0) rankStr += String(empty);
-      ranks.push(rankStr);
     }
-    return `${ranks.join("/")} w - - 0 1`;
+    if (empty > 0) rankStr += String(empty);
+    ranks.push(rankStr);
   }
+
+  // use the editor state for who is to move
+  const turnShort = sideToMove === "white" ? "w" : "b";
+  return `${ranks.join("/")} ${turnShort} - - 0 1`;
+}
+
 
   function statePiecesToObject(statePieces: any) {
     const out: Record<string, { role: string; color: string }> = {};
@@ -94,6 +102,12 @@ export default function BoardEditor() {
     Object.assign(out, statePieces);
     return out;
   }
+
+  useEffect(() => {
+  const pieces = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
+  setFen(piecesToFen(pieces));
+}, [sideToMove]);
+
 
   useEffect(() => {
     if (!boardRef.current) return;
@@ -226,7 +240,7 @@ export default function BoardEditor() {
       groundRef.current?.destroy();
       groundRef.current = null;
     };
-  }, [orientation, fen]);
+  }, [orientation]);
 
   const pieceRoles = [
     "pawn",
@@ -312,23 +326,122 @@ export default function BoardEditor() {
     return { white, black };
   }
 
-  function validateFenForAnalysis(): { ok: boolean; reason?: string } {
-    const { white, black } = countKingsFromState();
-    if (white !== 1 || black !== 1) {
-      return { ok: false, reason: `Need exactly one king of each color — currently white=${white}, black=${black}` };
-    }
-    return { ok: true };
+function validateFenForAnalysis(): { ok: boolean; reason?: string } {
+  const { white, black } = countKingsFromState();
+  if (white !== 1 || black !== 1) {
+    return { ok: false, reason: `Need exactly one king of each color — currently white=${white}, black=${black}` };
   }
 
-  function handleOpenInAnalysis() {
-    const res = validateFenForAnalysis();
-    if (!res.ok) {
-      alert(res.reason ?? "FEN is not valid for analysis");
-      return;
+  const piecesState = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
+  const rawFen = piecesToFen(piecesState);
+
+  // mapping custom->standard letters
+  const mapping: Record<string, string> = {
+    c: "q", i: "q", m: "q", a: "q", w: "q",
+    y: "p",
+    s: "n", x: "n",
+  };
+
+  const convertCustomLettersToStandard = (fenStr: string) => {
+    const parts = fenStr.split(" ");
+    if (!parts[0]) return fenStr;
+    const placement = parts[0];
+    let converted = "";
+    for (const ch of placement) {
+      const lower = ch.toLowerCase();
+      if (mapping[lower]) {
+        const mapped = mapping[lower];
+        converted += ch === lower ? mapped : mapped.toUpperCase();
+      } else {
+        converted += ch;
+      }
     }
-    // pass fen via react-router state
-    navigate("/analysis", { state: { initialFen: fen } });
+    parts[0] = converted;
+    return parts.join(" ");
+  };
+
+  const convertedFen = convertCustomLettersToStandard(rawFen);
+  const parts = convertedFen.split(" ");
+  if (parts.length < 2) {
+    return { ok: false, reason: `Malformed FEN (missing fields) after conversion: "${convertedFen}"` };
   }
+  const placement = parts[0];
+  const ranks = placement.split("/");
+  if (ranks.length !== 8) {
+    return { ok: false, reason: `FEN placement must have 8 slash-separated ranks. Got ${ranks.length}: "${placement}"` };
+  }
+  for (let i = 0; i < ranks.length; i++) {
+    const r = ranks[i];
+    let sum = 0;
+    for (const ch of r) {
+      if (ch >= "1" && ch <= "8") sum += Number(ch);
+      else if (/^[a-zA-Z]$/.test(ch)) sum += 1;
+      else {
+        return { ok: false, reason: `Invalid character "${ch}" in rank ${i + 1}: "${r}" — converted FEN: "${convertedFen}"` };
+      }
+      if (sum > 8) {
+        return { ok: false, reason: `Rank ${i + 1} adds up to >8 (invalid FEN): rank="${r}", converted FEN="${convertedFen}"` };
+      }
+    }
+    if (sum !== 8) {
+      return { ok: false, reason: `Rank ${i + 1} sums to ${sum} (must be 8): rank="${r}", converted FEN="${convertedFen}"` };
+    }
+  }
+  let setup;
+  try {
+    setup = parseFen(convertedFen).unwrap();
+  } catch (err: any) {
+    const msg = err && err.message ? `: ${err.message}` : "";
+    return { ok: false, reason: `Unable to parse converted FEN${msg}. Converted FEN: "${convertedFen}".` };
+  }
+
+  // 1) Build a flipped-setup object and test whether the flipped position is a check.
+  //    If flippedPos.isCheck() === true => original side-to-move is GIVING check => reject.
+  // 2) If flipped build succeeds and is NOT check => allow analysis (we don't need the original pos).
+  // 3) If flipped build fails, fall back to trying to build the original setup and surface errors.
+  try {
+    // narrow the flip to the literal union type so TS won't widen it to string
+    const flippedTurn = setup.turn === "white" ? ("black" as "black") : ("white" as "white");
+    const flippedSetup = { ...setup, turn: flippedTurn };
+
+    try {
+      const flippedPos = Chess.fromSetup(flippedSetup).unwrap();
+      if (flippedPos.isCheck()) {
+        const mover = sideToMove === "white" ? "White" : "Black";
+        return { ok: false, reason: `${mover} (side to move) appears to be giving check — fix the position before analysis.` };
+      }
+      // flipped build succeeded and opponent is NOT in check -> allow analysis
+      return { ok: true };
+    } catch (flipErr: any) {
+      // If building the flipped position fails, don't immediately give up: try the original setup
+      // (surface the flip error if both fail, below).
+      const flipMsg = flipErr && flipErr.message ? `: ${flipErr.message}` : "";
+      try {
+        const pos = Chess.fromSetup(setup).unwrap();
+        return { ok: true };
+      } catch (origErr: any) {
+        const origMsg = origErr && origErr.message ? `: ${origErr.message}` : "";
+        return { ok: false, reason: `Failed to validate checks. Flipped build error${flipMsg}. Original build error${origMsg}. Converted FEN: "${convertedFen}".` };
+      }
+    }
+  } catch (err: any) {
+    const msg = err && err.message ? `: ${err.message}` : "";
+    return { ok: false, reason: `Unexpected error validating checks${msg}. Converted FEN: "${convertedFen}".` };
+  }
+}
+
+function handleOpenInAnalysis() {
+  const res = validateFenForAnalysis();
+  if (!res.ok) {
+    alert(res.reason ?? "FEN is not valid for analysis");
+    return;
+  }
+  // pass fen via react-router state (ensure the fen includes sideToMove)
+  const piecesState = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
+  const fenToSend = piecesToFen(piecesState); // uses sideToMove
+  navigate("/analysis", { state: { initialFen: fenToSend } });
+}
+
 
     function handleSetStartPosition() {
     setFen(START_FEN);
@@ -339,6 +452,30 @@ export default function BoardEditor() {
     setFen(EMPTY_FEN);
     try { groundRef.current?.set?.({ fen: EMPTY_FEN }); } catch {}
   }
+
+  // helper (optional): reuse your pieces->FEN logic but let us compute inline for clarity
+function buildFenFromPiecesWithSide(pieces: Record<string, { role: string; color: string }>, side: "white" | "black") {
+  const ranks: string[] = [];
+  for (let rank = 7; rank >= 0; rank--) {
+    let empty = 0;
+    let rankStr = "";
+    for (let file = 0; file < 8; file++) {
+      const sq = `${FILES[file]}${rank + 1}`;
+      const p = pieces[sq];
+      if (!p) { empty++; }
+      else {
+        if (empty > 0) { rankStr += String(empty); empty = 0; }
+        const letter = roleToFenLetter(p.role);
+        rankStr += p.color === "white" ? letter.toUpperCase() : letter.toLowerCase();
+      }
+    }
+    if (empty > 0) rankStr += String(empty);
+    ranks.push(rankStr);
+  }
+  const turnShort = side === "white" ? "w" : "b";
+  return `${ranks.join("/")} ${turnShort} - - 0 1`;
+}
+
 
 
 
@@ -373,6 +510,21 @@ export default function BoardEditor() {
             >
               Start Position
             </button>
+            <button
+              onClick={handleSetEmptyPosition}
+              style={{
+                flex: 1,
+                padding: "6px 8px",
+                borderRadius: 6,
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.06)",
+                color: "#ddd",
+                cursor: "pointer",
+                fontSize: 13,
+              }}
+            >
+              Empty Board
+            </button>
               <button
               onClick={handleOpenInAnalysis}
               aria-label="Open in analysis"
@@ -389,21 +541,44 @@ export default function BoardEditor() {
             >
               Analyze
             </button>
-             <button
-              onClick={handleSetEmptyPosition}
+            <button
+onClick={() => {
+  // compute next side
+  const next = sideToMove === "white" ? "black" : "white";
+
+  // read pieces from the existing board (most accurate)
+  const pieces = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
+
+  // build the new fen with the flipped turn
+  const newFen = buildFenFromPiecesWithSide(pieces, next);
+
+  // update the chessground board in-place (no re-init)
+  try {
+    groundRef.current?.set({ fen: newFen });
+  } catch (err) {
+    // fallback: if set fails for any reason, still update state so UI shows the new FEN
+  }
+
+  // update React state for UI
+  setSideToMove(next);
+  setFen(newFen);
+}}
+
+              aria-pressed={sideToMove === "black"}
               style={{
-                flex: 1,
                 padding: "6px 8px",
                 borderRadius: 6,
                 background: "transparent",
                 border: "1px solid rgba(255,255,255,0.06)",
-                color: "#ddd",
+                color: "#fff",
                 cursor: "pointer",
                 fontSize: 13,
+                minWidth: 160,
               }}
             >
-              Empty Board
+              Make {sideToMove === "white" ? "Black" : "White"} to move
             </button>
+
             </div>
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
             Tip: Alt+click or right-click a square to remove a piece.
