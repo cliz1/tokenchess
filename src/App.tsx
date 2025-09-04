@@ -1,11 +1,14 @@
-// src/App.tsx
 import React from "react";
 import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
 import BoardEditor from "./components/BoardEditor";
-import ArmyBuilder from "./components/ArmyBuilder"; 
-import AnalysisBoard from "./components/AnalysisBoard"; 
+import ArmyBuilder from "./components/ArmyBuilder";
+import AnalysisBoard from "./components/AnalysisBoard";
+import { AuthProvider, useAuth } from "./AuthContext";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DecksPage from "./pages/DecksPage";
 
 import "./App.css";
 
@@ -17,35 +20,63 @@ function AnalysisRouteWrapper() {
   return <AnalysisBoard initialFen={initialFen} />;
 }
 
-export default function App() {
+function AuthNav() {
+  const { user, logout } = useAuth();
+  if (!user) {
+    return (
+      <>
+        <NavLink to="/login" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Login</NavLink>
+        <NavLink to="/register" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Sign up</NavLink>
+      </>
+    );
+  }
   return (
-    <BrowserRouter>
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-        <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <NavLink to="/" end style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
-            <NavLink to="/analysis" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
-            <NavLink to="/editor" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
-            <NavLink to="/army" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Army Builder</NavLink>
-            <NavLink to="/tutorials" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
-          </nav>
-        </header>
-
-        <main style={{ flex: 1 }}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/analysis" element={<AnalysisRouteWrapper />} />
-            <Route path="/editor" element={<BoardEditor />} />
-            <Route path="/army" element={<ArmyBuilder />} />
-            <Route path="/tutorials/*" element={<TutorialsPage />} />
-          </Routes>
-        </main>
-
-        <footer style={{ padding: 10, borderTop: "1px solid rgba(255,255,255,0.04)", textAlign: "center", fontSize: 12, color: "#999" }}>
-          © Token Chess
-        </footer>
-      </div>
-    </BrowserRouter>
+    <>
+      <NavLink to="/decks" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Decks</NavLink>
+      <button onClick={logout} style={{ background: "transparent", border: "none", color: "#aaa", cursor: "pointer" }}>Logout</button>
+    </>
   );
 }
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+          <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <NavLink to="/" end style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
+              <NavLink to="/analysis" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
+              <NavLink to="/editor" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
+              <NavLink to="/army" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Army Builder</NavLink>
+              <NavLink to="/tutorials" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
+
+              <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+                <AuthNav />
+              </div>
+            </nav>
+          </header>
+
+          <main style={{ flex: 1 }}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/analysis" element={<AnalysisRouteWrapper />} />
+              <Route path="/editor" element={<BoardEditor />} />
+              <Route path="/army" element={<ArmyBuilder />} />
+              <Route path="/tutorials/*" element={<TutorialsPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/decks" element={<DecksPage />} />
+            </Routes>
+          </main>
+
+          <footer style={{ padding: 10, borderTop: "1px solid rgba(255,255,255,0.04)", textAlign: "center", fontSize: 12, color: "#999" }}>
+            © Token Chess
+          </footer>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
 
