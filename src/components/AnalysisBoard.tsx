@@ -583,14 +583,6 @@ function renderMoveList() {
         {chess.isInsufficientMaterial() && " (Insufficient Material!)"}
       </div>
     )}
-    <div style={{ marginTop: 10 }}>
-      <button onClick={resetBoard} style={{ marginRight: 10 }}>
-        Reset Board
-      </button>
-      <button onClick={flipBoard} style={{ marginRight: 10 }}>
-        Flip Board
-      </button>
-    </div>
   </div>
 
   {/* PGN & Controls Section */}
@@ -617,6 +609,14 @@ function renderMoveList() {
       <button onClick={() => goToNext()}>&gt;</button>
       <button onClick={() => goToLast()} style={{ marginRight: 10 }}>&gt;&gt;</button>
   </div>
+      <div style={{ marginTop: 10 }}>
+      <button onClick={resetBoard} style={{ marginTop: 10, marginRight: 10, }}>
+        Reset
+      </button>
+      <button onClick={flipBoard} style={{ marginRight: 10 }}>
+        Flip
+      </button>
+    </div>
     </div>
 
   {/* Promotion Modal */}

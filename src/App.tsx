@@ -8,7 +8,7 @@ import AnalysisBoard from "./components/AnalysisBoard";
 import { AuthProvider, useAuth } from "./AuthContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import DecksPage from "./pages/DecksPage";
+import ArmiesPage from "./pages/ArmiesPage";
 
 import "./App.css";
 
@@ -32,7 +32,7 @@ function AuthNav() {
   }
   return (
     <>
-      <NavLink to="/decks" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Decks</NavLink>
+      <NavLink to="/armies" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Armies</NavLink>
       <button onClick={logout} style={{ background: "transparent", border: "none", color: "#aaa", cursor: "pointer" }}>Logout</button>
     </>
   );
@@ -46,10 +46,10 @@ export default function App() {
           <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <NavLink to="/" end style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
+              <NavLink to="/tutorials" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
               <NavLink to="/analysis" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
               <NavLink to="/editor" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
               <NavLink to="/army" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Army Builder</NavLink>
-              <NavLink to="/tutorials" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
 
               <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
                 <AuthNav />
@@ -66,7 +66,7 @@ export default function App() {
               <Route path="/tutorials/*" element={<TutorialsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/decks" element={<DecksPage />} />
+              <Route path="/armies" element={<ArmiesPage />} />
             </Routes>
           </main>
 

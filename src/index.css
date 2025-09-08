@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Quicksand:wght@400;600&display=swap');
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Quicksand', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -13,15 +15,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
   display: flex;
@@ -31,56 +24,54 @@ body {
   min-height: 100vh;      
 }
 
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Headings in fairy-tale style */
+h1, h2, h3 {
+  font-family: 'MedievalSharp', cursive;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: #d4af37; /* warm gold */
+  text-shadow: 0 0 6px rgba(212,175,55,0.3);
 }
 
+/* Links */
+a {
+  font-weight: 500;
+  color: #6a92c7; /* jewel-tone sapphire */
+  text-decoration: inherit;
+}
+a:hover {
+  color: #9db8e5;
+}
+
+/* Buttons */
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 2px solid #b58e24;
   padding: 0.6em 1.2em;
   font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  font-family: 'Quicksand', sans-serif;
+  background-color: #2a2a2a;
+  color: #d4af37;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s ease;
 }
 button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  background-color: #b58e24;
+  border-color: #d4af37;
+  color: #fff;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
-/* Palette thumbnails: show a single piece image, not repeated sprite tiles */
+/* Keep palette + lesson text logic intact */
 .palette .cg-piece {
-  background-repeat: no-repeat !important;     /* stop repeating */
+  background-repeat: no-repeat !important;
   background-position: center center !important;
-  background-size: 64px 64px !important;       /* make the sprite fit the thumb */
-  width: 64px !important;                      /* ensure piece div matches expected size */
+  background-size: 64px 64px !important;
+  width: 64px !important;
   height: 64px !important;
   display: block;
   image-rendering: auto;
 }
 
-/* Ensure the palette tile box doesn't overflow the piece */
 .palette > div {
   width: 72px;
   height: 72px;
@@ -93,5 +84,4 @@ button:focus-visible {
 .lesson-text {
   white-space: pre-line;
 }
-
 

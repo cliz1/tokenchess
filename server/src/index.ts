@@ -88,40 +88,40 @@ app.get("/api/me", authMiddleware, async (req: any, res) => {
   res.json({ id: user.id, email: user.email, username: user.username });
 });
 
-// ---------- routes: decks ----------
-app.get("/api/decks", authMiddleware, async (req: any, res) => {
-  const decks = await prisma.deck.findMany({ where: { userId: req.user.id }, orderBy: { updatedAt: "desc" }});
-  res.json(decks);
+// ---------- routes: armies ----------
+app.get("/api/armies", authMiddleware, async (req: any, res) => {
+  const armies = await prisma.army.findMany({ where: { userId: req.user.id }, orderBy: { updatedAt: "desc" }});
+  res.json(armies);
 });
 
-app.post("/api/decks", authMiddleware, async (req: any, res) => {
+app.post("/api/armies", authMiddleware, async (req: any, res) => {
   const { name, data, isPublic } = req.body;
   if (!name) return res.status(400).json({ error: "Missing name" });
-  const deck = await prisma.deck.create({ data: { name, data: data ?? {}, isPublic: !!isPublic, userId: req.user.id } });
-  res.json(deck);
+  const army = await prisma.army.create({ data: { name, data: data ?? {}, isPublic: !!isPublic, userId: req.user.id } });
+  res.json(army);
 });
 
-app.get("/api/decks/:id", authMiddleware, async (req: any, res) => {
+app.get("/api/armies/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
-  const deck = await prisma.deck.findUnique({ where: { id }});
-  if (!deck || deck.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-  res.json(deck);
+  const army = await prisma.army.findUnique({ where: { id }});
+  if (!army || army.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+  res.json(army);
 });
 
-app.put("/api/decks/:id", authMiddleware, async (req: any, res) => {
+app.put("/api/armies/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
   const { name, data, isPublic } = req.body;
-  const deck = await prisma.deck.findUnique({ where: { id }});
-  if (!deck || deck.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-  const updated = await prisma.deck.update({ where: { id }, data: { name: name ?? deck.name, data: data ?? deck.data, isPublic: isPublic ?? deck.isPublic }});
+  const army = await prisma.army.findUnique({ where: { id }});
+  if (!army || army.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+  const updated = await prisma.army.update({ where: { id }, data: { name: name ?? army.name, data: data ?? army.data, isPublic: isPublic ?? army.isPublic }});
   res.json(updated);
 });
 
-app.delete("/api/decks/:id", authMiddleware, async (req: any, res) => {
+app.delete("/api/armies/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
-  const deck = await prisma.deck.findUnique({ where: { id }});
-  if (!deck || deck.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-  await prisma.deck.delete({ where: { id }});
+  const army = await prisma.army.findUnique({ where: { id }});
+  if (!army || army.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+  await prisma.army.delete({ where: { id }});
   res.json({ ok: true });
 });
 

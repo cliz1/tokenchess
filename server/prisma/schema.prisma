@@ -12,14 +12,14 @@ model User {
   email      String   @unique
   username   String   @unique
   password   String
-  decks      Deck[]   @relation("owner_decks")
+  armies     Army[]   @relation("owner_armies")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 
-model Deck {
+model Army {
   id         String   @id @default(uuid())
-  user       User     @relation("owner_decks", fields: [userId], references: [id])
+  user       User     @relation("owner_armies", fields: [userId], references: [id])
   userId     String
   name       String
   data       Json     // store board layout, FEN, or arbitrary JSON

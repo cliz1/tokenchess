@@ -10,7 +10,7 @@ import "../assets/custom-pieces.css";
 const FILES = "abcdefgh";
 type PalettePiece = { role: string; color: "white" | "black" };
 
-export default function ArmyBuilder() {
+export default function ArmyBuilder({ onSave, initialFen }: { onSave?: (fen: string) => void; initialFen?: string }) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
 
@@ -18,12 +18,29 @@ export default function ArmyBuilder() {
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const INITIAL_TOKENS = 39;
 
-  const [fen, setFen] = useState<string>(EMPTY_FEN);
+  const [fen, setFen] = useState<string>(initialFen ?? EMPTY_FEN);
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [perspective, setPerspective] = useState<"white" | "black">("white");
 
   const [tokens, setTokens] = useState<number>(INITIAL_TOKENS);
   const tokensRef = useRef<number>(tokens);
+
+  useEffect(() => {
+    // If parent gives a new initialFen, update local fen state and tokens.
+    const newFen = initialFen ?? EMPTY_FEN;
+    setFen(newFen);
+
+    try {
+      // recompute tokens for current perspective
+      const cost = computeCostOfColorFromFen(newFen, perspective);
+      const nextTokens = Math.max(0, INITIAL_TOKENS - cost);
+      setTokens(nextTokens);
+      tokensRef.current = nextTokens;
+    } catch (err) {
+      // swallow
+    }
+  }, [initialFen, perspective]);
+
   useEffect(() => {
     tokensRef.current = tokens;
   }, [tokens]);
@@ -50,7 +67,7 @@ export default function ArmyBuilder() {
     if (r.includes("painter")) return 2;
     if (r.includes("snare")) return 2;
     if (r.includes("wizard")) return 5;
-    if (r.includes("archer")) return 3; // figure out
+    if (r.includes("archer")) return 4; // figure out
     return 2;
   }
 
@@ -74,9 +91,17 @@ export default function ArmyBuilder() {
     if (r.includes("pawn")) return "p";
     if (r.includes("knight") || r === "n") return "n";
     if (r.includes("bishop")) return "b";
-    if (r.includes("rook") || r.includes("champion")) return "r";
+    if (r.includes("rook")) return "r";
     if (r.includes("queen")) return "q";
     if (r.includes("king")) return "k";
+    if (r.includes("champion")) return "c";
+    if (r.includes("princess")) return "i";
+    if (r.includes("amazon")) return "a";
+    if (r.includes("commoner")) return "m";
+    if (r.includes("painter")) return "y";
+    if (r.includes("snare")) return "s";
+    if (r.includes("wizard")) return "w";
+    if (r.includes("archer")) return "x";
     return r.charAt(0) || "p";
   }
 
@@ -207,6 +232,30 @@ export default function ArmyBuilder() {
           break;
         case "K":
           role = "king";
+          break;
+        case "C":
+          role = "champion";
+          break;
+        case "I":
+          role = "princess";
+          break;
+        case "A":
+          role = "amazon";  
+          break;
+        case "M":
+          role = "commoner";
+          break;
+        case "S":
+          role = "snare"; 
+          break;
+        case "Y":
+          role = "painter";
+          break;
+        case "W":
+          role = "wizard";
+          break;
+        case"X":
+          role = "archer";
           break;
         default:
           role = "pawn";
@@ -688,6 +737,7 @@ export default function ArmyBuilder() {
             }}
           />
           <div style={{ marginTop: 10, fontFamily: "monospace", color: "#ddd" }}>FEN: {fen}</div>
+          <div><button onClick={() => {if (onSave) onSave(fen);}}>Save Army</button></div>
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
             Tip: Alt+click or right-click a square to remove a piece.
           </div>
