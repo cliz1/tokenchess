@@ -36,7 +36,7 @@ export default function HomePage() {
       {/* Black rows */}
       {renderRow(standardPieces, "black")}
       {renderRow(customPieces, "black")}
-       <h1 style={{ marginTop: 0, fontSize: "3.5rem" }}>...with tokens</h1>
+       <h1 style={{ marginTop: 0, fontSize: "3.5rem" }}>...with tokens.</h1>
     </div>
   );
 }

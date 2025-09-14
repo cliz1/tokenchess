@@ -25,21 +25,34 @@ export default function ArmyBuilder({ onSave, initialFen }: { onSave?: (fen: str
   const [tokens, setTokens] = useState<number>(INITIAL_TOKENS);
   const tokensRef = useRef<number>(tokens);
 
-  useEffect(() => {
-    // If parent gives a new initialFen, update local fen state and tokens.
-    const newFen = initialFen ?? EMPTY_FEN;
-    setFen(newFen);
+// When parent provides a new initialFen, update fen and tokens
+useEffect(() => {
+  const newFen = initialFen ?? EMPTY_FEN;
+  setFen(newFen);
 
-    try {
-      // recompute tokens for current perspective
-      const cost = computeCostOfColorFromFen(newFen, perspective);
-      const nextTokens = Math.max(0, INITIAL_TOKENS - cost);
-      setTokens(nextTokens);
-      tokensRef.current = nextTokens;
-    } catch (err) {
-      // swallow
-    }
-  }, [initialFen, perspective]);
+  try {
+    const cost = computeCostOfColorFromFen(newFen, perspective);
+    const nextTokens = Math.max(0, INITIAL_TOKENS - cost);
+    setTokens(nextTokens);
+    tokensRef.current = nextTokens;
+  } catch (err) {
+    // swallow
+  }
+}, [initialFen]); // <-- removed `perspective` here
+
+// When perspective OR fen changes, recompute tokens for the current perspective
+// (IMPORTANT: do not change fen here — only recompute token counts)
+useEffect(() => {
+  try {
+    const cost = computeCostOfColorFromFen(fen, perspective);
+    const nextTokens = Math.max(0, INITIAL_TOKENS - cost);
+    setTokens(nextTokens);
+    tokensRef.current = nextTokens;
+  } catch (err) {
+    // swallow
+  }
+}, [perspective, fen]);
+
 
   useEffect(() => {
     tokensRef.current = tokens;
@@ -280,40 +293,8 @@ export default function ArmyBuilder({ onSave, initialFen }: { onSave?: (fen: str
       orientation,
       draggable: { enabled: true },
       movable: {
-        free: true,
+        free: false,
         color: "both",
-        events: {
-          // after a move, if the moved piece is a king, revert it back
-          // and also revert any move that places a piece outside allowed ranks
-          after: (orig: string, dest: string, metadata: any) => {
-            try {
-              const pieces = groundRef.current?.state?.pieces;
-              const getPiece = (m: any, sq: string) => (m.get ? m.get(sq) : m[sq]);
-              const movedPiece = getPiece(pieces, dest);
-              if (!movedPiece) return;
-
-              // If the moved piece is a king, revert it
-              if (movedPiece.role === "king") {
-                const newPieces = new Map(pieces);
-                newPieces.delete(dest);
-                newPieces.set(orig, movedPiece);
-                groundRef.current.set({ pieces: newPieces });
-                return;
-              }
-
-              const allowed = isSquareAllowedInPerspective(dest, perspective);
-              const allowedForPiece = isSquareAllowedForPiece(dest, perspective, movedPiece);
-              if (!allowed || !allowedForPiece) {
-                const newPieces = new Map(pieces);
-                newPieces.delete(dest);
-                newPieces.set(orig, movedPiece);
-                groundRef.current.set({ pieces: newPieces });
-                return;
-              }
-            } catch (err) {
-            }
-          },
-        },
       },
       highlight: { lastMove: false, check: false },
       drawable: { enabled: false },
@@ -400,6 +381,21 @@ export default function ArmyBuilder({ onSave, initialFen }: { onSave?: (fen: str
         // blocked
         flashWarning(`Not enough tokens to place ${piece.color} ${piece.role}. Need ${costNew}, have ${currentTokens}${refund ? ` (replace refunds ${refund})` : ""}.`);
         return;
+      }
+
+      // --- SPECIAL RESTRICTIONS: only 1 archer and 1 amazon per side ---
+      if (piece.color === perspective) {
+        const countOfRole = Array.from(baseMap.values())
+          .filter(p => p.color === perspective && p.role === piece.role).length;
+
+        // If replacing same role on same square, allow it (count won’t increase)
+        const isReplacingSame =
+          existing && existing.role === piece.role && existing.color === perspective;
+
+        if (!isReplacingSame && (piece.role === "archer" || piece.role === "amazon") && countOfRole >= 1) {
+          flashWarning(`You can only place one ${piece.role} per side.`);
+          return;
+        }
       }
 
       // OK to place:
@@ -737,7 +733,9 @@ export default function ArmyBuilder({ onSave, initialFen }: { onSave?: (fen: str
             }}
           />
           <div style={{ marginTop: 10, fontFamily: "monospace", color: "#ddd" }}>FEN: {fen}</div>
-          <div><button onClick={() => {if (onSave) onSave(fen);}}>Save Army</button></div>
+          <div style={{ paddingTop: ".75rem" }}>
+            <button onClick={() => { if (onSave) onSave(fen); }}>Save</button>
+          </div>
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
             Tip: Alt+click or right-click a square to remove a piece.
           </div>
