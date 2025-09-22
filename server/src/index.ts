@@ -3,6 +3,8 @@ import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
+import { WebSocketServer } from "ws";
+import http from "http";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -162,7 +164,47 @@ app.delete("/api/drafts/:id", authMiddleware, async (req: any, res) => {
 });
 
 // ---------- start ----------
+const server = http.createServer(app); // wrap Express
+
+const wss = new WebSocketServer({ server });
+
+type Room = { fen: string; clients: Set<any> };
+const rooms: Record<string, Room> = {};
+
+wss.on("connection", (ws) => {
+let roomId: string | null = null;
+
+ws.on("message", (msg) => {
+  const data = JSON.parse(msg.toString());
+
+  if (data.type === "join") {
+    roomId = data.roomId as string;
+    if (!rooms[roomId]) rooms[roomId] = { fen: "startpos", clients: new Set() };
+    rooms[roomId]!.clients.add(ws);
+
+    ws.send(JSON.stringify({ type: "sync", fen: rooms[roomId]!.fen }));
+  }
+
+  if (data.type === "move" && roomId) {
+    rooms[roomId]!.fen = data.fen;
+    for (const client of rooms[roomId]!.clients) {
+      if (client !== ws) {
+        client.send(JSON.stringify({ type: "update", fen: data.fen }));
+      }
+    }
+  }
+});
+
+ws.on("close", () => {
+  if (roomId) {
+    rooms[roomId]!.clients.delete(ws);
+    if (rooms[roomId]!.clients.size === 0) delete rooms[roomId];
+  }
+});
+
+});
+
 const port = Number(process.env.PORT || 4000);
-app.listen(port, () => {
-  console.log(`Server listening on ${port}`);
+server.listen(port, () => {
+  console.log(`HTTP + WS server listening on ${port}`);
 });

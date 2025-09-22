@@ -8,7 +8,8 @@ import AnalysisBoard from "./components/AnalysisBoard";
 import { AuthProvider, useAuth } from "./AuthContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ArmiesPage from "./pages/DraftsPage";
+import DraftsPage from "./pages/DraftsPage";
+import GamePage from "./pages/GamePage";
 
 import "./App.css";
 
@@ -66,7 +67,8 @@ export default function App() {
               <Route path="/tutorials/*" element={<TutorialsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/armies" element={<ArmiesPage />} />
+              <Route path="/drafts" element={<DraftsPage />} />
+              <Route path="/game" element={<GamePage />} />
             </Routes>
           </main>
 
