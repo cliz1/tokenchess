@@ -32,7 +32,7 @@ export default function TutorialsPage() {
           { key: "Princess", label: "2.2 Princess" },
           { key: "Amazon", label: "2.3 Amazon" },
           { key: "Commoner", label: "2.4 Commoner" },
-          { key: "Painter", label: "2.5 Royal Painter" },
+          { key: "Painter", label: "2.5 Painter" },
           { key: "Snare", label: "2.6 Snare" },
           { key: "Wizard", label: "2.7 Wizard" },
           { key: "Archer", label: "2.8 Archer" }
@@ -40,8 +40,11 @@ export default function TutorialsPage() {
       },
       {
         heading: "3. Token Chess Rules",
-        items: [{ key: "token-system", label: "3.1 The Token System" }],
+        items: [{ key: "token-values", label: "3.1 Token Values" },
+          { key: "draft", label: "3.2 Drafting" } 
+        ],
       },
+      
     ],
     []
   );

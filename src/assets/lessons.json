@@ -12,7 +12,7 @@
             { "white": { "from": "e2", "to": "e4" } }
           ]
         },
-        "note": "The starting position for chess. Push the pawn in front of the king two squares forward to complete this exercise."
+        "note": "The starting position for chess. Push the king pawn two squares forward to complete this exercise."
       }
     ]
   },
@@ -21,7 +21,7 @@
  "quote": "“We do these things for ourselves alone.” – Thomas Dawson, fairy chess composer",
     "steps": [
       {
-        "text": "“Fairy Chess“ is a general term for a chess variant that includes nonstandard piece types. \n Below is a variant imagined by José Raúl Capablanca, a world chess champion. Note the 10x8 board and the addition of two new piece types.", "image": "/images/fairychess.png"
+        "text": "“Fairy Chess“ is a general term for a chess variant that includes nonstandard piece types. \n Below is a variant imagined by José Raúl Capablanca, a world chess champion. Note the unorthodox 10x8 board and the addition of two new piece types.", "image": "/images/fairychess.png"
       },
          {
         "text": "Variants such as Capablanca's chess were intended for full games, but it was also popular in some historical chess communities to invent new pieces for the sake of compositions (puzzles). Below is a 1911 puzzle by Thomas Dawson, a prolific composer of fairy chess problems. It involves a piece which combines the movement of a rook and a knight.",
@@ -38,39 +38,39 @@
   },
     "token-chess": {
     "title": "Token Chess",
-    "quote": "“We do these things for ourselves alone.” – Thomas R. Dawson, composer of over 5,000 fairy chess problems.",
+    "quote": "“His name is Tol-kien?” – Randy Marsh",
     "steps": [
       {
-        "text": "When capturing, pawns must move one square diagonally.",
+        "text": "Token Chess adds 8 fairy pieces and a draft system to the classic game. Each piece has a token cost, and players decide their own starting setup within a budget of 39 tokens.",
         "challenge": {
-          "initialFen": "3k4/8/8/4n3/3P4/8/8/3K4 w - - 0 1",
+          "initialFen": "xrmak2r/pspppppp/8/8/8/8/PPYPPPPP/R1CIKBW1 w KQkq - 0 1",
           "steps": [
             { "white": { "from": "d4", "to": "e5" } }
           ]
         },
-        "note": "White to move and mate and two. Hint: you only need to move the special piece."
+        "note": "An example Token Chess starting position. There is no correct move here, the possibilities are endless!"
       }
     ]
   },
   "Champion": {
     "title": "Champion",
-    "quote": "“I can't be defeated. I beat all men. Someday, I will beat a real champion. If he dies, he dies.” – Ivan Drago",
+    "quote": "“Suffer now and live the rest of your life as a champion.” – Muhammad Ali",
     "steps": [
       {
-        "text": "The Champion combines the movement of the Rook and Knight pieces. It a classic addition in chess variants. \n José Raúl Capablanca called it the “Chancellor,“ a popular name for the piece, but Token Chess refers to it by the name given by its first introduction to western chess by Italian priest Pietro Carrera.",
+        "text": "The Champion combines the movement of the Rook and Knight pieces. It a classic addition in chess variants. \n José Raúl Capablanca called it the “Chancellor,“ a popular name for the piece, but Token Chess refers to it by the name given by Italian priest Pietro Carrera, who first introduced the piece to western chess in the 17th century.",
         "challenge": {
-          "initialFen": "8/3k4/8/1b2r12/2C5/8/8/3K4 w - - 0 1",
+          "initialFen": "8/3r2k1/n3p3/2p3P1/2PC2K1/1P6/8/8 w - - 0 1",
           "steps": [
-            { "white": { "from": "c4", "to": "e5" }, "black": { "from": "d7", "to": "d6" } },
-            { "white": { "from": "e5", "to": "b5" } }
+            { "white": { "from": "d4", "to": "e6" }, "black": { "from": "g7", "to": "f7" } },
+            { "white": { "from": "e6", "to": "a6" } }
           ]
         },
-        "note": "Capture the rook, then capture the bishop."
+        "note": "Capture the pawn, then the knight."
       },
       {
         "text": "You can castle with the Champion, just as you would a rook!",
         "challenge": {
-          "initialFen": "4k3/8/8/8/8/8/5PPP/4K2C w kKQq - 0 1",
+          "initialFen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPP2PPP/RN1QK2C w kKQq - 0 1",
           "steps": [
             { "white": { "from": "e1", "to": "h1" } }
           ]
@@ -81,31 +81,33 @@
   },
   "Princess": {
     "title": "Princess",
-    "quote": "“Your princess is quite a winning creature. Her appeal is undeniable.” – The Princess Bride",
+    "quote": "“Your princess is quite a winning creature. Her appeal is undeniable.” – Rugen, The Princess Bride",
     "steps": [
       {
-        "text": "The Princess combines the movement of the Rook and Knight pieces. Like the Champion, it is a piece with a long history in chess variants. It is a tricky piece that is quite irritating to play against-- in an open board, the Princess is difficult to escape.",
+        "text": "The Princess combines the movement of the Bishop and Knight. Like the Champion, it is a piece with a long history in chess variants. It is a deceptively strong piece that is quite difficult to play against-- in an open board, it is hard to escape even a lone princess.",
         "challenge": {
-          "initialFen": "7k/8/8/1I2r3/8/8/8/3K4 w - - 0 1",
+          "initialFen": "7k/1b6/8/3p4/2p3I1/5P2/r3PK2/8 w - - 0 1",
           "steps": [
-            { "white": { "from": "b5", "to": "c3" }, "black": { "from": "h8", "to": "g8" } },
-            { "white": { "from": "c3", "to": "e5" } }
+            { "white": { "from": "g4", "to": "f6" } }
           ]
         },
-        "note": "Retreat the Princess to pin the enemy Rook."
+        "note": "Find the checkmate in one."
       }
     ]
   },
   "Amazon": {
     "title": "Amazon",
-    "quote": "“It is much safer to be feared than loved...” – Machiavelli",
+    "quote": "“I will not be triumphed over.” – Cleopatra VII",
     "steps": [
       {
-        "text": "Combining the power of the Queen with that of a Knight, the Amazon is extremely powerful. Unlike any piece in standard chess, it can perform a checkmate without any additional help.",
+        "text": "Behold! The all-powerful Queen+Knight combo, classically named the Amazon, after the greek mythological figures. Unlike any piece in standard chess, it can perform a checkmate without any additional help.",
         "challenge": {
           "initialFen": "5k2/8/8/8/3A4/8/8/3K4 w - - 0 1",
           "steps": [
             { "white": { "from": "d4", "to": "e6" } }
+          ],
+          "alt_steps": [
+            { "white": { "from": "d4", "to": "f6" } }
           ]
         },
         "note": "Checkmate the enemy King in one move."
@@ -114,22 +116,21 @@
   },
   "Commoner": {
     "title": "Commoner",
-    "quote": "“That a peasant may become king does not render the kingdom democratic.” – Woodrow Wilson",
+    "quote": "“The mob is always right.” – Napoleon",
     "steps": [
       {
-        "text": "The Commoner is just like a King, but as it was not born into royalty, it cannot be checkmated. \n While a weak attacker, the Commoner is strong in endgames. For example, despite having the same token cost as a Bishop or Knight, the Commoner can perform checkmate with the help of the King.",
+        "text": "The Commoner is just like a King, but as it was not born into royalty, the game does not hinge on its well-being. \n The Commoner is a strong defender, and it is most valuable in endgames. For example, despite having the same token cost as a Bishop or Knight, the Commoner can deliver checkmate with the help of the King.",
         "challenge": {
-          "initialFen": "6k1/3M4/5K2/8/8/8/8/8 w - - 0 1",
+          "initialFen": "4M3/7k/5K2/8/8/8/8/8 w - - 0 1",
           "steps": [
-            { "white": { "from": "d7", "to": "e7" }, "black": { "from": "g8", "to": "h7" } },
-            { "white": { "from": "e7", "to": "f7" }, "black": { "from": "h7", "to": "h6" } },
+            { "white": { "from": "e8", "to": "f7" }, "black": { "from": "h7", "to": "h6" } },
             { "white": { "from": "f7", "to": "g6" } }
           ]
         },
-        "note": "Checkmate the enemy King in three moves."
+        "note": "Checkmate the enemy King in two moves."
       },
       {
-        "text": "There's more! If sufficiently close to your King, this little endgame magician can effortlessly ward off a Queen, drawing a game down 5 points of material.",
+        "text": "There's more! If sufficiently close to your King, this little magician can effortlessly ward off a Queen, making a draw out of what *should* be a loss.",
         "challenge": {
           "initialFen": "5k2/8/8/2K3q1/2M5/8/8/8 w - - 0 1",
           "steps": [
@@ -144,13 +145,13 @@
     ]
   },
   "Painter": {
-    "title": "Royal Painter",
-    "quote": "“I dream my paintings, and then I paint my dreams.” – van Gogh",
+    "title": "Painter",
+    "quote": "“I dream my paintings, and then I paint my dreams.” – Vincent van Gogh",
     "steps": [
       {
-        "text": "While similar to a pawn, the Royal Painter has no stomach for violence. They are not a fighter but a dreamer and an artist. Rather than capture, the Painter paints enemy pieces to its own color.",
+        "text": "While similar to a pawn, the Painter has no violence in their heart. They are a dreamer and an artist, not a fighter. Rather than capture, the Painter paints enemy pieces to its own color.",
         "challenge": {
-          "initialFen": "8/2k1r1pp/8/2PY4/8/8/8/6K1 w - - 0 1",
+          "initialFen": "8/p1k1r1b1/1p4p1/1KPY1pN1/5P2/8/8/8 w - - 0 1",
           "steps": [
             { "white": { "from": "d5", "to": "d6" }, "black": { "from": "c7", "to": "d7" } },
             { "white": { "from": "d6", "to": "e7" } }
@@ -159,7 +160,7 @@
         "note": "Push the painter, then paint the enemy Rook."
       },
       {
-        "text": "While similar to a pawn, the Royal Painter has no stomach for violence. They are not a fighter but a dreamer and an artist. Rather than capture, the Painter paints enemy pieces to its own color.",
+        "text": "Like a pawn, a Painter can capture en passant. But instead of capturing, the Painter paints the piece it passes. This is called painting en passant, or en paintssant.",
         "challenge": {
           "initialFen": "2k5/4p3/8/8/3Y4/8/8/2K5 w - - 0 1",
           "steps": [
@@ -167,13 +168,13 @@
             { "white": { "from": "d5", "to": "e6" } }
           ]
         },
-        "note": "Push the painter, then paint en passant (en paintssant)."
+        "note": "Push the painter, then paint en passant."
       }
     ]
   },
   "Snare": {
     "title": "Snare",
-    "quote": "“It's a trap!” – Admiral Ackbar",
+    "quote": "“It's a trap!” – Ackbar, Return of the Jedi",
     "steps": [
       {
         "text": "The Snare is a piece that restricts the movement of enemy pieces within a certain range. The Snare can only move forward, and cannot capture.",
@@ -186,7 +187,7 @@
         "note": "Push the Snare forward, then click black's pieces to see which ones can move."
       },
       {
-        "text": "The Snare can be a good way to win material. It is generally a good idea to ensnare a target that can easily be attacked, such as with a pawn.",
+        "text": "One use for the Snare is forcing the exchange of a weaker piece for a strong one, also called “winning material.“ \n It is generally a good idea to ensnare a valuable target that can easily be attacked, such as with a pawn.",
         "challenge": {
           "initialFen": "rnb1kb1r/ppp1pppp/5n2/3q4/8/3S4/PPP2PPP/RNBQKBNR w - - 0 1",
           "steps": [
@@ -215,7 +216,7 @@
     "quote": "“A wizard is never late. Nor is he early. He arrives precisely when he means to.” – Gandalf",
     "steps": [
       {
-        "text": "The Wizard moves up to two squares orthogonally, disregarding occupancy of squares in between.",
+        "text": "The Wizard moves up to two squares orthogonally. Like a Knight, the Wizard can jump over pieces.",
         "challenge": {
           "initialFen": "8/8/5k2/8/3WP3/8/5b2/3K4 w - - 0 1",
           "steps": [
@@ -226,7 +227,7 @@
         "note": "Jump over the pawn, then capture the bishop."
       },
       {
-        "text": "The true power of the Wizard lies in its ability to swap places with a friendly piece within its movement range. This ability disregards pins, unlike standard chess rules which disallow moving “through“ check.",
+        "text": "The magic of the Wizard is its ability to swap places with a friendly piece within its movement range. This ability disregards pins, contrary to standard chess rules which disallow moving “through“ check.",
         "challenge": {
           "initialFen": "7k/6b1/8/8/3W4/2K5/3P4/8 w - - 0 1",
           "steps": [
@@ -299,8 +300,16 @@
       }
     ]
   },
-  "token-system": {
-    "title": "The Token System",
+  "token-values": {
+    "title": "Token Values",
+    "quote": "“Tell me, how much a dollar cost?” – Kendrick Lamar",
+    "steps": [
+      { "text": "Tokens give you budgeted points to spend on pieces. Use the Army Builder to create armies using the token budget." },
+      { "text": "In the Army Builder you can save and export armies as JSON so the Board Editor can place them." }
+    ]
+  },
+    "draft": {
+    "title": "Drafting",
     "quote": "“The pawn is the soul of chess.” – Philidor",
     "steps": [
       { "text": "Tokens give you budgeted points to spend on pieces. Use the Army Builder to create armies using the token budget." },

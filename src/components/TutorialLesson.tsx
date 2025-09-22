@@ -1,6 +1,7 @@
 // src/components/TutorialLesson.tsx
 import React from "react";
 import TutorialBoard from "./TutorialBoard";
+import ReactMarkdown from "react-markdown";
 
 type Step = {
   text?: string;
@@ -26,6 +27,7 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
         <div
           style={{
             fontStyle: "italic",
+            fontFamily: "Arial, serif",
             color: "#aaa",
             fontSize: 16,
             marginTop: 1,

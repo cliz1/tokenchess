@@ -24,7 +24,7 @@ export default function ArmiesPage() {
         const newArmy = await apiFetch("/armies", {
           method: "POST",
           body: JSON.stringify({
-            name: `Army ${list.length + 1}`,
+            name: `Draft ${list.length + 1}`,
             data: { fen: "8/8/8/8/8/8/8/8 w - - 0 1" }
           }),
         });
@@ -74,8 +74,8 @@ export default function ArmiesPage() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Your Armies</h2>
-      {!user && <div>Please sign in to manage armies.</div>}
+      <h2>Your drafts</h2>
+      {!user && <div>Please sign in to manage drafts.</div>}
       {user && (
         <>
           {/* Army slot selector */}

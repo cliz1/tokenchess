@@ -32,7 +32,7 @@ function AuthNav() {
   }
   return (
     <>
-      <NavLink to="/armies" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Armies</NavLink>
+      <NavLink to="/armies" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Drafts</NavLink>
       <button onClick={logout} style={{ background: "transparent", border: "none", color: "#aaa", cursor: "pointer" }}>Logout</button>
     </>
   );
@@ -49,7 +49,7 @@ export default function App() {
               <NavLink to="/tutorials" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
               <NavLink to="/analysis" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
               <NavLink to="/editor" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
-              <NavLink to="/army" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Army Builder</NavLink>
+              <NavLink to="/army" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Draft</NavLink>
 
               <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
                 <AuthNav />

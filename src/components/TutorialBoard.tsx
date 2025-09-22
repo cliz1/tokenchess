@@ -14,7 +14,12 @@ import { calculateDests, getCheckHighlights, playSound } from "../utils/chessHel
 
 type PromotionRole = "queen" | "rook" | "bishop" | "knight" | "champion" | "princess";
 type UciMove = { from: string; to: string; promotion?: PromotionRole };
-type Challenge = { initialFen?: string; steps: Array<{ white: UciMove; black?: UciMove }> };
+type Challenge = {
+  initialFen?: string;
+  steps: Array<{ white: UciMove; black?: UciMove }>;
+  alt_steps?: Array<{ white: UciMove; black?: UciMove }>;
+};
+
 
 type Props = {
   fen?: string;
@@ -191,7 +196,6 @@ useEffect(() => {
   challengeIndexRef.current = challengeIndex;
 }, [challengeIndex]);
 
-  // play move (shared for user and automated)
   const playMove = (move: any, fromAlg?: string, toAlg?: string, isAutomated = false) => {
     const ch = chessRef.current;
     if (!ch || !groundRef.current) return;
@@ -216,7 +220,6 @@ useEffect(() => {
       setInternalFen(newFen);
       onMove?.(fromAlg ?? makeSquare(move.from), toAlg ?? makeSquare(move.to));
 
-            // call this after you compute `toIdx` (or replace your existing neighbor logic)
       const toIdx = typeof move.to === "number" ? move.to : parseSquare(move.to)!;
       const toFile = toIdx % 8;
       const toRankIdx = Math.floor(toIdx / 8);
@@ -340,10 +343,13 @@ const handleMove = (from: string, to: string) => {
       return;
     }
 
+    const altstep = challenge.alt_steps?.[challengeIndexRef.current];
+
     const expectedWhite = step.white;
     debug("expected white @index", challengeIndex, expectedWhite);
 
-    const matches = uciEqual(expectedWhite, from, to, undefined);
+    const matches = uciEqual(expectedWhite, from, to, undefined) ||(altstep ? uciEqual(altstep.white, from, to, undefined) : false);
+
     debug("uciEqual =", matches);
 
     if (matches) {
