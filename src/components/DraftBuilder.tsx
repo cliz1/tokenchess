@@ -1,4 +1,4 @@
-// src/components/ArmyBuilder.tsx
+// src/components/DraftBuilder.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
@@ -10,7 +10,7 @@ import "../assets/custom-pieces.css";
 const FILES = "abcdefgh";
 type PalettePiece = { role: string; color: "white" | "black" };
 
-export default function ArmyBuilder({ onSave, initialFen }: { onSave?: (fen: string) => void; initialFen?: string }) {
+export default function DraftBuilder({ onSave, initialFen }: { onSave?: (fen: string) => void; initialFen?: string }) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
 

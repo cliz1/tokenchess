@@ -57,7 +57,7 @@
     "quote": "“Suffer now and live the rest of your life as a champion.” – Muhammad Ali",
     "steps": [
       {
-        "text": "The Champion combines the movement of the Rook and Knight pieces. It a classic addition in chess variants. \n José Raúl Capablanca called it the “Chancellor,“ a popular name for the piece, but Token Chess refers to it by the name given by Italian priest Pietro Carrera, who first introduced the piece to western chess in the 17th century.",
+        "text": "The Champion combines the movement of the Rook and Knight pieces. It is a classic addition in chess variants. \n José Raúl Capablanca called it the “Chancellor,“ a popular name for the piece, but Token Chess refers to it by the name given by Italian priest Pietro Carrera, who first introduced the piece to western chess in the 17th century.",
         "challenge": {
           "initialFen": "8/3r2k1/n3p3/2p3P1/2PC2K1/1P6/8/8 w - - 0 1",
           "steps": [

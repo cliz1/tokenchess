@@ -3,12 +3,12 @@ import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
 import BoardEditor from "./components/BoardEditor";
-import ArmyBuilder from "./components/ArmyBuilder";
+import ArmyBuilder from "./components/DraftBuilder";
 import AnalysisBoard from "./components/AnalysisBoard";
 import { AuthProvider, useAuth } from "./AuthContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ArmiesPage from "./pages/ArmiesPage";
+import ArmiesPage from "./pages/DraftsPage";
 
 import "./App.css";
 

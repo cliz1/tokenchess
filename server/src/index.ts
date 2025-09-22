@@ -88,40 +88,76 @@ app.get("/api/me", authMiddleware, async (req: any, res) => {
   res.json({ id: user.id, email: user.email, username: user.username });
 });
 
-// ---------- routes: armies ----------
-app.get("/api/armies", authMiddleware, async (req: any, res) => {
-  const armies = await prisma.army.findMany({ where: { userId: req.user.id }, orderBy: { updatedAt: "desc" }});
-  res.json(armies);
+// ---------- routes: drafts ----------
+app.get("/api/drafts", authMiddleware, async (req: any, res) => {
+  // Return drafts in stable order (oldest first) so front-end slots remain consistent.
+  const drafts = await prisma.draft.findMany({
+    where: { userId: req.user.id },
+    orderBy: { createdAt: "asc" },
+  });
+  res.json(drafts);
 });
 
-app.post("/api/armies", authMiddleware, async (req: any, res) => {
+
+app.post("/api/drafts", authMiddleware, async (req: any, res) => {
   const { name, data, isPublic } = req.body;
   if (!name) return res.status(400).json({ error: "Missing name" });
-  const army = await prisma.army.create({ data: { name, data: data ?? {}, isPublic: !!isPublic, userId: req.user.id } });
-  res.json(army);
+
+  const draft = await prisma.draft.create({
+    data: {
+      name,
+      data: data ?? {},
+      isPublic: !!isPublic,
+      isActive: false,   // default false on creation
+      userId: req.user.id,
+    },
+  });
+
+  res.json(draft);
 });
 
-app.get("/api/armies/:id", authMiddleware, async (req: any, res) => {
+
+app.get("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
-  const army = await prisma.army.findUnique({ where: { id }});
-  if (!army || army.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-  res.json(army);
+  const draft = await prisma.draft.findUnique({ where: { id }});
+  if (!draft || draft.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+  res.json(draft);
 });
 
-app.put("/api/armies/:id", authMiddleware, async (req: any, res) => {
+app.put("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
-  const { name, data, isPublic } = req.body;
-  const army = await prisma.army.findUnique({ where: { id }});
-  if (!army || army.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-  const updated = await prisma.army.update({ where: { id }, data: { name: name ?? army.name, data: data ?? army.data, isPublic: isPublic ?? army.isPublic }});
+  const { name, data, isPublic, isActive } = req.body;
+
+  const draft = await prisma.draft.findUnique({ where: { id }});
+  if (!draft || draft.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+
+  // If this draft is being set active, deactivate all others for this user
+  if (isActive) {
+    await prisma.draft.updateMany({
+      where: { userId: req.user.id, NOT: { id } },
+      data: { isActive: false },
+    });
+  }
+
+  const updated = await prisma.draft.update({
+    where: { id },
+    data: {
+      name: name ?? draft.name,
+      data: data ?? draft.data,
+      isPublic: isPublic ?? draft.isPublic,
+      isActive: isActive ?? draft.isActive,  // NEW
+    },
+  });
+
   res.json(updated);
 });
 
-app.delete("/api/armies/:id", authMiddleware, async (req: any, res) => {
+
+app.delete("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
-  const army = await prisma.army.findUnique({ where: { id }});
-  if (!army || army.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-  await prisma.army.delete({ where: { id }});
+  const draft = await prisma.draft.findUnique({ where: { id }});
+  if (!draft || draft.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+  await prisma.draft.delete({ where: { id }});
   res.json({ ok: true });
 });
 
