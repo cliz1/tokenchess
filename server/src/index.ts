@@ -179,7 +179,7 @@ ws.on("message", (msg) => {
 
   if (data.type === "join") {
     roomId = data.roomId as string;
-    if (!rooms[roomId]) rooms[roomId] = { fen: "startpos", clients: new Set() };
+    if (!rooms[roomId]) rooms[roomId] = { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", clients: new Set() };
     rooms[roomId]!.clients.add(ws);
 
     ws.send(JSON.stringify({ type: "sync", fen: rooms[roomId]!.fen }));
