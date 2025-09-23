@@ -38,10 +38,9 @@ useEffect(() => {
   } catch (err) {
     // swallow
   }
-}, [initialFen]); // <-- removed `perspective` here
+}, [initialFen]);
 
-// When perspective OR fen changes, recompute tokens for the current perspective
-// (IMPORTANT: do not change fen here — only recompute token counts)
+// recompute tokens for the current perspective
 useEffect(() => {
   try {
     const cost = computeCostOfColorFromFen(fen, perspective);
@@ -74,13 +73,13 @@ useEffect(() => {
     if (r.includes("queen")) return 9;
     if (r.includes("champion")) return 9;
     if (r.includes("king")) return 0;
-    if (r.includes("princess")) return 8; // figure out
+    if (r.includes("princess")) return 8; 
     if (r.includes("amazon")) return 13;
     if (r.includes("commoner")) return 3;
     if (r.includes("painter")) return 2;
     if (r.includes("snare")) return 2;
     if (r.includes("wizard")) return 5;
-    if (r.includes("archer")) return 4; // figure out
+    if (r.includes("archer")) return 4; 
     return 2;
   }
 
@@ -313,7 +312,6 @@ useEffect(() => {
               : piecesToFen(statePiecesToObject(api.state.pieces));
           setFen(newFen);
 
-          // ---- NEW: recompute tokens from the current board pieces ----
           try {
             const piecesObj = statePiecesToObject(api.state.pieces);
             const newTokens = remainingTokensForStatePieces(piecesObj, perspective);
@@ -322,7 +320,6 @@ useEffect(() => {
           } catch (tokErr) {
             // swallow token recompute errors so change handler doesn't fail
           }
-          // ------------------------------------------------------------
         } catch (err) {
           // ignore
         }
@@ -388,7 +385,7 @@ useEffect(() => {
         const countOfRole = Array.from(baseMap.values())
           .filter(p => p.color === perspective && p.role === piece.role).length;
 
-        // If replacing same role on same square, allow it (count won’t increase)
+        // replacing same role on same square
         const isReplacingSame =
           existing && existing.role === piece.role && existing.color === perspective;
 
@@ -560,8 +557,6 @@ useEffect(() => {
     node.style.left = "-9999px";
     node.style.top = "-9999px";
     node.style.pointerEvents = "none";
-
-    // inline styles: ensure drag preview shows a single piece (not tiled sprite)
     node.innerHTML = `
       <div class="cg-piece ${piece.role} ${piece.color}"
            style="
@@ -595,7 +590,6 @@ useEffect(() => {
       const newMap = new Map<string, { role: string; color: string }>();
       for (const [sq, piece] of baseMap.entries()) {
         const mirrored = mirrorSquare(sq);
-        // swap colors so the same physical pieces appear as opposite color under opposite perspective
         const newColor = piece.color === "white" ? "black" : "white";
         newMap.set(mirrored, { role: piece.role, color: newColor });
       }
@@ -646,7 +640,7 @@ useEffect(() => {
   return (
     <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: 24 }}>
       <div style={{ display: "flex", gap: 28, alignItems: "flex-start" }}>
-        {/* LEFT: RIGHT PANEL moved to the LEFT */}
+        {/* LEFT: info + START/EMPTY buttons */}
         <div
           style={{
             width: 220,

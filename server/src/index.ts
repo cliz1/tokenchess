@@ -92,7 +92,6 @@ app.get("/api/me", authMiddleware, async (req: any, res) => {
 
 // ---------- routes: drafts ----------
 app.get("/api/drafts", authMiddleware, async (req: any, res) => {
-  // Return drafts in stable order (oldest first) so front-end slots remain consistent.
   const drafts = await prisma.draft.findMany({
     where: { userId: req.user.id },
     orderBy: { createdAt: "asc" },
@@ -147,7 +146,7 @@ app.put("/api/drafts/:id", authMiddleware, async (req: any, res) => {
       name: name ?? draft.name,
       data: data ?? draft.data,
       isPublic: isPublic ?? draft.isPublic,
-      isActive: isActive ?? draft.isActive,  // NEW
+      isActive: isActive ?? draft.isActive, 
     },
   });
 
@@ -168,7 +167,7 @@ const server = http.createServer(app); // wrap Express
 
 const wss = new WebSocketServer({ server });
 
-type Room = { fen: string; clients: Set<any> };
+type Room = { fen: string; clients: Set<any>; lastMove?: [string,string] };
 const rooms: Record<string, Room> = {};
 
 wss.on("connection", (ws) => {
@@ -182,14 +181,17 @@ ws.on("message", (msg) => {
     if (!rooms[roomId]) rooms[roomId] = { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", clients: new Set() };
     rooms[roomId]!.clients.add(ws);
 
-    ws.send(JSON.stringify({ type: "sync", fen: rooms[roomId]!.fen }));
+    ws.send(JSON.stringify({ type: "sync", fen: rooms[roomId]!.fen, lastMove: rooms[roomId]!.lastMove })); 
   }
 
   if (data.type === "move" && roomId) {
-    rooms[roomId]!.fen = data.fen;
+    const room = rooms[roomId]!;
+    room.fen = data.fen;
+    room.lastMove = data.lastMove;
+    //console.log(`Room ${roomId} updated:`, room.fen, room.lastMove);
     for (const client of rooms[roomId]!.clients) {
       if (client !== ws) {
-        client.send(JSON.stringify({ type: "update", fen: data.fen }));
+        client.send(JSON.stringify({ type: "update", fen: data.fen, lastMove: data.lastMove }));
       }
     }
   }

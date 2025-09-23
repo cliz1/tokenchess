@@ -4,12 +4,6 @@ import TutorialLesson from "../components/TutorialLesson";
 import { Link } from "react-router-dom";
 import lessons from '../assets/lessons.json';
 
-/**
- * Build a lessons object mapping "slug" -> { title, steps }
- * Expand this object with each sub-section you want.
- *
- * The provided ones are examples you can copy/extend.
- */
 const LESSONS = lessons as Record<string, { title: string; quote: string; steps: { text: string }[] }>;
 
 type LessonKey = keyof typeof LESSONS;

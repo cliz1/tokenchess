@@ -6,6 +6,7 @@ import { Chess } from "chessops/chess";
 import { parseFen, makeFen } from "chessops/fen";
 import { calculateDests } from "../utils/chessHelpers";
 import { useGameSocket } from "../hooks/useGameSocket";
+import type { GameUpdate } from "../hooks/useGameSocket";
 import { parseSquare, makeSquare  } from "chessops/util";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
@@ -18,20 +19,27 @@ export default function GamePage() {
   const chessRef = useRef<Chess>(Chess.default());
 
   // --- roomId & FEN state ---
-  const roomId = "test-room"; // replace with dynamic ID if needed
+const roomId = "test-room";
 const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const [fen, setFen] = useState<string>(startFen);
+const [lastMove, setLastMove] = useState<[string,string] | null>(null);
+
 
   // --- connect to WS ---
-  const { sendFen } = useGameSocket(roomId, (newFen) => {
-    setFen(newFen);
+  const { sendFen } = useGameSocket(roomId, (update: GameUpdate) => {
+    if (update.fen === fen) return; // no change
+    const setup = parseFen(update.fen).unwrap();
+    chessRef.current = Chess.fromSetup(setup).unwrap();
+    console.log("Received update:", update);
+    setFen(update.fen);
+    if (update.lastMove) setLastMove(update.lastMove);
   });
 
 // --- initialize Chessground ---
 useEffect(() => {
   if (!containerRef.current) return;
 
-  console.log("Initializing Chessground with FEN:", fen);
+  //console.log("Initializing Chessground with FEN:", fen);
 
   // try parsing FEN with chessops first
   try {
@@ -39,7 +47,7 @@ useEffect(() => {
     if (parsed.isErr) {
       console.error("parseFen failed:", parsed.error);
     } else {
-      console.log("parseFen successful:", parsed.unwrap());
+      //console.log("parseFen successful:", parsed.unwrap());
     }
   } catch (err) {
     console.error("Exception during parseFen:", err);
@@ -55,33 +63,21 @@ useEffect(() => {
       showDests: true,
       dests: calculateDests(chessRef.current),
       events: {
-        after: (from: string, to: string) => {
-          const fromSquare = parseSquare(from);
-          const toSquare = parseSquare(to);
-          console.log("Move attempt:", { from, to, fromSquare, toSquare });
+    after: (from: string, to: string) => {
+        const fromSq = parseSquare(from);
+        const toSq = parseSquare(to);
+        if (!fromSq || !toSq) return;
 
-          if (fromSquare === undefined || toSquare === undefined) {
-            console.warn("Invalid move: parseSquare returned undefined");
-            return;
-          }
+        const move = { from: fromSq, to: toSq };
+        if (!chessRef.current.isLegal(move)) return;
 
-          const move = { from: fromSquare, to: toSquare };
-          if (chessRef.current.isLegal(move)) {
-            chessRef.current.play(move);
-            const newFen = makeFen(chessRef.current.toSetup());
-            console.log("Move applied, new FEN:", newFen);
+        chessRef.current.play(move);
+        const newFen = makeFen(chessRef.current.toSetup());
 
-            groundRef.current.set({
-              fen: newFen,
-              turnColor: chessRef.current.turn,
-              movable: { dests: calculateDests(chessRef.current) },
-            });
-
-            sendFen(newFen);
-          } else {
-            console.warn("Move is not legal:", move);
-          }
-        },
+        setFen(newFen);          
+        setLastMove([from, to]);      
+        sendFen({ fen: newFen, lastMove: [from, to] });
+            },
       },
     },
   };
@@ -112,6 +108,12 @@ useEffect(() => {
       },
     });
   }, [fen]);
+
+  useEffect(() => {
+  if (!groundRef.current || !lastMove) return;
+
+  groundRef.current.set({ lastMove });
+}, [lastMove]);
 
   return (
     <div style={{ padding: 20 }}>
