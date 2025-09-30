@@ -3,13 +3,15 @@ import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
 import BoardEditor from "./components/BoardEditor";
-import ArmyBuilder from "./components/DraftBuilder";
+import DraftBuilder from "./components/DraftBuilder";
 import AnalysisBoard from "./components/AnalysisBoard";
 import { AuthProvider, useAuth } from "./AuthContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DraftsPage from "./pages/DraftsPage";
 import GamePage from "./pages/GamePage";
+import CreateRoomPage from "./pages/CreateRoomPage";
+import JoinRoomPage from "./pages/JoinRoomPage";
 
 import "./App.css";
 
@@ -50,8 +52,9 @@ export default function App() {
               <NavLink to="/tutorials" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
               <NavLink to="/analysis" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
               <NavLink to="/editor" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
-              <NavLink to="/army" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Draft</NavLink>
-
+              <NavLink to="/draft" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Draft</NavLink>
+              <NavLink to="/game/create" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Create Game</NavLink>
+              <NavLink to="/game/join" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Join Game</NavLink>
               <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
                 <AuthNav />
               </div>
@@ -63,12 +66,14 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/analysis" element={<AnalysisRouteWrapper />} />
               <Route path="/editor" element={<BoardEditor />} />
-              <Route path="/army" element={<ArmyBuilder />} />
+              <Route path="/draft" element={<DraftBuilder />} />
               <Route path="/tutorials/*" element={<TutorialsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/drafts" element={<DraftsPage />} />
               <Route path="/game" element={<GamePage />} />
+              <Route path="/game/create" element={<CreateRoomPage />} />
+              <Route path="/game/join" element={<JoinRoomPage />} />
             </Routes>
           </main>
 

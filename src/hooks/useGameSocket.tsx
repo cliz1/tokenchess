@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export type GameUpdate = {
   fen: string;
   lastMove?: [string, string];
+  role?: "player" | "spectator";
+  color?: "white" | "black";
 };
 
 export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => void) {
@@ -19,13 +21,14 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
     wsRef.current = ws;
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "join", roomId }));
+      const token = localStorage.getItem("token");
+      ws.send(JSON.stringify({ type: "join", roomId, token }));
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "sync" || data.type === "update") {
-        onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove });
+        onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color });
       }
     };
     
@@ -41,14 +44,14 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
     };
   }, [roomId]);
 
-  function sendFen(update: GameUpdate) {
+  const sendMove = useCallback((lastMove: [string, string]) => {
     const socket = wsRef.current
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.warn("WebSocket not connected");
       return;
     }
-    socket.send(JSON.stringify({ type: "move", roomId, ...update }));
-  }
+    socket.send(JSON.stringify({ type: "move", lastMove }));
+  }, [])
 
-  return { sendFen };
+  return { sendMove };
 }

@@ -100,7 +100,7 @@ async function load() {
               borderRadius: 6,
               cursor: "pointer",
               background: a.isActive
-                ? "#2a7" // green highlight if active
+                ? "#2a7" 
                 : i === selected
                 ? "#444"
                 : "#222",
