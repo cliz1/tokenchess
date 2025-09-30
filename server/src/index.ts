@@ -216,6 +216,9 @@ type Room = {
   ownerId?: string;
   players?: string[];
   createdAt?: number;
+  concluded?: boolean;
+  result?: "1-0" | "0-1" | "1/2-1/2" | "ongoing";
+  rematchVotes?: Set<string>;
 };
 const rooms: Record<string, Room> = {};
 
@@ -366,15 +369,30 @@ ws.on("message", (msg) => {
 
     // apply move, compute canonical FEN
     chess.play(moveObj);
+
+    let gameOver = false;
+    let result: "1-0" | "0-1" | "1/2-1/2" | "ongoing" | undefined;
+
+    if (chess.isCheckmate()){
+      gameOver = true;
+      if (chess.turn === "black") result = "1-0";
+      else result = "0-1";
+    }
+    else if (chess.isStalemate()){
+      gameOver = true;
+      result = "1/2-1/2"
+    }
+
     const newFen = makeFen(chess.toSetup());
     room.fen = newFen;
     room.lastMove = lastMove;
 
-    console.log(`Room ${roomId} move by ${senderId}:`, lastMove, newFen);
-
-  for (const client of room.clients) {
+    if (gameOver){
+      room.concluded = true;
+      room.result = result;
+// send recipient-specific gameOver (include role/color per client)
+     for (const client of room.clients) {
         try {
-          // compute recipient-specific role/color to include
           const cliRole = (client as any).role ?? "spectator";
           let cliColor: "white" | "black" | undefined = undefined;
           if (cliRole === "player" && room.players) {
@@ -383,21 +401,106 @@ ws.on("message", (msg) => {
             else if (room.players[1] === pid) cliColor = "black";
           }
           client.send(JSON.stringify({
-            type: "update",
+            type: "gameOver",
             fen: room.fen,
             lastMove: room.lastMove,
+            result,
             role: cliRole,
-            color: cliColor
+            color: cliColor,
           }));
         } catch (_) { /* ignore send errors */ }
       }
+      return;
+    }
+
+    console.log(`Room ${roomId} move by ${senderId}:`, lastMove, newFen);
+
+    for (const client of room.clients) {
+          try {
+            // compute recipient-specific role/color to include
+            const cliRole = (client as any).role ?? "spectator";
+            let cliColor: "white" | "black" | undefined = undefined;
+            if (cliRole === "player" && room.players) {
+              const pid = (client as any).playerId;
+              if (room.players[0] === pid) cliColor = "white";
+              else if (room.players[1] === pid) cliColor = "black";
+            }
+            client.send(JSON.stringify({
+              type: "update",
+              fen: room.fen,
+              lastMove: room.lastMove,
+              role: cliRole,
+              color: cliColor
+            }));
+          } catch (_) { /* ignore send errors */ }
+        }
   }
+    if (data.type === "rematch" && roomId) {
+    const room = rooms[roomId]!;
+    if (!room.concluded) return; // only after game over
+
+    const uid = (ws as any).playerId;
+    if (!uid) return;
+
+    room.rematchVotes = room.rematchVotes ?? new Set();
+    room.rematchVotes.add(uid);
+
+    if (room.rematchVotes.size === 2) {
+      // both agreed
+      const [p1, p2] = room.players!;
+      // swap colors by swapping order
+      room.players = [p2, p1];
+      room.fen = START_FEN;
+      room.lastMove = undefined;
+      room.concluded = false;
+      room.rematchVotes.clear();
+
+      for (const client of room.clients) {
+        const pid = (client as any).playerId;
+        let cliColor: "white" | "black" | undefined;
+        if (pid === room.players[0]) cliColor = "white";
+        else if (pid === room.players[1]) cliColor = "black";
+
+        client.send(JSON.stringify({
+          type: "newGame",
+          fen: room.fen,
+          role: (client as any).role,
+          color: cliColor,
+        }));
+      }
+    }
+  }
+
+if (data.type === "leave" && roomId) {
+  const room = rooms[roomId];
+  if (room) {
+    // Remove ws from clients set
+    room.clients.delete(ws);
+
+    // Remove player ID from players array
+    const uid = (ws as any).playerId;
+    if (uid && room.players) {
+      room.players = room.players.filter((p) => p !== uid);
+    }
+
+    // If room is empty, delete it
+    if (room.clients.size === 0) {
+      delete rooms[roomId];
+    }
+  }
+
+  // Close the socket regardless of room existence
+  ws.close();
+}
+
 });
 
 ws.on("close", () => {
-  if (roomId) {
-    rooms[roomId]!.clients.delete(ws);
-    if (rooms[roomId]!.clients.size === 0) delete rooms[roomId];
+  if (roomId && rooms[roomId]) {
+    rooms[roomId].clients.delete(ws);
+    if (rooms[roomId].clients.size === 0) {
+      delete rooms[roomId]; // clean up empty rooms
+    }
   }
 });
 

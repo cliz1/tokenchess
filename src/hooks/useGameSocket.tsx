@@ -5,6 +5,7 @@ export type GameUpdate = {
   lastMove?: [string, string];
   role?: "player" | "spectator";
   color?: "white" | "black";
+  result?: "1-0" | "0-1" | "1/2-1/2" | "ongoing";
 };
 
 export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => void) {
@@ -30,6 +31,11 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
       if (data.type === "sync" || data.type === "update") {
         onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color });
       }
+      else if (data.type === "gameOver") {
+    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, result: data.result, role: data.role, color: data.color });
+  }   else if (data.type === "newGame") {
+    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color });
+  }
     };
     
     ws.onclose = () => {
@@ -53,5 +59,13 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
     socket.send(JSON.stringify({ type: "move", lastMove }));
   }, [])
 
-  return { sendMove };
+  const sendRematch = useCallback(() => {
+    wsRef.current?.send(JSON.stringify({ type: "rematch" }));
+  }, []);
+
+  const sendLeave = useCallback(() => {
+    wsRef.current?.send(JSON.stringify({ type: "leave" }));
+  }, []);
+
+  return { sendMove, sendRematch, sendLeave };
 }

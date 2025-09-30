@@ -1,6 +1,6 @@
 // src/pages/GamePage.tsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
 import { Chess } from "chessops/chess";
@@ -20,6 +20,7 @@ export default function GamePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<any>(null);
   const chessRef = useRef<Chess>(Chess.default());
+  const navigate = useNavigate();
 
   // --- roomId & FEN state ---
   const [searchParams] = useSearchParams();
@@ -31,6 +32,8 @@ export default function GamePage() {
   const fenRef = useRef<string>(startFen); // <- synchronous reference
   const [lastMove, setLastMove] = useState<[string, string] | null>(null);
   const lastMoveRef = useRef<[string, string] | null>(null); // <- synchronous reference
+
+  const [gameResult, setGameResult] = useState<null | "1-0" | "0-1" | "1/2-1/2" | "ongoing">(null);
 
   // player metadata from server
   const [role, setRole] = useState<"player" | "spectator">("spectator");
@@ -50,7 +53,7 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
     prevLast &&
     update.lastMove[0] === prevLast[0] &&
     update.lastMove[1] === prevLast[1];
-  if (sameFen && sameLastMove) {
+  if (sameFen && sameLastMove && !update.result) {
     // echo of our own move — ignore entirely
     return;
   }
@@ -107,10 +110,19 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
       lastMoveRef.current = update.lastMove;
     }
   }
+  if (update.result) {
+    setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
+  } else {
+    setGameResult(null);
+  }
+  if (update.fen === startFen) {
+  setLastMove(null);
+  lastMoveRef.current = null; // clear last game's move highlights
+}
 }, []); // uses refs; safe to keep empty deps
 
   // --- connect to WS (pass the stable callback) ---
-  const { sendMove } = useGameSocket(roomId, onGameUpdate);
+  const { sendMove, sendLeave, sendRematch } = useGameSocket(roomId, onGameUpdate);
 
   // --- initialize Chessground ---
   useEffect(() => {
@@ -172,17 +184,25 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
     });
   }, [fen, lastMove, role, playerColor, sendMove]);
 
-  return (
-    <div style={{ padding: 20 }}>
-      <div
-        ref={containerRef}
-        className="cg-wrap"
-        style={{ width: 600, height: 600 }}
-      />
-      <div style={{ marginTop: 10, fontFamily: "monospace" }}>
-        Synced FEN: {fen} — role: {role}{" "}
-        color: {playerColor ? `(${playerColor})` : ""} Room: {roomId}
-      </div>
+const handleLeave = () => {
+  sendLeave(); 
+  navigate("/");  
+};
+
+return (
+  <div style={{ padding: 20 }}>
+    <div ref={containerRef} className="cg-wrap" style={{ width: 600, height: 600 }} />
+    <div style={{ marginTop: 10, fontFamily: "monospace" }}>
+      Synced FEN: {fen} — role: {role} {playerColor ? `(${playerColor})` : ""} Room: {roomId}
     </div>
-  );
+
+    {gameResult && role === "player" && (
+      <div style={{ marginTop: 20 }}>
+        <div>Game Over: {gameResult}</div>
+        <button onClick={() => sendRematch()}>Rematch</button>
+        <button onClick={handleLeave}>Leave</button>
+      </div>
+    )}
+  </div>
+);
 }
