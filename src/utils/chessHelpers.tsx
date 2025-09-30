@@ -1,7 +1,7 @@
 import type { Dests, Key } from "chessground/types";
 import { Chess } from "chessops/chess";
 import { makeSquare, parseSquare } from "chessops/util";
-import { parseFen, makeFen } from "chessops/fen";
+import { parseFen } from "chessops/fen";
 import '../App.css';
 
 export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard" | "archer" | "x_capture" | "snare") {
@@ -63,3 +63,87 @@ export function moveToUci(m: any) {
 export function movesEqual(a: any, b: any) {
   return a?.from === b?.from && a?.to === b?.to && (a?.promotion ?? null) === (b?.promotion ?? null);
 }
+
+export function playMoveSound(
+  chess: Chess,
+  move: { from: number; to: number },
+  from: string,
+  to: string,
+  preCaptured?: { color: string; role?: string } | null
+) {
+  const fromIdx = parseSquare(from)!;
+  const toIdx = parseSquare(to)!;
+
+  // moving piece: prefer fromIdx, fall back to toIdx
+  const movingPiece = chess.board.get(fromIdx) ?? chess.board.get(toIdx);
+  if (!movingPiece) return;
+
+  const isPreMoveState = chess.board.get(fromIdx) !== undefined;
+
+  // If caller provided the captured piece (best for remote updates), use it.
+  // Otherwise, detect it from the pre-move board (when we have a pre-move chess).
+  let capturedPiece: any | null = null;
+  if (typeof preCaptured !== "undefined") {
+    capturedPiece = preCaptured;
+  } else {
+    // Build a pre-move clone and inspect toIdx (works when the passed chess is pre-move).
+    const preChess = Chess.fromSetup(chess.toSetup()).unwrap();
+    capturedPiece = preChess.board.get(toIdx) ?? null;
+  }
+
+  // Build after-state (clone+play if caller passed a pre-move board)
+  const afterChess = isPreMoveState ? Chess.fromSetup(chess.toSetup()).unwrap() : chess;
+  if (isPreMoveState) {
+    try {
+      afterChess.play(move);
+    } catch {
+      // ignore
+    }
+  }
+
+  const toFile = toIdx % 8;
+  const toRankIdx = Math.floor(toIdx / 8);
+  const fromRank = Math.floor(fromIdx / 8);
+
+  const leftIdx = toFile > 0 ? toIdx - 1 : undefined;
+  const rightIdx = toFile < 7 ? toIdx + 1 : undefined;
+  const frontIdx = toRankIdx < 7 ? toIdx + 8 : undefined;
+  const behindIdx = toRankIdx > 0 ? toIdx - 8 : undefined;
+
+  const relIdxs =
+    movingPiece.color === "white"
+      ? [leftIdx, rightIdx, frontIdx]
+      : [leftIdx, rightIdx, behindIdx];
+
+  const neighbors = relIdxs.map((idx) =>
+    idx !== undefined ? afterChess.board.get(idx) ?? null : null
+  );
+
+  const hasEnemyAdjacent = neighbors.some((n) => n !== null && n.color !== movingPiece.color);
+  const hasEnemySnareAdjacent = neighbors.some(
+    (n) => n !== null && n.color !== movingPiece.color && n.role === "snare"
+  );
+
+  const isSnaredMove =
+    (movingPiece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent;
+
+  // --- play sounds ---
+  if (capturedPiece) {
+    if (movingPiece.role === "painter") playSound("paint");
+    else if (movingPiece.role === "wizard" && capturedPiece.color === movingPiece.color)
+      playSound("wizard");
+    else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
+      playSound("archer");
+      playSound("x_capture");
+    } else playSound("capture");
+
+    if (afterChess.isCheck()) playSound("check");
+    if (isSnaredMove) playSound("snare");
+  } else {
+    if (afterChess.isCheck()) playSound("check");
+    playSound("move");
+    if (isSnaredMove) playSound("snare");
+  }
+}
+
+
