@@ -252,9 +252,16 @@ ws.on("message", (msg) => {
       room.players = room.players ?? [];
       if (!room.players.includes(uid)){
         if (room.players.length < 2){
-          room.players.push(uid);
           (ws as any).role = "player";
           (ws as any).playerId = uid;
+          if (room.players.length === 0){
+            (ws as any).color = "white";
+            room.players.push(uid);
+          }
+          else{
+            (ws as any).color = "black"
+            room.players.push(uid);
+          }
         }
         else{
           (ws as any).role = "spectator";
@@ -269,8 +276,29 @@ ws.on("message", (msg) => {
       (ws as any).role = "spectator";
     }
     room.clients.add(ws);
-    ws.send(JSON.stringify({type: "sync", fen: room.fen, lastMove: room.lastMove, role: (ws as any).role}));
-    return;
+
+    // --- broadcast recipient-specific update to everyone after the join for player color ---
+    for (const client of room.clients) {
+      try {
+        const cliRole = (client as any).role ?? "spectator";
+        let cliColor: "white" | "black" | undefined = undefined;
+        if (cliRole === "player" && room.players) {
+          const pid = (client as any).playerId;
+          if (room.players[0] === pid) cliColor = "white";
+          else if (room.players[1] === pid) cliColor = "black";
+        }
+
+        client.send(JSON.stringify({
+          type: "update",
+          fen: room.fen,
+          lastMove: room.lastMove,
+          role: cliRole,
+          color: cliColor
+        }));
+      } catch (_) { /* ignore send errors */ }
+    }
+      ws.send(JSON.stringify({type: "sync", fen: room.fen, lastMove: room.lastMove, role: (ws as any).role, color: (ws as any).color}));
+        return;
   }
 
   if (data.type === "move" && roomId) {
@@ -300,13 +328,11 @@ ws.on("message", (msg) => {
     // build chess state and verify turn/order
     const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
 
-    // determine expected player id for current turn (players[0] = white, players[1] = black)
     const whitePlayer = room.players?.[0];
     const blackPlayer = room.players?.[1];
     const expectedPlayerId = chess.turn === "white" ? whitePlayer : blackPlayer;
 
     if (!expectedPlayerId) {
-      // no opponent assigned yet; allow white owner to move only if it's white's turn and sender is white owner
       if (chess.turn === "black") {
         ws.send(JSON.stringify({ type: "error", message: "Not your turn" }));
         return;
@@ -346,25 +372,25 @@ ws.on("message", (msg) => {
 
     console.log(`Room ${roomId} move by ${senderId}:`, lastMove, newFen);
 
-for (const client of room.clients) {
-      try {
-        // compute recipient-specific role/color to include
-        const cliRole = (client as any).role ?? "spectator";
-        let cliColor: "white" | "black" | undefined = undefined;
-        if (cliRole === "player" && room.players) {
-          const pid = (client as any).playerId;
-          if (room.players[0] === pid) cliColor = "white";
-          else if (room.players[1] === pid) cliColor = "black";
-        }
-        client.send(JSON.stringify({
-          type: "update",
-          fen: room.fen,
-          lastMove: room.lastMove,
-          role: cliRole,
-          color: cliColor,
-        }));
-      } catch (_) { /* ignore send errors */ }
-    }
+  for (const client of room.clients) {
+        try {
+          // compute recipient-specific role/color to include
+          const cliRole = (client as any).role ?? "spectator";
+          let cliColor: "white" | "black" | undefined = undefined;
+          if (cliRole === "player" && room.players) {
+            const pid = (client as any).playerId;
+            if (room.players[0] === pid) cliColor = "white";
+            else if (room.players[1] === pid) cliColor = "black";
+          }
+          client.send(JSON.stringify({
+            type: "update",
+            fen: room.fen,
+            lastMove: room.lastMove,
+            role: cliRole,
+            color: cliColor
+          }));
+        } catch (_) { /* ignore send errors */ }
+      }
   }
 });
 

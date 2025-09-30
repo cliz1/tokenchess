@@ -72,6 +72,7 @@ export default function GamePage() {
       fen,
       turnColor: newChess.turn,
       animation: {enabled: true, duration: 300},
+      orientation: playerColor ?? "white",
       movable: {
         color: playerColor ?? newChess.turn,
         dests: calculateDests(newChess),
@@ -92,14 +93,13 @@ export default function GamePage() {
             setFen(newFen);
             setLastMove([from, to]);
 
-            // send only lastMove; server will validate & broadcast canonical FEN
             sendMove([from, to]);
           },
         },
       },
-      lastMove: lastMove ?? undefined, // include together with fen for animation
+      lastMove: lastMove ?? undefined,
     });
-  }, [fen, lastMove, playerColor, role, sendMove]);
+  }, [fen, lastMove, role, playerColor, sendMove]);
 
   return (
     <div style={{ padding: 20 }}>
