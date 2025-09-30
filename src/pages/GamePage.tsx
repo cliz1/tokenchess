@@ -8,7 +8,8 @@ import { parseFen, makeFen } from "chessops/fen";
 import { calculateDests } from "../utils/chessHelpers";
 import { useGameSocket } from "../hooks/useGameSocket";
 import type { GameUpdate } from "../hooks/useGameSocket";
-import { parseSquare } from "chessops/util";
+import { parseSquare, makeSquare } from "chessops/util";
+import { getCheckHighlights, playSound } from "../utils/chessHelpers";
 
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
@@ -73,6 +74,7 @@ export default function GamePage() {
       turnColor: newChess.turn,
       animation: {enabled: true, duration: 300},
       orientation: playerColor ?? "white",
+      highlight: {check: true, custom: getCheckHighlights(newChess)},
       movable: {
         color: playerColor ?? newChess.turn,
         dests: calculateDests(newChess),
