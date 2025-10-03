@@ -58,7 +58,6 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
     update.lastMove[0] === prevLast[0] &&
     update.lastMove[1] === prevLast[1];
   if (sameFen && sameLastMove && !update.result) {
-    // echo of our own move — ignore entirely
     return;
   }
   // build the AFTER-state chess from update.fen (if fen changed),
@@ -218,7 +217,7 @@ return (
     {/* Game result (right) */}
     {gameResult && role === "player" && (
       <div style={{ marginLeft: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-        <div>Game Over: {gameResult}</div>
+        <div>{gameResult}</div>
         <button onClick={() => sendRematch()}>Rematch</button>
         <button onClick={handleLeave}>Leave</button>
       </div>

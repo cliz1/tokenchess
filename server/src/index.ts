@@ -217,7 +217,7 @@ type Room = {
   players?: string[];
   createdAt?: number;
   concluded?: boolean;
-  result?: "1-0" | "0-1" | "1/2-1/2" | "ongoing";
+  result?: "Checkmate: 1-0" | "Checkmate: 0-1" | "Stalemate: 1/2-1/2" | "ongoing" | "White Resigns: 0-1" | "Black Resigns: 1-0" | "Agreement: 1/2-1/2";
   rematchVotes?: Set<string>;
   drawVotes?: Set<string>; 
 };
@@ -394,22 +394,21 @@ ws.on("message", async (msg) => {
       return;
     }
 
-    // apply move, compute canonical FEN
     chess.play(moveObj);
 
     room.drawVotes = new Set();
 
     let gameOver = false;
-    let result: "1-0" | "0-1" | "1/2-1/2" | "ongoing" | undefined;
+    let result: "Checkmate: 1-0" | "Checkmate: 0-1" | "Stalemate: 1/2-1/2" | "ongoing" | "Agreement: 1/2-1/2" | "White Resigns: 0-1" | "Black Resigns: 1-0" | undefined;
 
     if (chess.isCheckmate()){
       gameOver = true;
-      if (chess.turn === "black") result = "1-0";
-      else result = "0-1";
+      if (chess.turn === "black") result = "Checkmate: 1-0";
+      else result = "Checkmate: 0-1";
     }
     else if (chess.isStalemate()){
       gameOver = true;
-      result = "1/2-1/2"
+      result = "Stalemate: 1/2-1/2"
     }
 
     const newFen = makeFen(chess.toSetup());
@@ -441,8 +440,6 @@ ws.on("message", async (msg) => {
       }
       return;
     }
-
-    console.log(`Room ${roomId} move by ${senderId}:`, lastMove, newFen);
 
     for (const client of room.clients) {
           try {
@@ -533,7 +530,7 @@ ws.on("message", async (msg) => {
     if (!winnerColor && room.players) {
       winnerColor = room.players[0] === winnerId ? "white" : "black";
     }
-    room.result = winnerColor === "white" ? "1-0" : "0-1";
+    room.result = winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
 
     for (const client of room.clients) {
       try {
@@ -571,7 +568,7 @@ if (data.type === "draw" && roomId) {
   if (room.drawVotes.size === 2) {
     // Both players agreed
     room.concluded = true;
-    room.result = "1/2-1/2";
+    room.result = "Agreement: 1/2-1/2";
 
     for (const client of room.clients) {
       try {
