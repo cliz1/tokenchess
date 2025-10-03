@@ -219,6 +219,7 @@ type Room = {
   concluded?: boolean;
   result?: "1-0" | "0-1" | "1/2-1/2" | "ongoing";
   rematchVotes?: Set<string>;
+  drawVotes?: Set<string>; 
 };
 const rooms: Record<string, Room> = {};
 
@@ -370,6 +371,8 @@ ws.on("message", (msg) => {
     // apply move, compute canonical FEN
     chess.play(moveObj);
 
+    room.drawVotes = new Set();
+
     let gameOver = false;
     let result: "1-0" | "0-1" | "1/2-1/2" | "ongoing" | undefined;
 
@@ -486,6 +489,8 @@ ws.on("message", (msg) => {
 
     if (!winnerId) return; // spectators cannot resign a game
 
+    room.drawVotes = new Set();
+
     room.concluded = true;
     // Determine winner color. Prefer using any connected client's `.color` property
     // (clients have their .color updated on join/rematch). Fallback to players ordering.
@@ -526,6 +531,45 @@ ws.on("message", (msg) => {
       } catch (_) {}
     }
   }
+
+if (data.type === "draw" && roomId) {
+  const room = rooms[roomId]!;
+  if (room.concluded) return;
+
+  const uid = (ws as any).playerId;
+  if (!uid || !room.players?.includes(uid)) return;
+
+  room.drawVotes = room.drawVotes ?? new Set();
+  room.drawVotes.add(uid);
+
+  if (room.drawVotes.size === 2) {
+    // Both players agreed
+    room.concluded = true;
+    room.result = "1/2-1/2";
+
+    for (const client of room.clients) {
+      try {
+        const cliRole = (client as any).role ?? "spectator";
+        let cliColor: "white" | "black" | undefined = undefined;
+        if (cliRole === "player" && room.players) {
+          const pid = (client as any).playerId;
+          if (room.players[0] === pid) cliColor = "white";
+          else if (room.players[1] === pid) cliColor = "black";
+        }
+        client.send(JSON.stringify({
+          type: "gameOver",
+          fen: room.fen,
+          lastMove: room.lastMove,
+          result: "1/2-1/2",
+          role: cliRole,
+          color: cliColor,
+          reason: "draw-agreement",
+        }));
+      } catch (_) {}
+    }
+  }
+}
+
 
 if (data.type === "leave" && roomId) {
   const room = rooms[roomId];
