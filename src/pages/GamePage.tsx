@@ -122,7 +122,7 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
 }, []); // uses refs; safe to keep empty deps
 
   // --- connect to WS (pass the stable callback) ---
-  const { sendMove, sendLeave, sendRematch } = useGameSocket(roomId, onGameUpdate);
+  const { sendMove, sendLeave, sendRematch, sendResign } = useGameSocket(roomId, onGameUpdate);
 
   // --- initialize Chessground ---
   useEffect(() => {
@@ -195,7 +195,9 @@ return (
     <div style={{ marginTop: 10, fontFamily: "monospace" }}>
       Synced FEN: {fen} — role: {role} {playerColor ? `(${playerColor})` : ""} Room: {roomId}
     </div>
-
+       {role === "player" && !gameResult && (
+    <button onClick={sendResign}>Resign</button>
+  )}
     {gameResult && role === "player" && (
       <div style={{ marginTop: 20 }}>
         <div>Game Over: {gameResult}</div>

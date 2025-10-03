@@ -67,5 +67,9 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
     wsRef.current?.send(JSON.stringify({ type: "leave" }));
   }, []);
 
-  return { sendMove, sendRematch, sendLeave };
+  const sendResign = useCallback(() => {
+    wsRef.current?.send(JSON.stringify({ type: "resign" }));
+  }, []);
+
+  return { sendMove, sendRematch, sendLeave, sendResign };
 }

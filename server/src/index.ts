@@ -446,9 +446,8 @@ ws.on("message", (msg) => {
     room.rematchVotes.add(uid);
 
     if (room.rematchVotes.size === 2) {
-      // both agreed
+      // both agreed -> start new game and swap colors
       const [p1, p2] = room.players!;
-      // swap colors by swapping order
       room.players = [p2, p1];
       room.fen = START_FEN;
       room.lastMove = undefined;
@@ -468,6 +467,63 @@ ws.on("message", (msg) => {
           color: cliColor,
         }));
       }
+    }
+  }
+
+  // resignation: a player resigns and the other wins immediately
+  if (data.type === "resign" && roomId) {
+    const room = rooms[roomId]!;
+    if (room.concluded) return; // already finished
+
+    const uid = (ws as any).playerId;
+    if (!uid) return;
+
+    // Determine winner: the opponent of uid
+    const [p1, p2] = room.players ?? [undefined, undefined];
+    let winnerId: string | undefined;
+    if (p1 === uid) winnerId = p2;
+    else if (p2 === uid) winnerId = p1;
+
+    if (!winnerId) return; // spectators cannot resign a game
+
+    room.concluded = true;
+    // Determine winner color. Prefer using any connected client's `.color` property
+    // (clients have their .color updated on join/rematch). Fallback to players ordering.
+    let winnerColor: "white" | "black" | undefined = undefined;
+    for (const client of room.clients) {
+      try {
+        const pid = (client as any).playerId;
+        if (pid === winnerId) {
+          winnerColor = (client as any).color as any;
+          break;
+        }
+      } catch (_) {}
+    }
+    if (!winnerColor && room.players) {
+      winnerColor = room.players[0] === winnerId ? "white" : "black";
+    }
+    room.result = winnerColor === "white" ? "1-0" : "0-1";
+
+    for (const client of room.clients) {
+      try {
+        const cliRole = (client as any).role ?? "spectator";
+        let cliColor: "white" | "black" | undefined = undefined;
+        if (cliRole === "player" && room.players) {
+          const pid = (client as any).playerId;
+          if (room.players[0] === pid) cliColor = "white";
+          else if (room.players[1] === pid) cliColor = "black";
+        }
+        client.send(JSON.stringify({
+          type: "gameOver",
+          fen: room.fen,
+          lastMove: room.lastMove,
+          result: room.result,
+          role: cliRole,
+          color: cliColor,
+          reason: "resignation",
+          winnerId: winnerId,
+        }));
+      } catch (_) {}
     }
   }
 

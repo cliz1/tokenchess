@@ -121,15 +121,15 @@ export function playMoveSound(
 
   const hasEnemyAdjacent = neighbors.some((n) => n !== null && n.color !== movingPiece.color);
   const hasEnemySnareAdjacent = neighbors.some(
-    (n) => n !== null && n.color !== movingPiece.color && n.role === "snare"
+    (n) => n !== null && n.color !== movingPiece.color && (n.role === "snare" || n.role === "rollingsnare")
   );
 
   const isSnaredMove =
-    (movingPiece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent;
+    ((movingPiece.role === "snare" || movingPiece.role === "rollingsnare") && hasEnemyAdjacent) || hasEnemySnareAdjacent;
 
   // --- play sounds ---
   if (capturedPiece) {
-    if (movingPiece.role === "painter") playSound("paint");
+    if (movingPiece.role === "painter" || movingPiece.role === "royalpainter") playSound("paint");
     else if (movingPiece.role === "wizard" && capturedPiece.color === movingPiece.color)
       playSound("wizard");
     else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
