@@ -194,43 +194,49 @@ const handleLeave = () => {
 };
 
 return (
-  <div
-    style={{
-      padding: 5,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",  
-    }}
-  >
-    <div style={{ marginTop: 5, fontFamily: "monospace" }}>
-      {players.map((p) => p.username).join(" vs ")} &nbsp; Room: {roomId}
-    </div>
+<div
+  style={{
+    padding: 20,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  }}
+>
+  <div style={{ marginTop: 5, fontFamily: "monospace" }}>
+    {players.map((p) => p.username).join(" vs ")} &nbsp; Room: {roomId}
+  </div>
 
+  {/* Horizontal container */}
+  <div style={{ display: "flex", alignItems: "flex-start", marginTop: 10 }}>
+    {/* Board */}
     <div
       ref={containerRef}
       className="cg-wrap"
-      style={{ width: 625, height: 625, marginTop: 10 }}
+      style={{ width: 625, height: 625 }}
     />
 
-    {role === "player" && !gameResult && (
-      <div style={{ marginTop: 20 }}>
-        <button onClick={sendResign}>Resign</button>
-        <button onClick={sendDraw} style={{ marginLeft: 8 }}>
-          Draw
-        </button>
-      </div>
-    )}
-
+    {/* Game result (right) */}
     {gameResult && role === "player" && (
-      <div style={{ marginTop: 20 }}>
+      <div style={{ marginLeft: 20, display: "flex", flexDirection: "column", gap: 8 }}>
         <div>Game Over: {gameResult}</div>
         <button onClick={() => sendRematch()}>Rematch</button>
-        <button onClick={handleLeave} style={{ marginLeft: 8 }}>
-          Leave
-        </button>
+        <button onClick={handleLeave}>Leave</button>
       </div>
     )}
   </div>
+
+  {/* Controls below board */}
+  {role === "player" && !gameResult && (
+    <div style={{ marginTop: 20 }}>
+      <button onClick={sendResign}>Resign</button>
+      <button onClick={sendDraw} style={{ marginLeft: 8 }}>
+        Draw
+      </button>
+    </div>
+  )}
+</div>
+
+
 );
 
 }
