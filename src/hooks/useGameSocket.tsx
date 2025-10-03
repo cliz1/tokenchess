@@ -25,6 +25,12 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
     ws.onopen = () => {
       const token = localStorage.getItem("token");
       ws.send(JSON.stringify({ type: "join", roomId, token }));
+      // Ask for an explicit sync after a short delay to avoid race conditions on refresh
+      setTimeout(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "sync-request", roomId }));
+        }
+      }, 200);
     };
 
     ws.onmessage = (event) => {

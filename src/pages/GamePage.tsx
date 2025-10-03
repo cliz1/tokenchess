@@ -63,20 +63,14 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
   // build the AFTER-state chess from update.fen (if fen changed),
   // but compute pre-move captured piece from prevFen if possible
   let newChess = chessRef.current;
-  // Parse squares early
-  let fromStr: string | undefined;
-  let toStr: string | undefined;
-  if (update.lastMove) {
-    fromStr = update.lastMove[0];
-    toStr = update.lastMove[1];
-  }
+  // Parse squares early (we'll access update.lastMove directly below)
   // Pre-captured detection: attempt to read from previous fen (prevFen)
   let preCaptured: any | null = null;
   if (update.lastMove && prevFen) {
     try {
       const prevSetup = parseFen(prevFen).unwrap();
       const preChess = Chess.fromSetup(prevSetup).unwrap();
-      const toSq = parseSquare(toStr!);
+      const toSq = parseSquare(update.lastMove[1]);
       if (toSq !== undefined) preCaptured = preChess.board.get(toSq) ?? null;
     } catch (e) {
       // fail silently, leave preCaptured null
