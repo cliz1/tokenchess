@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
@@ -45,45 +45,65 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-          <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <NavLink to="/" end style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
-              <NavLink to="/tutorials" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
-              <NavLink to="/analysis" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
-              <NavLink to="/editor" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
-              <NavLink to="/draft" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Draft</NavLink>
-              <NavLink to="/game/create" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Create Game</NavLink>
-              <NavLink to="/game/join" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>Join Game</NavLink>
-              <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
-                <AuthNav />
-              </div>
-            </nav>
-          </header>
-
-          <main style={{ flex: 1 }}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/analysis" element={<AnalysisRouteWrapper />} />
-              <Route path="/editor" element={<BoardEditor />} />
-              <Route path="/draft" element={<DraftBuilder />} />
-              <Route path="/tutorials/*" element={<TutorialsPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/drafts" element={<DraftsPage />} />
-              <Route path="/game" element={<GamePage />} />
-              <Route path="/game/create" element={<CreateRoomPage />} />
-              <Route path="/game/join" element={<JoinRoomPage />} />
-            </Routes>
-          </main>
-
-          <footer style={{ padding: 10, borderTop: "1px solid rgba(255,255,255,0.04)", textAlign: "center", fontSize: 12, color: "#999" }}>
-            © Token Chess
-          </footer>
-        </div>
+        <AppContent />
       </BrowserRouter>
     </AuthProvider>
   );
 }
 
+function AppContent() {
+  const location = useLocation();
+  // Hide nav + footer on any `/game` route
+  const hideNav = location.pathname.startsWith("/game");
+  useEffect(() => {
+    if (hideNav) {
+      document.body.style.overflow = "hidden";   // disable scroll
+    } else {
+      document.body.style.overflow = "auto";     // restore
+    }
+    return () => { document.body.style.overflow = "auto"; };
+  }, [hideNav]);
 
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      {!hideNav && (
+        <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <NavLink to="/" end style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
+            <NavLink to="/tutorials" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
+            <NavLink to="/analysis" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
+            <NavLink to="/editor" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
+            <NavLink to="/draft" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Draft</NavLink>
+            <NavLink to="/game/create" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Create Game</NavLink>
+            <NavLink to="/game/join" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Join Game</NavLink>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+              <AuthNav />
+            </div>
+          </nav>
+        </header>
+      )}
+
+      <main style={{ flex: 1 }}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/analysis" element={<AnalysisRouteWrapper />} />
+          <Route path="/editor" element={<BoardEditor />} />
+          <Route path="/draft" element={<DraftBuilder />} />
+          <Route path="/tutorials/*" element={<TutorialsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/drafts" element={<DraftsPage />} />
+          <Route path="/game" element={<GamePage />} />
+          <Route path="/game/create" element={<CreateRoomPage />} />
+          <Route path="/game/join" element={<JoinRoomPage />} />
+        </Routes>
+      </main>
+
+      {!hideNav && (
+        <footer style={{ padding: 10, borderTop: "1px solid rgba(255,255,255,0.04)", textAlign: "center", fontSize: 12, color: "#999" }}>
+          © Token Chess
+        </footer>
+      )}
+    </div>
+  );
+}

@@ -38,9 +38,13 @@ export default function GamePage() {
   // player metadata from server
   const [role, setRole] = useState<"player" | "spectator">("spectator");
   const [playerColor, setPlayerColor] = useState<"white" | "black" | null>(null);
+  const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
 
   // --- stable WS callback that uses refs to detect duplicates ---
 const onGameUpdate = useCallback((update: GameUpdate) => {
+  if (update.players) {
+      setPlayers(update.players);
+    }
   if (update.role) setRole(update.role);
   if (update.color) setPlayerColor(update.color);
   // quick refs for current known state
@@ -190,24 +194,43 @@ const handleLeave = () => {
 };
 
 return (
-  <div style={{ padding: 20 }}>
-       <div style={{ marginTop: 10, fontFamily: "monospace" }}>
-     Room: {roomId}
+  <div
+    style={{
+      padding: 5,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",  
+    }}
+  >
+    <div style={{ marginTop: 5, fontFamily: "monospace" }}>
+      {players.map((p) => p.username).join(" vs ")} &nbsp; Room: {roomId}
     </div>
-    <div ref={containerRef} className="cg-wrap" style={{ width: 600, height: 600 }} />
-       {role === "player" && !gameResult && (
-    <div style={{ marginTop: 20 }}>
-    <button onClick={sendResign}>Resign</button>
-    <button onClick={sendDraw}>Draw</button>
+
+    <div
+      ref={containerRef}
+      className="cg-wrap"
+      style={{ width: 625, height: 625, marginTop: 10 }}
+    />
+
+    {role === "player" && !gameResult && (
+      <div style={{ marginTop: 20 }}>
+        <button onClick={sendResign}>Resign</button>
+        <button onClick={sendDraw} style={{ marginLeft: 8 }}>
+          Draw
+        </button>
       </div>
-  )}
+    )}
+
     {gameResult && role === "player" && (
       <div style={{ marginTop: 20 }}>
         <div>Game Over: {gameResult}</div>
         <button onClick={() => sendRematch()}>Rematch</button>
-        <button onClick={handleLeave}>Leave</button>
+        <button onClick={handleLeave} style={{ marginLeft: 8 }}>
+          Leave
+        </button>
       </div>
     )}
   </div>
 );
+
 }

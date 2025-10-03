@@ -6,6 +6,7 @@ export type GameUpdate = {
   role?: "player" | "spectator";
   color?: "white" | "black";
   result?: "1-0" | "0-1" | "1/2-1/2" | "ongoing";
+  players?: { id: string; username: string }[];
 };
 
 export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => void) {
@@ -29,12 +30,12 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "sync" || data.type === "update") {
-        onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color });
+        onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color, players: data.players });
       }
       else if (data.type === "gameOver") {
-    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, result: data.result, role: data.role, color: data.color });
+    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, result: data.result, role: data.role, color: data.color, players: data.players });
   }   else if (data.type === "newGame") {
-    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color });
+    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color, players: data.players });
   }
     };
     

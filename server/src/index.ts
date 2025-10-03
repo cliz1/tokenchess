@@ -226,7 +226,7 @@ const rooms: Record<string, Room> = {};
 wss.on("connection", (ws) => {
 let roomId: string | null = null;
 
-ws.on("message", (msg) => {
+ws.on("message", async (msg) => {
   const data = JSON.parse(msg.toString());
 
   if (data.type === "join") {
@@ -234,6 +234,12 @@ ws.on("message", (msg) => {
       if (data.token){
         const payload = verifyToken(data.token);
         (ws as any).user = { id: payload.id, email: payload.email };
+
+        // fetch username from DB
+        const user = await prisma.user.findUnique({ where: { id: payload.id } });
+        if (user) {
+        (ws as any).user.username = user.username;
+        }
       }
     } catch (err) {
       console.warn("Invalid token on join");
@@ -297,11 +303,31 @@ ws.on("message", (msg) => {
           fen: room.fen,
           lastMove: room.lastMove,
           role: cliRole,
-          color: cliColor
+          color: cliColor,
+          players: room.players?.map(pid => {
+          const clientSocket = [...room.clients].find(c => (c as any).playerId === pid);
+          return {
+            id: pid,
+            username: (clientSocket as any)?.user?.username ?? "Unknown"
+        };
+   })
         }));
       } catch (_) { /* ignore send errors */ }
     }
-      ws.send(JSON.stringify({type: "sync", fen: room.fen, lastMove: room.lastMove, role: (ws as any).role, color: (ws as any).color}));
+      ws.send(JSON.stringify({
+        type: "sync", 
+        fen: room.fen, 
+        lastMove: room.lastMove, 
+        role: (ws as any).role, 
+        color: (ws as any).color, 
+        players: room.players?.map(pid => {
+        const clientSocket = [...room.clients].find(c => (c as any).playerId === pid);
+        return {
+          id: pid,
+          username: (clientSocket as any)?.user?.username ?? "Unknown"
+        };
+  })
+      }));
         return;
   }
 
