@@ -209,24 +209,71 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
 });
 
 // ---------- start ----------
-const server = http.createServer(app); // wrap Express
+const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 type Room = {
   fen: string;
   clients: Set<any>;
-  lastMove?: [string,string];
+  lastMove?: [string, string];
   ownerId?: string;
-  players?: string[];               // array of user ids
-  usernames?: Record<string,string>; // id -> username map
+  players?: string[];
+  usernames?: Record<string, string>;
   createdAt?: number;
   concluded?: boolean;
-  result?: "Checkmate: 1-0" | "Checkmate: 0-1" | "Stalemate: 1/2-1/2" | "ongoing" | "White Resigns: 0-1" | "Black Resigns: 1-0" | "Agreement: 1/2-1/2";
+  result?: RoomResult;
   rematchVotes?: Set<string>;
   drawVotes?: Set<string>;
   cleanupTimeout?: NodeJS.Timeout | number;
+  scores?: Record<string, number>;
 };
+
+type RoomResult =
+  | "Checkmate: 1-0"
+  | "Checkmate: 0-1"
+  | "Stalemate: 1/2-1/2"
+  | "ongoing"
+  | "White Resigns: 0-1"
+  | "Black Resigns: 1-0"
+  | "Agreement: 1/2-1/2";
+
 const rooms: Record<string, Room> = {};
+
+// helper: safely award points
+function applyResultToScores(room: Room, result: RoomResult, whiteId?: string, blackId?: string) {
+  if (!whiteId || !blackId) return;
+  if (!room.players || room.players.length < 2) return;
+  room.scores = room.scores ?? {};
+
+  switch (result) {
+    case "Checkmate: 1-0":
+    case "Black Resigns: 1-0":
+      room.scores[whiteId] = (room.scores[whiteId] ?? 0) + 1;
+      room.scores[blackId] = room.scores[blackId] ?? 0;
+      break;
+    case "Checkmate: 0-1":
+    case "White Resigns: 0-1":
+      room.scores[whiteId] = room.scores[whiteId] ?? 0;
+      room.scores[blackId] = (room.scores[blackId] ?? 0) + 1;
+      break;
+    case "Agreement: 1/2-1/2":
+    case "Stalemate: 1/2-1/2":
+      room.scores[whiteId] = (room.scores[whiteId] ?? 0) + 0.5;
+      room.scores[blackId] = (room.scores[blackId] ?? 0) + 0.5;
+      break;
+    default:
+      break;
+  }
+}
+
+// helper: build consistent player list
+function serializePlayers(room: Room) {
+  return room.players?.map((pid) => ({
+    id: pid,
+    username: room.usernames?.[pid] ?? "Unknown",
+    score: room.scores?.[pid] ?? 0,
+  }));
+}
 
 wss.on("connection", (ws) => {
   let roomId: string | null = null;
@@ -235,23 +282,21 @@ wss.on("connection", (ws) => {
     let data: any;
     try {
       data = JSON.parse(msg.toString());
-    } catch (err) {
+    } catch {
       ws.send(JSON.stringify({ type: "error", message: "invalid-json" }));
       return;
     }
 
     // ---------- JOIN ----------
     if (data.type === "join") {
-      //console.log(`[WS] join request: room=${data.roomId} tokenPresent=${!!data.token}`);
       try {
-        if (data.token){
+        if (data.token) {
           const payload = verifyToken(data.token);
           (ws as any).user = { id: payload.id, email: payload.email };
-          // fetch username
           const user = await prisma.user.findUnique({ where: { id: payload.id } });
           if (user) (ws as any).user.username = user.username;
         }
-      } catch (err) {
+      } catch {
         console.warn("Invalid token on join");
       }
 
@@ -268,81 +313,71 @@ wss.on("connection", (ws) => {
       roomId = requestedId;
       const room = rooms[roomId]!;
 
-      // cancel any pending cleanup timer (someone is rejoining)
-      if (room.cleanupTimeout) {
-        try { clearTimeout(room.cleanupTimeout as NodeJS.Timeout); } catch {}
-        delete room.cleanupTimeout;
-      }
+      if (room.cleanupTimeout) clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
 
-      // assign player if authenticated and slots available (correct logic)
+      // ensure scores exist
+      room.scores = room.scores ?? {};
+
+      // assign player / spectator role
       const uid = (ws as any).user?.id;
       room.players = room.players ?? [];
       room.usernames = room.usernames ?? {};
 
       if (uid) {
         if (room.players.includes(uid)) {
-          // returning player — reclaim their slot
           (ws as any).role = "player";
           (ws as any).playerId = uid;
           const idx = room.players.indexOf(uid);
           (ws as any).color = idx === 0 ? "white" : idx === 1 ? "black" : undefined;
-          //console.log(`[WS] reclaim slot for user=${uid} as ${ (ws as any).color }`);
         } else if (room.players.length < 2) {
-          // new authenticated player joins
           (ws as any).role = "player";
           (ws as any).playerId = uid;
           (ws as any).color = room.players.length === 0 ? "white" : "black";
           room.players.push(uid);
-          //console.log(`[WS] assigned new player slot for user=${uid} color=${(ws as any).color}`);
         } else {
           (ws as any).role = "spectator";
         }
-
-        // ensure we have a username for this id
         if ((ws as any).user?.username) room.usernames[uid] = (ws as any).user.username;
       } else {
         (ws as any).role = "spectator";
       }
 
-      // register socket
       room.clients.add(ws);
-      //console.log(`[WS] added socket to room ${roomId} — clients=${room.clients.size} players=${JSON.stringify(room.players)}`);
 
-      // --- broadcast recipient-specific update to everyone after the join for player color & players list ---
+      // broadcast update to all 
       for (const client of room.clients) {
-        try {
-          const cliRole = (client as any).role ?? "spectator";
-          let cliColor: "white" | "black" | undefined = undefined;
-          if (cliRole === "player" && room.players) {
-            const pid = (client as any).playerId;
-            if (room.players[0] === pid) cliColor = "white";
-            else if (room.players[1] === pid) cliColor = "black";
-          }
-
-          client.send(JSON.stringify({
+        const cliRole = (client as any).role ?? "spectator";
+        let cliColor: "white" | "black" | undefined;
+        if (cliRole === "player") {
+          const pid = (client as any).playerId;
+          if (room.players?.[0] === pid) cliColor = "white";
+          else if (room.players?.[1] === pid) cliColor = "black";
+        }
+        client.send(
+          JSON.stringify({
             type: "update",
             fen: room.fen,
             lastMove: room.lastMove,
             role: cliRole,
             color: cliColor,
-            players: room.players?.map(pid => ({
-              id: pid,
-              username: room.usernames?.[pid] ?? "Unknown"
-            }))
-          }));
-        } catch (_) { /* ignore send errors */ }
+            players: serializePlayers(room),
+            scores: room.scores,
+          }),
+        );
       }
 
-      // send sync to joining socket
-      ws.send(JSON.stringify({
-        type: "sync",
-        fen: room.fen,
-        lastMove: room.lastMove,
-        result: room.result,
-        role: (ws as any).role,
-        color: (ws as any).color,
-        players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "sync",
+          fen: room.fen,
+          lastMove: room.lastMove,
+          result: room.result,
+          role: (ws as any).role,
+          color: (ws as any).color,
+          players: serializePlayers(room),
+          scores: room.scores,
+        }),
+      );
       return;
     }
 
@@ -350,133 +385,93 @@ wss.on("connection", (ws) => {
     if (data.type === "move" && roomId) {
       const room = rooms[roomId]!;
       const senderId = (ws as any).playerId;
+      if (!senderId || !room.players?.includes(senderId)) return;
 
-      // only registered players may send moves
-      if (!senderId || !room.players?.includes(senderId)) {
-        ws.send(JSON.stringify({ type: "error", message: "not authorized to play move" }));
-        return;
-      }
+      const lastMove = data.lastMove as [string, string];
+      if (!lastMove) return;
 
-      // server-side: require client to send only lastMove (from,to)
-      const lastMove = data.lastMove as [string, string] | undefined;
-      if (!lastMove || lastMove.length !== 2) {
-        ws.send(JSON.stringify({ type: "error", message: "Missing lastMove" }));
-        return;
-      }
-
-      // parse current canonical FEN from room
       const parsed = parseFen(room.fen);
-      if (parsed.isErr) {
-        ws.send(JSON.stringify({ type: "error", message: "Server has invalid FEN" }));
-        return;
-      }
-
-      // build chess state and verify turn/order
+      if (parsed.isErr) return;
       const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
 
-      const whitePlayer = room.players?.[0];
-      const blackPlayer = room.players?.[1];
-      const expectedPlayerId = chess.turn === "white" ? whitePlayer : blackPlayer;
+      const whiteId = room.players?.[0];
+      const blackId = room.players?.[1];
+      const expected = chess.turn === "white" ? whiteId : blackId;
+      if (senderId !== expected) return;
 
-      if (!expectedPlayerId) {
-        if (chess.turn === "black") {
-          ws.send(JSON.stringify({ type: "error", message: "Not your turn" }));
-          return;
-        }
-        if (senderId !== whitePlayer) {
-          ws.send(JSON.stringify({ type: "error", message: "Not authorized for this side" }));
-          return;
-        }
-      } else {
-        if (senderId !== expectedPlayerId) {
-          ws.send(JSON.stringify({ type: "error", message: "Not your turn" }));
-          return;
-        }
-      }
-
-      // parse squares
       const from = parseSquare(lastMove[0]);
       const to = parseSquare(lastMove[1]);
-      if (!from || !to) {
-        ws.send(JSON.stringify({ type: "error", message: "Invalid move squares" }));
-        return;
-      }
-
+      if (!from || !to) return;
       const moveObj = { from, to };
-
-      // legality check
-      if (!chess.isLegal(moveObj)) {
-        ws.send(JSON.stringify({ type: "error", message: "Illegal move" }));
-        return;
-      }
+      if (!chess.isLegal(moveObj)) return;
 
       chess.play(moveObj);
-
       room.drawVotes = new Set();
-
       let gameOver = false;
-      let result: Room["result"] | undefined;
+      let result: RoomResult = "ongoing";
 
-      if (chess.isCheckmate()){
+      if (chess.isCheckmate()) {
         gameOver = true;
-        if (chess.turn === "black") result = "Checkmate: 1-0";
-        else result = "Checkmate: 0-1";
-      }
-      else if (chess.isStalemate()){
+        result = chess.turn === "black" ? "Checkmate: 1-0" : "Checkmate: 0-1";
+      } else if (chess.isStalemate()) {
         gameOver = true;
-        result = "Stalemate: 1/2-1/2"
+        result = "Stalemate: 1/2-1/2";
       }
 
-      const newFen = makeFen(chess.toSetup());
-      room.fen = newFen;
+      room.fen = makeFen(chess.toSetup());
       room.lastMove = lastMove;
 
-      if (gameOver){
+      if (gameOver) {
         room.concluded = true;
         room.result = result;
-        // send recipient-specific gameOver (include role/color per client and players list)
+
+        // Apply scores using the stable white/black IDs from room.players
+        applyResultToScores(room, room.result, whiteId, blackId);
+
         for (const client of room.clients) {
-          try {
-            const cliRole = (client as any).role ?? "spectator";
-            let cliColor: "white" | "black" | undefined = undefined;
-            if (cliRole === "player" && room.players) {
-              const pid = (client as any).playerId;
-              if (room.players[0] === pid) cliColor = "white";
-              else if (room.players[1] === pid) cliColor = "black";
-            }
-            client.send(JSON.stringify({
+          const cliRole = (client as any).role ?? "spectator";
+          let cliColor: "white" | "black" | undefined;
+          if (cliRole === "player") {
+            const pid = (client as any).playerId;
+            if (room.players?.[0] === pid) cliColor = "white";
+            else if (room.players?.[1] === pid) cliColor = "black";
+          }
+          client.send(
+            JSON.stringify({
               type: "gameOver",
               fen: room.fen,
               lastMove: room.lastMove,
               result,
               role: cliRole,
               color: cliColor,
-              players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-            }));
-          } catch (_) { /* ignore send errors */ }
+              players: serializePlayers(room),
+              scores: room.scores,
+            }),
+          );
         }
         return;
       }
 
-      // normal update broadcast
+      // normal update 
       for (const client of room.clients) {
-        try {
-          const cliRole = (client as any).role ?? "spectator";
-          let cliColor: "white" | "black" | undefined = undefined;
-          if (cliRole === "player" && room.players) {
-            const pid = (client as any).playerId;
-            if (room.players[0] === pid) cliColor = "white";
-            else if (room.players[1] === pid) cliColor = "black";
-          }
-          client.send(JSON.stringify({
+        const cliRole = (client as any).role ?? "spectator";
+        let cliColor: "white" | "black" | undefined;
+        if (cliRole === "player") {
+          const pid = (client as any).playerId;
+          if (room.players?.[0] === pid) cliColor = "white";
+          else if (room.players?.[1] === pid) cliColor = "black";
+        }
+        client.send(
+          JSON.stringify({
             type: "update",
             fen: room.fen,
             lastMove: room.lastMove,
             role: cliRole,
             color: cliColor,
-            players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-          }));
-        } catch (_) { /* ignore send errors */ }
+            players: serializePlayers(room),
+            scores: room.scores,
+          }),
+        );
       }
       return;
     }
@@ -484,7 +479,7 @@ wss.on("connection", (ws) => {
     // ---------- REMATCH ----------
     if (data.type === "rematch" && roomId) {
       const room = rooms[roomId]!;
-      if (!room.concluded) return; // only after game over
+      if (!room.concluded) return;
 
       const uid = (ws as any).playerId;
       if (!uid) return;
@@ -493,29 +488,30 @@ wss.on("connection", (ws) => {
       room.rematchVotes.add(uid);
 
       if (room.rematchVotes.size === 2) {
-        // both agreed -> start new game and swap colors
         const [p1, p2] = room.players!;
         room.players = [p2, p1];
         room.fen = START_FEN;
         room.lastMove = undefined;
         room.concluded = false;
+        room.result = "ongoing";
         room.rematchVotes.clear();
 
         for (const client of room.clients) {
-          try {
-            const pid = (client as any).playerId;
-            let cliColor: "white" | "black" | undefined;
-            if (pid === room.players[0]) cliColor = "white";
-            else if (pid === room.players[1]) cliColor = "black";
+          const pid = (client as any).playerId;
+          let cliColor: "white" | "black" | undefined;
+          if (pid === room.players[0]) cliColor = "white";
+          else if (pid === room.players[1]) cliColor = "black";
 
-            client.send(JSON.stringify({
+          client.send(
+            JSON.stringify({
               type: "newGame",
               fen: room.fen,
               role: (client as any).role,
               color: cliColor,
-              players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-            }));
-          } catch (_) {}
+              players: serializePlayers(room),
+              scores: room.scores,
+            }),
+          );
         }
       }
       return;
@@ -524,49 +520,33 @@ wss.on("connection", (ws) => {
     // ---------- RESIGN ----------
     if (data.type === "resign" && roomId) {
       const room = rooms[roomId]!;
-      if (room.concluded) return; // already finished
-
+      if (room.concluded) return;
       const uid = (ws as any).playerId;
       if (!uid) return;
 
-      // Determine winner: the opponent of uid
-      const [p1, p2] = room.players ?? [undefined, undefined];
-      let winnerId: string | undefined;
-      if (p1 === uid) winnerId = p2;
-      else if (p2 === uid) winnerId = p1;
+      const [p1, p2] = room.players ?? [];
+      const winnerId = uid === p1 ? p2 : p1;
+      if (!winnerId) return;
 
-      if (!winnerId) return; // spectators cannot resign a game
-
-      room.drawVotes = new Set();
-
+      let winnerColor: "white" | "black" =
+        room.players?.[0] === winnerId ? "white" : "black";
+      room.result =
+        winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
       room.concluded = true;
-      // Determine winner color. Prefer using any connected client's `.color` property
-      // (clients have their .color updated on join/rematch). Fallback to players ordering.
-      let winnerColor: "white" | "black" | undefined = undefined;
-      for (const client of room.clients) {
-        try {
-          const pid = (client as any).playerId;
-          if (pid === winnerId) {
-            winnerColor = (client as any).color as any;
-            break;
-          }
-        } catch (_) {}
-      }
-      if (!winnerColor && room.players) {
-        winnerColor = room.players[0] === winnerId ? "white" : "black";
-      }
-      room.result = winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
+
+      // Pass the stable white/black ids to the score helper
+      applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
 
       for (const client of room.clients) {
-        try {
-          const cliRole = (client as any).role ?? "spectator";
-          let cliColor: "white" | "black" | undefined = undefined;
-          if (cliRole === "player" && room.players) {
-            const pid = (client as any).playerId;
-            if (room.players[0] === pid) cliColor = "white";
-            else if (room.players[1] === pid) cliColor = "black";
-          }
-          client.send(JSON.stringify({
+        const cliRole = (client as any).role ?? "spectator";
+        let cliColor: "white" | "black" | undefined;
+        if (cliRole === "player") {
+          const pid = (client as any).playerId;
+          if (room.players?.[0] === pid) cliColor = "white";
+          else if (room.players?.[1] === pid) cliColor = "black";
+        }
+        client.send(
+          JSON.stringify({
             type: "gameOver",
             fen: room.fen,
             lastMove: room.lastMove,
@@ -574,10 +554,10 @@ wss.on("connection", (ws) => {
             role: cliRole,
             color: cliColor,
             reason: "resignation",
-            winnerId: winnerId,
-            players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-          }));
-        } catch (_) {}
+            players: serializePlayers(room),
+            scores: room.scores, 
+          }),
+        );
       }
       return;
     }
@@ -586,28 +566,28 @@ wss.on("connection", (ws) => {
     if (data.type === "draw" && roomId) {
       const room = rooms[roomId]!;
       if (room.concluded) return;
-
       const uid = (ws as any).playerId;
       if (!uid || !room.players?.includes(uid)) return;
 
       room.drawVotes = room.drawVotes ?? new Set();
       room.drawVotes.add(uid);
-
       if (room.drawVotes.size === 2) {
-        // Both players agreed
         room.concluded = true;
         room.result = "Agreement: 1/2-1/2";
 
+        // Apply draw points using stable id
+        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+
         for (const client of room.clients) {
-          try {
-            const cliRole = (client as any).role ?? "spectator";
-            let cliColor: "white" | "black" | undefined = undefined;
-            if (cliRole === "player" && room.players) {
-              const pid = (client as any).playerId;
-              if (room.players[0] === pid) cliColor = "white";
-              else if (room.players[1] === pid) cliColor = "black";
-            }
-            client.send(JSON.stringify({
+          const cliRole = (client as any).role ?? "spectator";
+          let cliColor: "white" | "black" | undefined;
+          if (cliRole === "player") {
+            const pid = (client as any).playerId;
+            if (room.players?.[0] === pid) cliColor = "white";
+            else if (room.players?.[1] === pid) cliColor = "black";
+          }
+          client.send(
+            JSON.stringify({
               type: "gameOver",
               fen: room.fen,
               lastMove: room.lastMove,
@@ -615,138 +595,59 @@ wss.on("connection", (ws) => {
               role: cliRole,
               color: cliColor,
               reason: "draw-agreement",
-              players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-            }));
-          } catch (_) {}
+              players: serializePlayers(room),
+              scores: room.scores,
+            }),
+          );
         }
       }
       return;
     }
 
-    // ---------- VOLUNTARY LEAVE ----------
+    // ---------- LEAVE / CLEANUP ----------
     if (data.type === "leave" && roomId) {
       const room = rooms[roomId];
-      if (room) {
-        // Remove ws from clients set
-        room.clients.delete(ws);
-
-        // Remove player ID from players array (voluntary leave)
-        const uid = (ws as any).playerId;
-        if (uid && room.players) {
-          room.players = room.players.filter((p) => p !== uid);
-          if (room.usernames) delete room.usernames[uid];
-        }
-
-        if (room.cleanupTimeout) {
-          try { clearTimeout(room.cleanupTimeout as NodeJS.Timeout); } catch {}
-          delete room.cleanupTimeout;
-        }
-
-        // If no clients remaining, delete immediately
-        if (room.clients.size === 0) {
-          delete rooms[roomId];
-          //console.log(`[WS] room ${roomId} deleted after voluntary leave`);
-        } else {
-          // otherwise broadcast an update to remaining clients
-          for (const client of room.clients) {
-            try {
-              const cliRole = (client as any).role ?? "spectator";
-              let cliColor: "white" | "black" | undefined = undefined;
-              if (cliRole === "player" && room.players) {
-                const pid = (client as any).playerId;
-                if (room.players[0] === pid) cliColor = "white";
-                else if (room.players[1] === pid) cliColor = "black";
-              }
-              client.send(JSON.stringify({
-                type: "update",
-                fen: room.fen,
-                lastMove: room.lastMove,
-                role: cliRole,
-                color: cliColor,
-                players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-              }));
-            } catch (_) {}
-          }
-        }
-      }
-
-      // Close the socket regardless of room existence
-      try { ws.close(); } catch {}
-      return;
-    }
-
-    // ---------- CREATOR-LEAVE (explicit delete by creator if no other player) ----------
-    if (data.type === "creator-leave" && roomId) {
-      const room = rooms[roomId];
-      const uid = (ws as any).playerId;
-      if (room && uid && room.ownerId === uid) {
-        const numPlayers = (room.players?.length) ?? 0;
-        // only allow immediate deletion if nobody else joined (or only the owner remains)
-        if (numPlayers <= 1) {
-          for (const client of room.clients) {
-            try {
-              client.send(JSON.stringify({ type: "room-deleted" }));
-              client.close();
-            } catch (_) {}
-          }
-          if (room.cleanupTimeout) {
-            try { clearTimeout(room.cleanupTimeout as NodeJS.Timeout); } catch {}
-          }
-          delete rooms[roomId];
-          //console.log(`[WS] creator ${uid} deleted room ${roomId}`);
-        } else {
-          ws.send(JSON.stringify({ type: "error", message: "Cannot delete room: other player(s) present" }));
-        }
-      }
-      return;
-    }
-
-    // unknown message types are ignored
-  });
-
-  ws.on("close", () => {
-    if (roomId && rooms[roomId]) {
-      const room = rooms[roomId];
+      if (!room) return;
       room.clients.delete(ws);
-      // If there are no clients left in the room, schedule a cleanup after a grace period.
+
+      const uid = (ws as any).playerId;
+      if (uid && room.players) {
+        room.players = room.players.filter((p) => p !== uid);
+        delete room.usernames?.[uid];
+      }
+
       if (room.clients.size === 0) {
-        const rid = roomId;
-        // schedule removal after 60 seconds if nobody reconnects
-        room.cleanupTimeout = setTimeout(() => {
-          const r = rooms[rid];
-          if (r && r.clients.size === 0) {
-            delete rooms[rid];
-          }
-        }, 60 * 1000);
+        delete rooms[roomId];
       } else {
-        // if other clients remain, broadcast an update so they see that someone disconnected
         for (const client of room.clients) {
-          try {
-            const cliRole = (client as any).role ?? "spectator";
-            let cliColor: "white" | "black" | undefined = undefined;
-            if (cliRole === "player" && room.players) {
-              const pid = (client as any).playerId;
-              if (room.players[0] === pid) cliColor = "white";
-              else if (room.players[1] === pid) cliColor = "black";
-            }
-            client.send(JSON.stringify({
+          const cliRole = (client as any).role ?? "spectator";
+          let cliColor: "white" | "black" | undefined;
+          if (cliRole === "player") {
+            const pid = (client as any).playerId;
+            if (room.players?.[0] === pid) cliColor = "white";
+            else if (room.players?.[1] === pid) cliColor = "black";
+          }
+          client.send(
+            JSON.stringify({
               type: "update",
               fen: room.fen,
               lastMove: room.lastMove,
-              result: room.result,
               role: cliRole,
               color: cliColor,
-              players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
-            }));
-          } catch (_) {}
+              players: serializePlayers(room),
+              scores: room.scores,
+            }),
+          );
         }
       }
+      try {
+        ws.close();
+      } catch {}
+      return;
     }
   });
-
 });
 
 const port = Number(process.env.PORT || 4000);
-server.listen(port, () => {
-  console.log(`HTTP + WS server listening on ${port}`);
-});
+server.listen(port, () => console.log(`HTTP + WS server listening on ${port}`));
+// ---------- end ----------
