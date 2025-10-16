@@ -275,8 +275,66 @@ function serializePlayers(room: Room) {
   }));
 }
 
+// helper: broadcast a room update to all clients, computing role/color per-client from room.players
+function sendRoomUpdate(
+  room: Room,
+  payload: {
+    fen?: string;
+    lastMove?: [string, string];
+    result?: RoomResult | string;
+    reason?: string;
+  } = {},
+  msgType: "update" | "gameOver" | "newGame" | "sync" = "update",
+) {
+  for (const client of room.clients) {
+    const pid = (client as any).playerId as string | undefined;
+    const isPlayer = !!(pid && room.players?.includes(pid));
+    let cliColor: "white" | "black" | undefined;
+    if (isPlayer) {
+      if (room.players?.[0] === pid) cliColor = "white";
+      else if (room.players?.[1] === pid) cliColor = "black";
+    }
+
+    const out = {
+      type: msgType,
+      fen: payload.fen ?? room.fen,
+      lastMove: payload.lastMove ?? room.lastMove,
+      result: payload.result ?? room.result,
+      role: isPlayer ? "player" : "spectator",
+      color: cliColor,
+      players: serializePlayers(room),
+      scores: room.scores,
+      reason: payload.reason,
+    };
+
+    try {
+      client.send(JSON.stringify(out));
+    } catch (e) {
+      // ignore send errors; closed sockets will be removed by close handler
+      console.warn("Failed to send room update to client", e);
+    }
+  }
+}
+
 wss.on("connection", (ws) => {
   let roomId: string | null = null;
+
+  // cleanup closed sockets from room.clients and schedule room deletion with grace period
+  ws.on("close", () => {
+    if (!roomId) return;
+    const room = rooms[roomId];
+    if (!room) return;
+
+    room.clients.delete(ws);
+
+    if (room.clients.size === 0) {
+      if (room.cleanupTimeout) clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
+      // schedule deletion after 30s grace
+      room.cleanupTimeout = setTimeout(() => {
+        delete rooms[roomId!];
+      }, 30_000);
+    }
+  });
 
   ws.on("message", async (msg) => {
     let data: any;
@@ -313,71 +371,75 @@ wss.on("connection", (ws) => {
       roomId = requestedId;
       const room = rooms[roomId]!;
 
-      if (room.cleanupTimeout) clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
-
-      // ensure scores exist
-      room.scores = room.scores ?? {};
-
-      // assign player / spectator role
-      const uid = (ws as any).user?.id;
+      // ensure clients set and arrays exist
+      room.clients = room.clients ?? new Set();
       room.players = room.players ?? [];
       room.usernames = room.usernames ?? {};
+      room.scores = room.scores ?? {};
+
+      if (room.cleanupTimeout) {
+        clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
+        room.cleanupTimeout = undefined;
+      }
+
+      // assign player / spectator role based on token uid
+      const uid = (ws as any).user?.id as string | undefined;
 
       if (uid) {
+        // if uid already present in players array, reattach to that slot
         if (room.players.includes(uid)) {
-          (ws as any).role = "player";
           (ws as any).playerId = uid;
-          const idx = room.players.indexOf(uid);
-          (ws as any).color = idx === 0 ? "white" : idx === 1 ? "black" : undefined;
         } else if (room.players.length < 2) {
-          (ws as any).role = "player";
+          // claim next available slot
           (ws as any).playerId = uid;
-          (ws as any).color = room.players.length === 0 ? "white" : "black";
           room.players.push(uid);
         } else {
-          (ws as any).role = "spectator";
+          // full -> spectator
+          (ws as any).playerId = undefined;
         }
         if ((ws as any).user?.username) room.usernames[uid] = (ws as any).user.username;
       } else {
-        (ws as any).role = "spectator";
+        (ws as any).playerId = undefined;
       }
 
+      // Close any previous socket that belonged to the same playerId (avoid duplicates)
+      if ((ws as any).playerId) {
+        const pid = (ws as any).playerId;
+        for (const client of Array.from(room.clients)) {
+          const clientPid = (client as any).playerId as string | undefined;
+          if (client !== ws && clientPid && clientPid === pid) {
+            try {
+              client.close();
+            } catch {}
+            room.clients.delete(client);
+          }
+        }
+      }
+
+      // Add the new ws to the room clients
       room.clients.add(ws);
 
-      // broadcast update to all 
-      for (const client of room.clients) {
-        const cliRole = (client as any).role ?? "spectator";
-        let cliColor: "white" | "black" | undefined;
-        if (cliRole === "player") {
-          const pid = (client as any).playerId;
-          if (room.players?.[0] === pid) cliColor = "white";
-          else if (room.players?.[1] === pid) cliColor = "black";
-        }
-        client.send(
+      // Broadcast update to all clients (computes role/color from room.players)
+      sendRoomUpdate(room, {}, "update");
+
+      // Send sync specifically to joining client with their role/color
+      {
+        const pid = (ws as any).playerId as string | undefined;
+        const isPlayer = !!(pid && room.players?.includes(pid));
+        const cliColor = isPlayer ? (room.players?.[0] === pid ? "white" : room.players?.[1] === pid ? "black" : undefined) : undefined;
+        ws.send(
           JSON.stringify({
-            type: "update",
+            type: "sync",
             fen: room.fen,
             lastMove: room.lastMove,
-            role: cliRole,
+            result: room.result,
+            role: isPlayer ? "player" : "spectator",
             color: cliColor,
             players: serializePlayers(room),
             scores: room.scores,
           }),
         );
       }
-
-      ws.send(
-        JSON.stringify({
-          type: "sync",
-          fen: room.fen,
-          lastMove: room.lastMove,
-          result: room.result,
-          role: (ws as any).role,
-          color: (ws as any).color,
-          players: serializePlayers(room),
-          scores: room.scores,
-        }),
-      );
       return;
     }
 
@@ -426,96 +488,48 @@ wss.on("connection", (ws) => {
         room.result = result;
 
         // Apply scores using the stable white/black IDs from room.players
-        applyResultToScores(room, room.result, whiteId, blackId);
+        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
 
-        for (const client of room.clients) {
-          const cliRole = (client as any).role ?? "spectator";
-          let cliColor: "white" | "black" | undefined;
-          if (cliRole === "player") {
-            const pid = (client as any).playerId;
-            if (room.players?.[0] === pid) cliColor = "white";
-            else if (room.players?.[1] === pid) cliColor = "black";
-          }
-          client.send(
-            JSON.stringify({
-              type: "gameOver",
-              fen: room.fen,
-              lastMove: room.lastMove,
-              result,
-              role: cliRole,
-              color: cliColor,
-              players: serializePlayers(room),
-              scores: room.scores,
-            }),
-          );
-        }
+        // broadcast gameOver to all
+        sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result }, "gameOver");
         return;
       }
 
-      // normal update 
-      for (const client of room.clients) {
-        const cliRole = (client as any).role ?? "spectator";
-        let cliColor: "white" | "black" | undefined;
-        if (cliRole === "player") {
-          const pid = (client as any).playerId;
-          if (room.players?.[0] === pid) cliColor = "white";
-          else if (room.players?.[1] === pid) cliColor = "black";
-        }
-        client.send(
-          JSON.stringify({
-            type: "update",
-            fen: room.fen,
-            lastMove: room.lastMove,
-            role: cliRole,
-            color: cliColor,
-            players: serializePlayers(room),
-            scores: room.scores,
-          }),
-        );
-      }
+      // normal update
+      sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove }, "update");
       return;
     }
 
-    // ---------- REMATCH ----------
-    if (data.type === "rematch" && roomId) {
-      const room = rooms[roomId]!;
-      if (!room.concluded) return;
+// ---------- REMATCH ----------
+if (data.type === "rematch" && roomId) {
+  const room = rooms[roomId]!;
+  if (!room.concluded) return;
 
-      const uid = (ws as any).playerId;
-      if (!uid) return;
+  const uid = (ws as any).playerId;
+  if (!uid) return;
 
-      room.rematchVotes = room.rematchVotes ?? new Set();
-      room.rematchVotes.add(uid);
+  room.rematchVotes = room.rematchVotes ?? new Set();
+  room.rematchVotes.add(uid);
 
-      if (room.rematchVotes.size === 2) {
-        const [p1, p2] = room.players!;
-        room.players = [p2, p1];
-        room.fen = START_FEN;
-        room.lastMove = undefined;
-        room.concluded = false;
-        room.result = "ongoing";
-        room.rematchVotes.clear();
+  if (room.rematchVotes.size === 2) {
+    const [p1, p2] = room.players!;
+    // swap players for rematch
+    room.players = [p2, p1];
 
-        for (const client of room.clients) {
-          const pid = (client as any).playerId;
-          let cliColor: "white" | "black" | undefined;
-          if (pid === room.players[0]) cliColor = "white";
-          else if (pid === room.players[1]) cliColor = "black";
+    // reset board state
+    room.fen = START_FEN;
+    room.lastMove = undefined;
+    room.concluded = false;
+    room.result = undefined;
 
-          client.send(
-            JSON.stringify({
-              type: "newGame",
-              fen: room.fen,
-              role: (client as any).role,
-              color: cliColor,
-              players: serializePlayers(room),
-              scores: room.scores,
-            }),
-          );
-        }
-      }
-      return;
-    }
+    room.rematchVotes.clear();
+
+    // broadcast newGame — sendRoomUpdate will now omit result (because room.result is undefined)
+    sendRoomUpdate(room, {}, "newGame");
+  }
+  return;
+}
+
 
     // ---------- RESIGN ----------
     if (data.type === "resign" && roomId) {
@@ -528,37 +542,14 @@ wss.on("connection", (ws) => {
       const winnerId = uid === p1 ? p2 : p1;
       if (!winnerId) return;
 
-      let winnerColor: "white" | "black" =
-        room.players?.[0] === winnerId ? "white" : "black";
-      room.result =
-        winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
+      const winnerColor: "white" | "black" = room.players?.[0] === winnerId ? "white" : "black";
+      room.result = winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
       room.concluded = true;
 
-      // Pass the stable white/black ids to the score helper
+      // Apply result to scores
       applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
 
-      for (const client of room.clients) {
-        const cliRole = (client as any).role ?? "spectator";
-        let cliColor: "white" | "black" | undefined;
-        if (cliRole === "player") {
-          const pid = (client as any).playerId;
-          if (room.players?.[0] === pid) cliColor = "white";
-          else if (room.players?.[1] === pid) cliColor = "black";
-        }
-        client.send(
-          JSON.stringify({
-            type: "gameOver",
-            fen: room.fen,
-            lastMove: room.lastMove,
-            result: room.result,
-            role: cliRole,
-            color: cliColor,
-            reason: "resignation",
-            players: serializePlayers(room),
-            scores: room.scores, 
-          }),
-        );
-      }
+      sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: room.result, reason: "resignation" }, "gameOver");
       return;
     }
 
@@ -575,31 +566,10 @@ wss.on("connection", (ws) => {
         room.concluded = true;
         room.result = "Agreement: 1/2-1/2";
 
-        // Apply draw points using stable id
+        // Apply draw points using stable ids
         applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
 
-        for (const client of room.clients) {
-          const cliRole = (client as any).role ?? "spectator";
-          let cliColor: "white" | "black" | undefined;
-          if (cliRole === "player") {
-            const pid = (client as any).playerId;
-            if (room.players?.[0] === pid) cliColor = "white";
-            else if (room.players?.[1] === pid) cliColor = "black";
-          }
-          client.send(
-            JSON.stringify({
-              type: "gameOver",
-              fen: room.fen,
-              lastMove: room.lastMove,
-              result: "1/2-1/2",
-              role: cliRole,
-              color: cliColor,
-              reason: "draw-agreement",
-              players: serializePlayers(room),
-              scores: room.scores,
-            }),
-          );
-        }
+        sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: "1/2-1/2", reason: "draw-agreement" }, "gameOver");
       }
       return;
     }
@@ -608,38 +578,24 @@ wss.on("connection", (ws) => {
     if (data.type === "leave" && roomId) {
       const room = rooms[roomId];
       if (!room) return;
+
+      // remove this socket from the clients
       room.clients.delete(ws);
 
       const uid = (ws as any).playerId;
       if (uid && room.players) {
+        // explicit leave: remove player from the players list and usernames mapping
         room.players = room.players.filter((p) => p !== uid);
         delete room.usernames?.[uid];
       }
 
       if (room.clients.size === 0) {
-        delete rooms[roomId];
+        if (room.cleanupTimeout) clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
+        room.cleanupTimeout = setTimeout(() => delete rooms[roomId!], 30_000);
       } else {
-        for (const client of room.clients) {
-          const cliRole = (client as any).role ?? "spectator";
-          let cliColor: "white" | "black" | undefined;
-          if (cliRole === "player") {
-            const pid = (client as any).playerId;
-            if (room.players?.[0] === pid) cliColor = "white";
-            else if (room.players?.[1] === pid) cliColor = "black";
-          }
-          client.send(
-            JSON.stringify({
-              type: "update",
-              fen: room.fen,
-              lastMove: room.lastMove,
-              role: cliRole,
-              color: cliColor,
-              players: serializePlayers(room),
-              scores: room.scores,
-            }),
-          );
-        }
+        sendRoomUpdate(room, {}, "update");
       }
+
       try {
         ws.close();
       } catch {}
