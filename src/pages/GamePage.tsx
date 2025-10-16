@@ -42,6 +42,7 @@ export default function GamePage() {
 
   // --- stable WS callback that uses refs to detect duplicates ---
 const onGameUpdate = useCallback((update: GameUpdate) => {
+  //console.log("[onGameUpdate]", update);
   if (update.players) {
       setPlayers(update.players);
     }
@@ -51,20 +52,34 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
   const prevFen = fenRef.current;
   const prevLast = lastMoveRef.current;
   // duplicate/echo detection
-  const sameFen = update.fen === prevFen;
+   const sameFen = update.fen === prevFen;
   const sameLastMove =
     update.lastMove &&
     prevLast &&
     update.lastMove[0] === prevLast[0] &&
     update.lastMove[1] === prevLast[1];
-  if (sameFen && sameLastMove && !update.result) {
+
+  // If nothing changed (same fen & same lastMove) AND the incoming update
+  // did not explicitly include a result field, treat it as an echo and ignore.
+  if (sameFen && sameLastMove && update.result === undefined) {
     return;
   }
+  if (update.result !== undefined) {
+    console.log("[onGameUpdate] Setting gameResult =", update.result);
+    setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
+  } else if (update.fen === startFen) {
+    setGameResult(null);
+  }
+
+  if (update.fen === startFen) {
+    console.log("[onGameUpdate] Clearing gameResult (new game detected)");
+    setLastMove(null);
+    lastMoveRef.current = null; // clear last game's move highlights
+  }
+
   // build the AFTER-state chess from update.fen (if fen changed),
   // but compute pre-move captured piece from prevFen if possible
   let newChess = chessRef.current;
-  // Parse squares early (we'll access update.lastMove directly below)
-  // Pre-captured detection: attempt to read from previous fen (prevFen)
   let preCaptured: any | null = null;
   if (update.lastMove && prevFen) {
     try {
@@ -107,15 +122,6 @@ const onGameUpdate = useCallback((update: GameUpdate) => {
       lastMoveRef.current = update.lastMove;
     }
   }
-  if (update.result) {
-    setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
-  } else {
-    setGameResult(null);
-  }
-  if (update.fen === startFen) {
-  setLastMove(null);
-  lastMoveRef.current = null; // clear last game's move highlights
-}
 }, []); // uses refs; safe to keep empty deps
 
   // --- connect to WS (pass the stable callback) ---

@@ -33,17 +33,39 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
       }, 200);
     };
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "sync" || data.type === "update") {
-        onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color, players: data.players });
-      }
-      else if (data.type === "gameOver") {
-    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, result: data.result, role: data.role, color: data.color, players: data.players });
-  }   else if (data.type === "newGame") {
-    onUpdateRef.current({ fen: data.fen, lastMove: data.lastMove, role: data.role, color: data.color, players: data.players });
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  //console.log("[WS INCOMING]", data); 
+  if (data.type === "sync" || data.type === "update") {
+    onUpdateRef.current({
+      fen: data.fen,
+      lastMove: data.lastMove,
+      result: data.result,
+      role: data.role,
+      color: data.color,
+      players: data.players,
+    });
+  } else if (data.type === "gameOver") {
+    onUpdateRef.current({
+      fen: data.fen,
+      lastMove: data.lastMove,
+      result: data.result,
+      role: data.role,
+      color: data.color,
+      players: data.players,
+    });
+  } else if (data.type === "newGame") {
+    onUpdateRef.current({
+      fen: data.fen,
+      lastMove: data.lastMove,
+      result: data.result,
+      role: data.role,
+      color: data.color,
+      players: data.players,
+    });
   }
-    };
+};
+
     
     ws.onclose = () => {
         if (wsRef.current === ws) {

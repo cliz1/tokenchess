@@ -338,6 +338,7 @@ wss.on("connection", (ws) => {
         type: "sync",
         fen: room.fen,
         lastMove: room.lastMove,
+        result: room.result,
         role: (ws as any).role,
         color: (ws as any).color,
         players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
@@ -732,6 +733,7 @@ wss.on("connection", (ws) => {
               type: "update",
               fen: room.fen,
               lastMove: room.lastMove,
+              result: room.result,
               role: cliRole,
               color: cliColor,
               players: room.players?.map(pid => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown" }))
