@@ -21,7 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-const START_FEN = "8/3k2P1/8/8/8/4K3/1p6/8 w - - 0 1";
+const START_FEN = "8/3k2S1/8/8/8/4K3/1y6/8 w - - 0 1";
 
 // ---------- helpers ----------
 function signToken(payload: object) {

@@ -24,7 +24,7 @@ export default function GamePage() {
 
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("room") ?? "test-room";
-  const startFen = "8/3k2P1/8/8/8/4K3/1p6/8 w - - 0 1";
+  const startFen = "8/3k2S1/8/8/8/4K3/1y6/8 w - - 0 1";
 
   const [fen, setFen] = useState<string>(startFen);
   const fenRef = useRef<string>(startFen);
@@ -154,9 +154,9 @@ export default function GamePage() {
             const toRank = Math.floor(toSq / 8);
             const fromRank = Math.floor(fromSq / 8);
 
-            // Detect promotion conditions (custom piece types included)
+            // intercept pawn promotion
             if (
-              (fromPiece?.role === "pawn" || fromPiece?.role === "painter") &&
+              (fromPiece?.role === "pawn") &&
               (toRank === 0 || toRank === 7)
             ) {
               setPendingPromotion({ from, to, color: chess.turn });
@@ -172,8 +172,19 @@ export default function GamePage() {
               return;
             }
 
-            // Normal move
-            const move = { from: fromSq, to: toSq };
+            // determine move and optional promotion role
+            let promotionRole: string | null = null;
+            if ((fromPiece?.role === "painter") && (toRank === 0 || toRank === 7)) {
+              promotionRole = "royalpainter";
+            } else if ((fromPiece?.role === "snare") && (toRank === 0 || toRank === 7)) {
+              promotionRole = "rollingsnare";
+            }
+            
+            const move: any = promotionRole
+              ? { from: fromSq, to: toSq, promotion: promotionRole }
+              : { from: fromSq, to: toSq };
+
+
             if (!chess.isLegal(move)) return;
             const preCaptured = chess.board.get(toSq) ?? null;
             playMoveSound(chess, move, from, to, preCaptured);
@@ -183,7 +194,11 @@ export default function GamePage() {
             fenRef.current = newFen;
             setLastMove([from, to]);
             lastMoveRef.current = [from, to];
-            sendMove([from, to]);
+            if (promotionRole) {
+              sendMove([from, to, promotionRole]);
+            } else {
+              sendMove([from, to]);
+            }
           },
         },
       },
@@ -256,7 +271,7 @@ const promotePawn = (role: string) => {
           </button>
         </div>
       )}
-          {/* Promotion Modal */}
+    {/* Promotion Modal */}
       {pendingPromotion && (
         <div
           onClick={() => {
@@ -291,7 +306,7 @@ const promotePawn = (role: string) => {
                       const toRank = Math.floor(toSq / 8);
                       const fromRank = Math.floor(fromSq / 8);
 
-                      // Detect promotion again (same logic as in your effect)
+                      // Detect promotion again
                       if (
                         (fromPiece?.role === "pawn" || fromPiece?.role === "painter") &&
                         (toRank === 0 || toRank === 7)
