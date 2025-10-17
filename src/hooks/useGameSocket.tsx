@@ -83,7 +83,7 @@ ws.onmessage = (event) => {
     };
   }, [roomId]);
 
-  const sendMove = useCallback((lastMove: [string, string]) => {
+  const sendMove = useCallback((lastMove: [string, string, string?]) => {
     const socket = wsRef.current
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.warn("WebSocket not connected");

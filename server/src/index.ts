@@ -21,7 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const START_FEN = "8/3k2P1/8/8/8/4K3/1p6/8 w - - 0 1";
 
 // ---------- helpers ----------
 function signToken(payload: object) {
@@ -444,61 +444,61 @@ wss.on("connection", (ws) => {
     }
 
     // ---------- MOVE ----------
-    if (data.type === "move" && roomId) {
-      const room = rooms[roomId]!;
-      const senderId = (ws as any).playerId;
-      if (!senderId || !room.players?.includes(senderId)) return;
+if (data.type === "move" && roomId) {
+  const room = rooms[roomId]!;
+  const senderId = (ws as any).playerId;
+  if (!senderId || !room.players?.includes(senderId)) return;
 
-      const lastMove = data.lastMove as [string, string];
-      if (!lastMove) return;
+  // Support promotion: [from, to, promotion?]
+  const lastMove = data.lastMove as [string, string, string?];
+  if (!lastMove) return;
 
-      const parsed = parseFen(room.fen);
-      if (parsed.isErr) return;
-      const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
+  const parsed = parseFen(room.fen);
+  if (parsed.isErr) return;
+  const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
 
-      const whiteId = room.players?.[0];
-      const blackId = room.players?.[1];
-      const expected = chess.turn === "white" ? whiteId : blackId;
-      if (senderId !== expected) return;
+  const whiteId = room.players?.[0];
+  const blackId = room.players?.[1];
+  const expected = chess.turn === "white" ? whiteId : blackId;
+  if (senderId !== expected) return;
 
-      const from = parseSquare(lastMove[0]);
-      const to = parseSquare(lastMove[1]);
-      if (!from || !to) return;
-      const moveObj = { from, to };
-      if (!chess.isLegal(moveObj)) return;
+  const [fromStr, toStr, promotion] = lastMove;
+  const from = parseSquare(fromStr);
+  const to = parseSquare(toStr);
+  if (!from || !to) return;
 
-      chess.play(moveObj);
-      room.drawVotes = new Set();
-      let gameOver = false;
-      let result: RoomResult = "ongoing";
+  const moveObj: any = { from, to };
+  if (typeof promotion === "string") moveObj.promotion = promotion;
+  if (!chess.isLegal(moveObj)) return;
 
-      if (chess.isCheckmate()) {
-        gameOver = true;
-        result = chess.turn === "black" ? "Checkmate: 1-0" : "Checkmate: 0-1";
-      } else if (chess.isStalemate()) {
-        gameOver = true;
-        result = "Stalemate: 1/2-1/2";
-      }
+  chess.play(moveObj);
+  room.drawVotes = new Set();
+  let gameOver = false;
+  let result: RoomResult = "ongoing";
 
-      room.fen = makeFen(chess.toSetup());
-      room.lastMove = lastMove;
+  if (chess.isCheckmate()) {
+    gameOver = true;
+    result = chess.turn === "black" ? "Checkmate: 1-0" : "Checkmate: 0-1";
+  } else if (chess.isStalemate()) {
+    gameOver = true;
+    result = "Stalemate: 1/2-1/2";
+  }
 
-      if (gameOver) {
-        room.concluded = true;
-        room.result = result;
+  room.fen = makeFen(chess.toSetup());
+  room.lastMove = [fromStr, toStr];
 
-        // Apply scores using the stable white/black IDs from room.players
-        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+  if (gameOver) {
+    room.concluded = true;
+    room.result = result;
+    applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+    sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result }, "gameOver");
+    return;
+  }
 
-        // broadcast gameOver to all
-        sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result }, "gameOver");
-        return;
-      }
+  sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove }, "update");
+  return;
+}
 
-      // normal update
-      sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove }, "update");
-      return;
-    }
 
 // ---------- REMATCH ----------
 if (data.type === "rematch" && roomId) {

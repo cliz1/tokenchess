@@ -24,7 +24,7 @@ export default function GamePage() {
 
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("room") ?? "test-room";
-  const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  const startFen = "8/3k2P1/8/8/8/4K3/1p6/8 w - - 0 1";
 
   const [fen, setFen] = useState<string>(startFen);
   const fenRef = useRef<string>(startFen);
@@ -36,6 +36,13 @@ export default function GamePage() {
   const [playerColor, setPlayerColor] = useState<"white" | "black" | null>(null);
   const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
+
+  const [pendingPromotion, setPendingPromotion] = useState<{
+  from: string;
+  to: string;
+  color: "white" | "black";
+} | null>(null);
+
 
   // --- stable WS callback ---
   const onGameUpdate = useCallback((update: GameUpdate) => {
@@ -137,15 +144,41 @@ export default function GamePage() {
         events: {
           after: (from: string, to: string) => {
             if (role !== "player") return;
+            const chess = chessRef.current;
             const fromSq = parseSquare(from);
             const toSq = parseSquare(to);
             if (!fromSq || !toSq) return;
+
+            const fromPiece = chess.board.get(fromSq);
+            const toPiece = chess.board.get(toSq);
+            const toRank = Math.floor(toSq / 8);
+            const fromRank = Math.floor(fromSq / 8);
+
+            // Detect promotion conditions (custom piece types included)
+            if (
+              (fromPiece?.role === "pawn" || fromPiece?.role === "painter") &&
+              (toRank === 0 || toRank === 7)
+            ) {
+              setPendingPromotion({ from, to, color: chess.turn });
+              return;
+            }
+
+            if (
+              fromPiece?.role === "wizard" &&
+              toPiece?.role === "pawn" &&
+              (fromRank === 0 || fromRank === 7)
+            ) {
+              setPendingPromotion({ from, to, color: chess.turn });
+              return;
+            }
+
+            // Normal move
             const move = { from: fromSq, to: toSq };
-            if (!chessRef.current.isLegal(move)) return;
-            const preCaptured = chessRef.current.board.get(toSq) ?? null;
-            playMoveSound(chessRef.current, move, from, to, preCaptured);
-            chessRef.current.play(move);
-            const newFen = makeFen(chessRef.current.toSetup());
+            if (!chess.isLegal(move)) return;
+            const preCaptured = chess.board.get(toSq) ?? null;
+            playMoveSound(chess, move, from, to, preCaptured);
+            chess.play(move);
+            const newFen = makeFen(chess.toSetup());
             setFen(newFen);
             fenRef.current = newFen;
             setLastMove([from, to]);
@@ -162,6 +195,24 @@ export default function GamePage() {
     sendLeave();
     navigate("/");
   };
+
+const promotePawn = (role: string) => {
+  if (!pendingPromotion || !chessRef.current) return;
+  const { from, to } = pendingPromotion;
+
+  const move: any = { from: parseSquare(from), to: parseSquare(to), promotion: role };
+  const preCaptured = chessRef.current.board.get(parseSquare(to)!) ?? null;
+  playMoveSound(chessRef.current, move, from, to, preCaptured);
+  chessRef.current.play(move);
+  const newFen = makeFen(chessRef.current.toSetup());
+  setFen(newFen);
+  fenRef.current = newFen;
+  setLastMove([from, to]);
+  lastMoveRef.current = [from, to];
+  sendMove([from, to, role]);
+  setPendingPromotion(null);
+};
+
 
   // --- Helper: format score display ---
   const formatPlayerLine = (p: { id: string; username: string }) => {
@@ -205,6 +256,127 @@ export default function GamePage() {
           </button>
         </div>
       )}
+          {/* Promotion Modal */}
+      {pendingPromotion && (
+        <div
+          onClick={() => {
+            // === CANCEL PROMOTION ===
+            if (chessRef.current && groundRef.current) {
+              // Stop any animations
+              groundRef.current.stop?.();
+
+              const chess = chessRef.current;
+              const newFen = makeFen(chess.toSetup());
+              const dests = calculateDests(chess);
+
+              groundRef.current.set({
+                fen: newFen,
+                turnColor: chess.turn,
+                lastMove: undefined,
+                movable: {
+                  color: playerColor ?? chess.turn,
+                  free: false,
+                  showDests: true,
+                  dests,
+                  events: {
+                    after: (from: string, to: string) => {
+                      if (role !== "player") return;
+                      const chess = chessRef.current;
+                      const fromSq = parseSquare(from);
+                      const toSq = parseSquare(to);
+                      if (!fromSq || !toSq) return;
+
+                      const fromPiece = chess.board.get(fromSq);
+                      const toPiece = chess.board.get(toSq);
+                      const toRank = Math.floor(toSq / 8);
+                      const fromRank = Math.floor(fromSq / 8);
+
+                      // Detect promotion again (same logic as in your effect)
+                      if (
+                        (fromPiece?.role === "pawn" || fromPiece?.role === "painter") &&
+                        (toRank === 0 || toRank === 7)
+                      ) {
+                        setPendingPromotion({ from, to, color: chess.turn });
+                        return;
+                      }
+
+                      if (
+                        fromPiece?.role === "wizard" &&
+                        toPiece?.role === "pawn" &&
+                        (fromRank === 0 || fromRank === 7)
+                      ) {
+                        setPendingPromotion({ from, to, color: chess.turn });
+                        return;
+                      }
+
+                      // Normal move logic
+                      const move = { from: fromSq, to: toSq };
+                      if (!chess.isLegal(move)) return;
+                      const preCaptured = chess.board.get(toSq) ?? null;
+                      playMoveSound(chess, move, from, to, preCaptured);
+                      chess.play(move);
+                      const newFen = makeFen(chess.toSetup());
+                      setFen(newFen);
+                      fenRef.current = newFen;
+                      setLastMove([from, to]);
+                      lastMoveRef.current = [from, to];
+                      sendMove([from, to]);
+                    },
+                  },
+                },
+                highlight: { check: true, custom: getCheckHighlights(chess) },
+              });
+            }
+
+            setPendingPromotion(null);
+          }}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 900,
+            backgroundColor: "rgba(0,0,0,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius: "8px",
+              padding: 10,
+              zIndex: 1000,
+              display: "flex",
+              gap: 10,
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+            }}
+          >
+            {["queen", "rook", "bishop", "knight", "champion", "princess"].map((role) => (
+              <button
+                key={role}
+                onClick={() => promotePawn(role)}
+                style={{
+                  padding: 0,
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <div
+                  className={`cg-piece ${role} ${pendingPromotion.color}`}
+                  style={{ width: 45, height: 45 }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
