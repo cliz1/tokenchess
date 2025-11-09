@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 
 export type GameUpdate = {
+  type: "sync" | "update" | "gameOver" | "newGame";
   fen: string;
   lastMove?: [string, string];
   role?: "player" | "spectator";
@@ -10,11 +11,11 @@ export type GameUpdate = {
   scores?: Record<string, number>;
 };
 
-export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => void) {
+export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => void) {
   const wsRef = useRef<WebSocket | null>(null);
   const onUpdateRef = useRef(onUpdate);
 
-  // keep the last onUpdate callback so the socket doesn't need to be reset
+  // Keep the latest callback reference
   useEffect(() => {
     onUpdateRef.current = onUpdate;
   }, [onUpdate]);
@@ -26,7 +27,8 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
     ws.onopen = () => {
       const token = localStorage.getItem("token");
       ws.send(JSON.stringify({ type: "join", roomId, token }));
-      // Ask for an explicit sync after a short delay to avoid race conditions on refresh
+
+      // Ask for a sync after a short delay to avoid race conditions
       setTimeout(() => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: "sync-request", roomId }));
@@ -34,48 +36,30 @@ export function useGameSocket(roomId: string, onUpdate: (update:GameUpdate) => v
       }, 200);
     };
 
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  //console.log("[WS INCOMING]", data); 
-  if (data.type === "sync" || data.type === "update") {
-    onUpdateRef.current({
-      fen: data.fen,
-      lastMove: data.lastMove,
-      result: data.result,
-      role: data.role,
-      color: data.color,
-      players: data.players,
-      scores: data.scores,
-    });
-  } else if (data.type === "gameOver") {
-    onUpdateRef.current({
-      fen: data.fen,
-      lastMove: data.lastMove,
-      result: data.result,
-      role: data.role,
-      color: data.color,
-      players: data.players,
-      scores: data.scores,
-    });
-  } else if (data.type === "newGame") {
-    onUpdateRef.current({
-      fen: data.fen,
-      lastMove: data.lastMove,
-      result: data.result,
-      role: data.role,
-      color: data.color,
-      players: data.players,
-      scores: data.scores,
-    });
-  }
-};
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      //console.log("[WS INCOMING]", data);
 
-    
+      // Handle all known update types uniformly
+      if (["sync", "update", "gameOver", "newGame"].includes(data.type)) {
+        onUpdateRef.current({
+          type: data.type,
+          fen: data.fen,
+          lastMove: data.lastMove,
+          result: data.result,
+          role: data.role,
+          color: data.color,
+          players: data.players,
+          scores: data.scores,
+        });
+      }
+    };
+
     ws.onclose = () => {
-        if (wsRef.current === ws) {
-            wsRef.current = null;
-        }
-    }
+      if (wsRef.current === ws) {
+        wsRef.current = null;
+      }
+    };
 
     return () => {
       ws.close();
@@ -84,13 +68,13 @@ ws.onmessage = (event) => {
   }, [roomId]);
 
   const sendMove = useCallback((lastMove: [string, string, string?]) => {
-    const socket = wsRef.current
+    const socket = wsRef.current;
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.warn("WebSocket not connected");
       return;
     }
     socket.send(JSON.stringify({ type: "move", lastMove }));
-  }, [])
+  }, []);
 
   const sendRematch = useCallback(() => {
     wsRef.current?.send(JSON.stringify({ type: "rematch" }));

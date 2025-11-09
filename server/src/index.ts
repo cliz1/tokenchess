@@ -21,7 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-const START_FEN = "8/3k2S1/8/8/8/4K3/1y6/8 w - - 0 1";
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // ---------- helpers ----------
 function signToken(payload: object) {
@@ -227,7 +227,13 @@ type Room = {
   cleanupTimeout?: NodeJS.Timeout | number;
   scores?: Record<string, number>;
   fenCalculated?: boolean;
+
+  // New fields:
+  normalFen?: string;
+  reversedFen?: string;
+  currentFenIndex?: 0 | 1; // 0 = normal, 1 = reversed
 };
+
 
 type RoomResult =
   | "Checkmate: 1-0"
@@ -397,20 +403,21 @@ wss.on("connection", (ws) => {
 
           if (room.players.length === 2 && !room.fenCalculated) {
             try {
-        const [player1Id, player2Id] = room.players;
-        const { normalFen, reversedFen } = await getCombinedStartFens(player1Id, player2Id);
-        console.log("Combined start FEN (normal):", normalFen);
-        console.log("Combined start FEN (reversed):", reversedFen);
+              const [player1Id, player2Id] = room.players;
+              const { normalFen, reversedFen } = await getCombinedStartFens(player1Id, player2Id);
 
+              room.normalFen = normalFen;
+              room.reversedFen = reversedFen;
+              room.currentFenIndex = 0; // start with normal
+              room.fen = normalFen;
+              room.fenCalculated = true;
 
-              // TODO: merge the FENs into a single starting position
-              // room.fen = mergeFens(fens[player1Id], fens[player2Id]);
-
-              room.fenCalculated = true; // prevent recomputation if someone reconnects
+              //console.log("Room initialized with FENs:", { normalFen, reversedFen });
             } catch (err) {
               console.error("Error fetching active draft FENs:", err);
             }
           }
+
 
         } else {
           // full -> spectator
@@ -530,21 +537,35 @@ if (data.type === "rematch" && roomId) {
   room.rematchVotes = room.rematchVotes ?? new Set();
   room.rematchVotes.add(uid);
 
+  // Only start new game when both players agree
   if (room.rematchVotes.size === 2) {
     const [p1, p2] = room.players!;
-    // swap players for rematch
+
+    // swap players for color reversal
     room.players = [p2, p1];
 
+    // toggle which FEN is used (normal <-> reversed)
+    room.currentFenIndex = room.currentFenIndex === 0 ? 1 : 0;
+    const nextFen =
+      room.currentFenIndex === 0
+        ? room.normalFen ?? START_FEN
+        : room.reversedFen ?? START_FEN;
+
     // reset board state
-    room.fen = START_FEN;
+    room.fen = nextFen;
     room.lastMove = undefined;
     room.concluded = false;
     room.result = undefined;
 
+    // clear votes for future rematches
     room.rematchVotes.clear();
 
-    // broadcast newGame — sendRoomUpdate will now omit result (because room.result is undefined)
-    sendRoomUpdate(room, {}, "newGame");
+    console.log(
+      `Starting rematch with ${room.currentFenIndex === 0 ? "normal" : "reversed"} FEN`
+    );
+
+    // broadcast newGame — sendRoomUpdate will include new fen
+    sendRoomUpdate(room, { fen: room.fen }, "newGame");
   }
   return;
 }
@@ -682,7 +703,7 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
     "8", "8", "8", "8",
     ...normalWhiteBottom,
   ].join("/");
-  const normalFen = `${normalCombined} w - - 0 1`;
+  const normalFen = `${normalCombined} w KQkq - 0 1`;
 
   // --- Reversed color version ---
   const reversedBlackTop = mirrorAndLower(whiteRowsA);
@@ -693,10 +714,10 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
     "8", "8", "8", "8",
     ...reversedWhiteBottom,
   ].join("/");
-  const reversedFen = `${reversedCombined} w - - 0 1`;
+  const reversedFen = `${reversedCombined} w KQkq - 0 1`;
 
-  console.log("Combined start FEN (normal):", normalFen);
-  console.log("Combined start FEN (reversed):", reversedFen);
+  //console.log("Combined start FEN (normal):", normalFen);
+  //console.log("Combined start FEN (reversed):", reversedFen);
 
   return { normalFen, reversedFen };
 }

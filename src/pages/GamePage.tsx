@@ -24,7 +24,7 @@ export default function GamePage() {
 
   const [searchParams] = useSearchParams();
   const roomId = searchParams.get("room") ?? "test-room";
-  const startFen = "8/3k2S1/8/8/8/4K3/1y6/8 w - - 0 1";
+  const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
   const [fen, setFen] = useState<string>(startFen);
   const fenRef = useRef<string>(startFen);
@@ -66,7 +66,7 @@ export default function GamePage() {
     if (update.result !== undefined) {
       console.log("[onGameUpdate] Setting gameResult =", update.result);
       setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
-    } else if (update.fen === startFen) {
+    } else if (update.type === "newGame") {
       console.log("[onGameUpdate] Clearing gameResult (new game detected)");
       setGameResult(null);
       setLastMove(null);
