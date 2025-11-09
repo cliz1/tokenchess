@@ -397,9 +397,10 @@ wss.on("connection", (ws) => {
 
           if (room.players.length === 2 && !room.fenCalculated) {
             try {
-              const [player1Id, player2Id] = room.players;
-              const startFen = await getCombinedStartFen(player1Id, player2Id);
-              console.log("Combined start FEN:", startFen);
+        const [player1Id, player2Id] = room.players;
+        const { normalFen, reversedFen } = await getCombinedStartFens(player1Id, player2Id);
+        console.log("Combined start FEN (normal):", normalFen);
+        console.log("Combined start FEN (reversed):", reversedFen);
 
 
               // TODO: merge the FENs into a single starting position
@@ -628,10 +629,10 @@ server.listen(port, () => console.log(`HTTP + WS server listening on ${port}`));
 
 /// helpers:
 
-async function getCombinedStartFen(whitePlayerId: string, blackPlayerId: string) {
+async function getCombinedStartFens(player1Id: string, player2Id: string) {
   const drafts = await prisma.draft.findMany({
     where: {
-      userId: { in: [whitePlayerId, blackPlayerId] },
+      userId: { in: [player1Id, player2Id] },
       isActive: true,
     },
     select: {
@@ -653,40 +654,53 @@ async function getCombinedStartFen(whitePlayerId: string, blackPlayerId: string)
     fens[draft.userId] = data.fen;
   }
 
-  const whiteFen = fens[whitePlayerId];
-  const blackFen = fens[blackPlayerId];
+  const fenA = fens[player1Id];
+  const fenB = fens[player2Id];
 
-  // Pull only the piece-placement portion (first space-separated part)
-  const whitePlacement = whiteFen.split(" ")[0];
-  const blackPlacement = blackFen.split(" ")[0];
-
-  const whiteRows = whitePlacement.split("/");
-  const blackRows = blackPlacement.split("/");
-
-  if (whiteRows.length !== 8 || blackRows.length !== 8) {
-    throw new Error("Unexpected FEN format (must have 8 ranks)");
+  // helper to extract last 2 rows from a player's fen
+  function extractWhiteRows(fen: string) {
+    const placement = fen.split(" ")[0];
+    const rows = placement.split("/");
+    if (rows.length !== 8) throw new Error("Invalid FEN (expected 8 ranks)");
+    return rows.slice(-2);
   }
 
-  // Each player's "white-side setup" are their last two rows
-  const whiteBase = whiteRows.slice(-2);   // e.g. ["YYYYYYYY", "2QQK1W1"]
-  const blackBase = blackRows.slice(-2);   // e.g. ["PPPYPSSS", "MMMQK2C"]
+  const whiteRowsA = extractWhiteRows(fenA);
+  const whiteRowsB = extractWhiteRows(fenB);
 
-  // MIRROR: reverse the order of those two ranks (not reversing characters),
-  // then lowercase for black (convert to lowercase letters)
-  const mirroredBlack = blackBase.slice().reverse().map((r) => r.toLowerCase());
+  // helper to lowercase + reverse the *order* of two rows (not the string characters)
+  function mirrorAndLower(rows: string[]) {
+    return rows.slice().reverse().map((r) => r.toLowerCase());
+  }
 
-  // Build combined placement: mirrored black top two ranks, 4 empty ranks, white's two ranks
-  const combinedPlacement = [
-    ...mirroredBlack, // black top two ranks (reversed order, lowered)
-    "8", "8", "8", "8", // four empty middle ranks
-    ...whiteBase, // white bottom two ranks (unchanged)
+  // --- Normal color version ---
+  const normalBlackTop = mirrorAndLower(whiteRowsB);
+  const normalWhiteBottom = whiteRowsA;
+
+  const normalCombined = [
+    ...normalBlackTop,
+    "8", "8", "8", "8",
+    ...normalWhiteBottom,
   ].join("/");
+  const normalFen = `${normalCombined} w - - 0 1`;
 
-  const combinedFen = `${combinedPlacement} w - - 0 1`;
+  // --- Reversed color version ---
+  const reversedBlackTop = mirrorAndLower(whiteRowsA);
+  const reversedWhiteBottom = whiteRowsB;
 
-  console.log("Combined start FEN:", combinedFen);
-  return combinedFen;
+  const reversedCombined = [
+    ...reversedBlackTop,
+    "8", "8", "8", "8",
+    ...reversedWhiteBottom,
+  ].join("/");
+  const reversedFen = `${reversedCombined} w - - 0 1`;
+
+  console.log("Combined start FEN (normal):", normalFen);
+  console.log("Combined start FEN (reversed):", reversedFen);
+
+  return { normalFen, reversedFen };
 }
+
 
 
 
