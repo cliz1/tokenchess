@@ -226,6 +226,7 @@ type Room = {
   drawVotes?: Set<string>;
   cleanupTimeout?: NodeJS.Timeout | number;
   scores?: Record<string, number>;
+  fenCalculated?: boolean;
 };
 
 type RoomResult =
@@ -393,6 +394,23 @@ wss.on("connection", (ws) => {
           // claim next available slot
           (ws as any).playerId = uid;
           room.players.push(uid);
+
+          if (room.players.length === 2 && !room.fenCalculated) {
+            try {
+              const [player1Id, player2Id] = room.players;
+              const startFen = await getCombinedStartFen(player1Id, player2Id);
+              console.log("Combined start FEN:", startFen);
+
+
+              // TODO: merge the FENs into a single starting position
+              // room.fen = mergeFens(fens[player1Id], fens[player2Id]);
+
+              room.fenCalculated = true; // prevent recomputation if someone reconnects
+            } catch (err) {
+              console.error("Error fetching active draft FENs:", err);
+            }
+          }
+
         } else {
           // full -> spectator
           (ws as any).playerId = undefined;
@@ -607,3 +625,69 @@ if (data.type === "rematch" && roomId) {
 const port = Number(process.env.PORT || 4000);
 server.listen(port, () => console.log(`HTTP + WS server listening on ${port}`));
 // ---------- end ----------
+
+/// helpers:
+
+async function getCombinedStartFen(whitePlayerId: string, blackPlayerId: string) {
+  const drafts = await prisma.draft.findMany({
+    where: {
+      userId: { in: [whitePlayerId, blackPlayerId] },
+      isActive: true,
+    },
+    select: {
+      userId: true,
+      data: true,
+    },
+  });
+
+  if (drafts.length !== 2) {
+    throw new Error("Both players must have an active draft");
+  }
+
+  const fens: Record<string, string> = {};
+  for (const draft of drafts) {
+    const data = draft.data as { fen?: unknown } | null;
+    if (!data || typeof data.fen !== "string") {
+      throw new Error(`Draft for user ${draft.userId} does not contain a valid FEN`);
+    }
+    fens[draft.userId] = data.fen;
+  }
+
+  const whiteFen = fens[whitePlayerId];
+  const blackFen = fens[blackPlayerId];
+
+  // Pull only the piece-placement portion (first space-separated part)
+  const whitePlacement = whiteFen.split(" ")[0];
+  const blackPlacement = blackFen.split(" ")[0];
+
+  const whiteRows = whitePlacement.split("/");
+  const blackRows = blackPlacement.split("/");
+
+  if (whiteRows.length !== 8 || blackRows.length !== 8) {
+    throw new Error("Unexpected FEN format (must have 8 ranks)");
+  }
+
+  // Each player's "white-side setup" are their last two rows
+  const whiteBase = whiteRows.slice(-2);   // e.g. ["YYYYYYYY", "2QQK1W1"]
+  const blackBase = blackRows.slice(-2);   // e.g. ["PPPYPSSS", "MMMQK2C"]
+
+  // MIRROR: reverse the order of those two ranks (not reversing characters),
+  // then lowercase for black (convert to lowercase letters)
+  const mirroredBlack = blackBase.slice().reverse().map((r) => r.toLowerCase());
+
+  // Build combined placement: mirrored black top two ranks, 4 empty ranks, white's two ranks
+  const combinedPlacement = [
+    ...mirroredBlack, // black top two ranks (reversed order, lowered)
+    "8", "8", "8", "8", // four empty middle ranks
+    ...whiteBase, // white bottom two ranks (unchanged)
+  ].join("/");
+
+  const combinedFen = `${combinedPlacement} w - - 0 1`;
+
+  console.log("Combined start FEN:", combinedFen);
+  return combinedFen;
+}
+
+
+
+
