@@ -160,7 +160,7 @@
         "note": "Push the painter, then paint the enemy Rook."
       },
       {
-        "text": "Like a pawn, a Painter can capture en passant. But instead of capturing, the Painter paints the piece it passes. This is called painting en passant, or en paintssant.",
+        "text": "Like a pawn, a Painter can capture en passant. But instead of capturing, the Painter paints the piece it passes (en paintssant).",
         "challenge": {
           "initialFen": "2k5/4p3/8/8/3Y4/8/8/2K5 w - - 0 1",
           "steps": [
@@ -169,6 +169,19 @@
           ]
         },
         "note": "Push the painter, then paint en passant."
+      },
+            {
+        "text": "The painter has a special promotion, meaning when it reaches the back rank it automatically promotes without choice by the player. The resulting piece is called the “Royal Painter“, which moves like a King but paints instead of capturing.",
+        "challenge": {
+          "initialFen": "3k4/1K6/2Yr4/8/8/8/8/8 w - - 0 1",
+          "steps": [
+            { "white": { "from": "c6", "to": "c7" }, "black": { "from": "d8", "to": "d7" } },
+            { "white": { "from": "c7", "to": "c8" }, "black": { "from": "d7", "to": "e7" } },
+            { "white": { "from": "c8", "to": "c7" }, "black": { "from": "d6", "to": "d7" } },
+            { "white": { "from": "c7", "to": "d7" } }
+          ]
+        },
+        "note": "Push the painter to promotion, then paint the rook with the Royal Painter."
       }
     ]
   },
@@ -202,6 +215,29 @@
         "text": "Note that since the Snare cannot capture, it cannot give check. However, a King may be ensnared. In this case, the opposing side may deliver mate by simply giving a check.",
         "challenge": {
           "initialFen": "1r6/8/1k6/8/S7/8/3B4/1K6 w - - 0 1",
+          "steps": [
+            { "white": { "from": "a4", "to": "b5" }, "black": { "from": "b8", "to": "e8" } },
+            { "white": { "from": "d2", "to": "a5" } }
+          ]
+        },
+        "note": "Ensnare the King, then deliver checkmate."
+      },
+            {
+        "text": "Like the painter, the Snare has a special promotion. The superior piece, called the “Rolling Snare,“ has King movement with an additional square of movement in orthogonal directions. It also snares all 4 orthogonal directions, rather than the Snare's 3.",
+        "challenge": {
+          "initialFen": "8/1KS1k3/1N6/8/8/7p/8/8 w - - 0 1",
+          "steps": [
+            { "white": { "from": "c7", "to": "c8" }, "black": { "from": "e7", "to": "f8" } },
+            { "white": { "from": "c8", "to": "e8" }, "black": { "from": "h3", "to": "h2" } },
+            { "white": { "from": "b6", "to": "d7" } }
+          ]
+        },
+        "note": "Promote the Snare, catch the enemy King, then deliver checkmate."
+      },
+                  {
+        "text": "Click the Rolling Snare to see its full movement space, which resembles a diamond.",
+        "challenge": {
+          "initialFen": "1k6/8/8/8/4L3/8/8/1K6 w - - 0 1",
           "steps": [
             { "white": { "from": "a4", "to": "b5" }, "black": { "from": "b8", "to": "e8" } },
             { "white": { "from": "d2", "to": "a5" } }

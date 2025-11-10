@@ -14,28 +14,28 @@ export default function TutorialsPage() {
       {
         heading: "1. Introduction",
         items: [
-          { key: "standard-rules", label: "1.1 Chess" },
-          { key: "fairy-chess", label: "1.2 Fairy Chess" },
-          { key: "token-chess", label: "1.3 Token Chess" },
+          { key: "standard-rules", label: "Chess" },
+          { key: "fairy-chess", label: "Fairy Chess" },
+          { key: "token-chess", label: "Token Chess" },
         ],
       },
       {
         heading: "2. Token Chess Pieces",
         items: [
-          { key: "Champion", label: "2.1 Champion" },
-          { key: "Princess", label: "2.2 Princess" },
-          { key: "Amazon", label: "2.3 Amazon" },
-          { key: "Commoner", label: "2.4 Commoner" },
-          { key: "Painter", label: "2.5 Painter" },
-          { key: "Snare", label: "2.6 Snare" },
-          { key: "Wizard", label: "2.7 Wizard" },
-          { key: "Archer", label: "2.8 Archer" }
+          { key: "Champion", label: "Champion" },
+          { key: "Princess", label: "Princess" },
+          { key: "Amazon", label: "Amazon" },
+          { key: "Commoner", label: "Commoner" },
+          { key: "Painter", label: "Painter" },
+          { key: "Snare", label: "Snare" },
+          { key: "Wizard", label: "Wizard" },
+          { key: "Archer", label: "Archer" }
         ],
       },
       {
         heading: "3. Token Chess Rules",
-        items: [{ key: "token-values", label: "3.1 Token Values" },
-          { key: "draft", label: "3.2 Drafting" }
+        items: [{ key: "token-values", label: "Token Values" },
+          { key: "draft", label: "Drafting" }
         ],
       },
       

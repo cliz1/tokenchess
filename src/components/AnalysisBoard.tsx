@@ -54,8 +54,28 @@ export default function AnalysisBoard({
     const toRank = Math.floor(toSquare / 8);
     const fromRank = Math.floor(fromSquare / 8);
 
+        // --- AUTO-PROMOTION RULES ---
+    let promotionRole: string | null = null;
+
+    // Painter auto-promotes to RoyalPainter
+    if (fromPiece?.role === "painter" && (toRank === 0 || toRank === 7)) {
+      promotionRole = "royalpainter";
+    }
+    // Snare auto-promotes to RollingSnare
+    else if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7)) {
+      promotionRole = "rollingsnare";
+    }
+
+    // If it’s one of those, skip modal entirely
+    if (promotionRole) {
+      const moveWithPromotion = { from: fromSquare, to: toSquare, promotion: promotionRole };
+      playMove(moveWithPromotion, from, to);
+      return;
+    }
+
+
     // Intercept promotion
-    if ((fromPiece?.role === "pawn" || fromPiece?.role === "painter") && (toRank === 0 || toRank === 7) || (fromPiece?.role==="wizard" && toPiece?.role==="pawn" && (fromRank === 0 || fromRank === 7))) {
+    if ((fromPiece?.role === "pawn") && (toRank === 0 || toRank === 7) || (fromPiece?.role==="wizard" && toPiece?.role==="pawn" && (fromRank === 0 || fromRank === 7))) {
       setPendingPromotion({ from, to, color: chess.turn });
       return; // wait for modal
     }

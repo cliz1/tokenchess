@@ -328,7 +328,19 @@ const handleMove = (from: string, to: string) => {
       return; // stop here until user picks promotion
     }
 
-    const move: any = { from: fromSq, to: toSq };
+    let promotionRole: string | null = null;
+
+    // === AUTO-PROMOTION RULES (snare/painter) ===
+    if ((piece?.role === "painter") && (Math.floor(toSq / 8) === 0 || Math.floor(toSq / 8) === 7)) {
+      promotionRole = "royalpainter";
+    } else if ((piece?.role === "snare") && (Math.floor(toSq / 8) === 0 || Math.floor(toSq / 8) === 7)) {
+      promotionRole = "rollingsnare";
+    }
+
+    const move: any = promotionRole
+      ? { from: fromSq, to: toSq, promotion: promotionRole }
+      : { from: fromSq, to: toSq };
+
 
     if (!challenge) {
       debug("no challenge → normal play");
