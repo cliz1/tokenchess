@@ -43,19 +43,23 @@ export default function CreateRoomPage() {
 
   return (
     <div style={{ padding: 20 }}>
+      <button
+        onClick={() => navigate("/")}
+        style={{
+          background: "transparent",
+          border: "1px solid rgba(255,255,255,0.1)",
+          color: "#aaa",
+          padding: "6px 10px",
+          borderRadius: 6,
+          cursor: "pointer",
+          marginBottom: 12,
+        }}
+      >
+        ← Back to Home
+      </button>
+
       <h2>Create Game Room</h2>
       <form onSubmit={handleCreate}>
-        <label>
-          Code length:
-          <input
-            type="number"
-            min={4}
-            max={8}
-            value={length}
-            onChange={(e) => setLength(Number(e.target.value))}
-            style={{ marginLeft: 8 }}
-          />
-        </label>
         <div style={{ marginTop: 12 }}>
           <button type="submit" disabled={loading}>
             {loading ? "Creating…" : "Create Room"}

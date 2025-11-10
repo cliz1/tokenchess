@@ -48,46 +48,69 @@ export default function TutorialsPage() {
   const lesson = LESSONS[selected];
 
   return (
-    <div style={{ display: "flex", gap: 18, padding: 20 }}>
-      {/* Sidebar TOC */}
-      <aside style={{ width: 280, padding: 12, borderRight: "1px solid rgba(255,255,255,0.04)" }}>
-        <h3 style={{ marginTop: 4 }}>Table of contents</h3>
-        {groups.map((g) => (
-          <div key={g.heading} style={{ marginTop: 12 }}>
-            <div style={{ color: "#bbb", fontSize: 13, marginBottom: 8 }}>{g.heading}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {g.items.map((it) => (
-                <button
-                  key={it.key}
-                  onClick={() => setSelected(it.key as LessonKey)}
-                  style={{
-                    display: "block",
-                    textAlign: "left",
-                    padding: "8px 10px",
-                    borderRadius: 6,
-                    background: selected === it.key ? "rgba(255,255,255,0.06)" : "transparent",
-                    border: "none",
-                    color: selected === it.key ? "#fff" : "#ccc",
-                    cursor: "pointer",
-                  }}
-                >
-                  {it.label}
-                </button>
-              ))}
-            </div>
+  <div
+    style={{
+      display: "flex",
+      gap: 18,
+      padding: 20,
+      height: "100vh", 
+      boxSizing: "border-box",
+      overflow: "hidden",
+    }}
+  >
+    {/* Sidebar TOC */}
+    <aside
+      style={{
+        width: 280,
+        padding: 12,
+        borderRight: "1px solid rgba(255,255,255,0.04)",
+        display: "flex",
+        flexDirection: "column"
+      }}
+    >
+      <h3 style={{ marginTop: 4 }}>Table of contents</h3>
+      {groups.map((g) => (
+        <div key={g.heading} style={{ marginTop: 12 }}>
+          <div style={{ color: "#bbb", fontSize: 13, marginBottom: 8 }}>{g.heading}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {g.items.map((it) => (
+              <button
+                key={it.key}
+                onClick={() => setSelected(it.key as LessonKey)}
+                style={{
+                  display: "block",
+                  textAlign: "left",
+                  padding: "8px 10px",
+                  borderRadius: 6,
+                  background: selected === it.key ? "rgba(255,255,255,0.06)" : "transparent",
+                  border: "none",
+                  color: selected === it.key ? "#fff" : "#ccc",
+                  cursor: "pointer",
+                }}
+              >
+                {it.label}
+              </button>
+            ))}
           </div>
-        ))}
-
-        <div style={{ marginTop: 18 }}>
-          <Link to="/">← Back to Home</Link>
         </div>
-      </aside>
+      ))}
+      <div style={{ marginTop: 18 }}>
+        <Link to="/">← Back to Home</Link>
+      </div>
+    </aside>
 
-      {/* Content area */}
-      <section style={{ flex: 1 }}>
-        <TutorialLesson title={lesson.title} steps={lesson.steps} quote={lesson.quote} />
-      </section>
-    </div>
-  );
+    {/* Content area */}
+    <section
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        paddingRight: 8,
+      }}
+    >
+      <TutorialLesson title={lesson.title} steps={lesson.steps} quote={lesson.quote} />
+    </section>
+  </div>
+);
+
 }
 

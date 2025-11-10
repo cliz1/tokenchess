@@ -55,14 +55,20 @@ function AppContent() {
   const location = useLocation();
   // Hide nav + footer on any `/game` route
   const hideNav = location.pathname.startsWith("/game");
-  useEffect(() => {
-    if (hideNav) {
-      document.body.style.overflow = "hidden";   // disable scroll
-    } else {
-      document.body.style.overflow = "auto";     // restore
-    }
-    return () => { document.body.style.overflow = "auto"; };
-  }, [hideNav]);
+useEffect(() => {
+  const isGame = location.pathname.startsWith("/game");
+  const isHome = location.pathname === "/";
+  const shouldLock = isGame || isHome;
+
+  if (shouldLock) {
+    document.body.style.overflow = "hidden";  // disable scroll
+  } else {
+    document.body.style.overflow = "auto";    // restore
+  }
+
+  return () => { document.body.style.overflow = "auto"; };
+}, [location.pathname]);
+
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -70,12 +76,65 @@ function AppContent() {
         <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <NavLink to="/" end style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
-            <NavLink to="/tutorials" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorials</NavLink>
-            <NavLink to="/analysis" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Analysis</NavLink>
-            <NavLink to="/editor" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Board Editor</NavLink>
-            <NavLink to="/draft" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Draft</NavLink>
-            <NavLink to="/game/create" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Create Game</NavLink>
-            <NavLink to="/game/join" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Join Game</NavLink>
+            <NavLink to="/tutorials" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorial</NavLink>
+            <NavLink to="/editor" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Board</NavLink>
+            <div style={{ position: "relative" }} className="play-menu">
+  <span
+    style={{
+      color: location.pathname.startsWith("/game") ? "#fff" : "#aaa",
+      cursor: "pointer",
+      userSelect: "none",
+    }}
+    onClick={() => {
+      const menu = document.querySelector(".play-dropdown") as HTMLElement | null;
+      if (menu) menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }}
+  >
+    Play ▾
+  </span>
+  <div
+    className="play-dropdown"
+    style={{
+      position: "absolute",
+      top: "100%",
+      left: 0,
+      background: "rgba(30,30,30,0.95)",
+      border: "1px solid rgba(255,255,255,0.05)",
+      borderRadius: 6,
+      display: "none",
+      flexDirection: "column",
+      padding: 4,
+      minWidth: 130,
+      zIndex: 100,
+    }}
+  >
+    <NavLink
+      to="/game/create"
+      style={({ isActive }) => ({
+        color: isActive ? "#fff" : "#aaa",
+        textDecoration: "none",
+        padding: "6px 10px",
+        display: "block",
+      })}
+      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
+    >
+      Create Game
+    </NavLink>
+    <NavLink
+      to="/game/join"
+      style={({ isActive }) => ({
+        color: isActive ? "#fff" : "#aaa",
+        textDecoration: "none",
+        padding: "6px 10px",
+        display: "block",
+      })}
+      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
+    >
+      Join Game
+    </NavLink>
+  </div>
+</div>
+
             <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
               <AuthNav />
             </div>
@@ -98,12 +157,6 @@ function AppContent() {
           <Route path="/game/join" element={<JoinRoomPage />} />
         </Routes>
       </main>
-
-      {!hideNav && (
-        <footer style={{ padding: 10, borderTop: "1px solid rgba(255,255,255,0.04)", textAlign: "center", fontSize: 12, color: "#999" }}>
-          © Token Chess
-        </footer>
-      )}
     </div>
   );
 }

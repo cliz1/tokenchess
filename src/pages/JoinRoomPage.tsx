@@ -16,11 +16,8 @@ export default function JoinRoomPage() {
     }
     setLoading(true);
     try {
-      // optional validation: confirm room exists
       const res = await fetch(`/api/rooms/${encodeURIComponent(roomId.trim())}`);
-      if (!res.ok) {
-        throw new Error("Room not found");
-      }
+      if (!res.ok) throw new Error("Room not found");
       navigate(`/game?room=${encodeURIComponent(roomId.trim())}`);
     } catch (err: any) {
       setError(err.message || "Unable to join");
@@ -31,6 +28,21 @@ export default function JoinRoomPage() {
 
   return (
     <div style={{ padding: 20 }}>
+      <button
+        onClick={() => navigate("/")}
+        style={{
+          background: "transparent",
+          border: "1px solid rgba(255,255,255,0.1)",
+          color: "#aaa",
+          padding: "6px 10px",
+          borderRadius: 6,
+          cursor: "pointer",
+          marginBottom: 12,
+        }}
+      >
+        ← Back to Home
+      </button>
+
       <h2>Join Game Room</h2>
       <form onSubmit={handleJoin}>
         <label>
