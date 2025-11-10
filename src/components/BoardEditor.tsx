@@ -23,7 +23,7 @@ export default function BoardEditor() {
   const navigate = useNavigate();
 
   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  const EMPTY_FEN = "8/8/8/8/8/8/8/8 w - - 0 1";
+  const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const [paletteColor, setPaletteColor] = useState<"white" | "black">("white");
 
   function squareFromClientPos(x: number, y: number, rect: DOMRect, orientation: "white" | "black") {
@@ -50,8 +50,10 @@ export default function BoardEditor() {
     if (r.includes("champion")) return "c";
     if (r.includes("princess")) return "i";
     if (r.includes("commoner")) return "m";
-    if (r.includes("painter")) return "y";
-    if (r.includes("snare")) return "s";
+    if (r.includes("rollingsnare")) return "l";
+    if (r.includes("royalpainter")) return "o";
+    else if (r.includes("painter")) return "y";
+    else if (r.includes("snare")) return "s";
     if (r.includes("wizard")) return "w";
     if (r.includes("archer")) return "x";
     if (r.includes("queen")) return "q";
@@ -257,6 +259,8 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
     "snare",
     "wizard",
     "archer",
+    "rollingsnare",
+    "royalpainter"
   ];
 
   const palette: PalettePiece[] = pieceRoles.map((role) => ({ role, color: paletteColor }));
@@ -436,11 +440,30 @@ function handleOpenInAnalysis() {
     alert(res.reason ?? "FEN is not valid for analysis");
     return;
   }
-  // pass fen via react-router state (ensure the fen includes sideToMove)
+
   const piecesState = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
-  const fenToSend = piecesToFen(piecesState); // uses sideToMove
+  const baseFen = piecesToFen(piecesState); // only placement + side to move
+
+  // Extract castling rights and en passant info from the *current* fen
+  const currentParts = fen.split(" ");
+  const castlingRights = currentParts[2] ?? "-";
+  const enPassant = currentParts[3] ?? "-";
+  const halfmove = currentParts[4] ?? "0";
+  const fullmove = currentParts[5] ?? "1";
+
+  // Replace the middle fields in baseFen with these details
+  const fenParts = baseFen.split(" ");
+  // baseFen = [placement, sideToMove, "-", "-", "0", "1"]
+  fenParts[2] = castlingRights;
+  fenParts[3] = enPassant;
+  fenParts[4] = halfmove;
+  fenParts[5] = fullmove;
+
+  const fenToSend = fenParts.join(" ");
+
   navigate("/analysis", { state: { initialFen: fenToSend } });
 }
+
 
 
     function handleSetStartPosition() {

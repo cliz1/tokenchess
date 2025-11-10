@@ -1,5 +1,5 @@
 // src/pages/TutorialsPage.tsx
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import TutorialLesson from "../components/TutorialLesson";
 import { Link } from "react-router-dom";
 import lessons from '../assets/lessons.json';
@@ -35,7 +35,7 @@ export default function TutorialsPage() {
       {
         heading: "3. Token Chess Rules",
         items: [{ key: "token-values", label: "3.1 Token Values" },
-          { key: "draft", label: "3.2 Drafting" } 
+          { key: "draft", label: "3.2 Drafting" }
         ],
       },
       
@@ -53,9 +53,7 @@ export default function TutorialsPage() {
       display: "flex",
       gap: 18,
       padding: 20,
-      height: "100vh", 
       boxSizing: "border-box",
-      overflow: "hidden",
     }}
   >
     {/* Sidebar TOC */}
@@ -65,7 +63,8 @@ export default function TutorialsPage() {
         padding: 12,
         borderRight: "1px solid rgba(255,255,255,0.04)",
         display: "flex",
-        flexDirection: "column"
+        flexDirection: "column",
+        boxSizing: "border-box",
       }}
     >
       <h3 style={{ marginTop: 4 }}>Table of contents</h3>
@@ -94,6 +93,7 @@ export default function TutorialsPage() {
           </div>
         </div>
       ))}
+
       <div style={{ marginTop: 18 }}>
         <Link to="/">← Back to Home</Link>
       </div>
@@ -103,8 +103,8 @@ export default function TutorialsPage() {
     <section
       style={{
         flex: 1,
-        overflowY: "auto",
         paddingRight: 8,
+        boxSizing: "border-box",
       }}
     >
       <TutorialLesson title={lesson.title} steps={lesson.steps} quote={lesson.quote} />

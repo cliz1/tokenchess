@@ -380,7 +380,7 @@ useEffect(() => {
         return;
       }
 
-      // --- SPECIAL RESTRICTIONS: only 1 archer and 1 amazon per side ---
+      // --- HORDE RESTRICTIONS: up to 2 of one piece type, exception only 1 archer  ---
       if (piece.color === perspective) {
         const countOfRole = Array.from(baseMap.values())
           .filter(p => p.color === perspective && p.role === piece.role).length;
@@ -389,8 +389,20 @@ useEffect(() => {
         const isReplacingSame =
           existing && existing.role === piece.role && existing.color === perspective;
 
-        if (!isReplacingSame && (piece.role === "archer" || piece.role === "amazon") && countOfRole >= 1) {
-          flashWarning(`You can only place one ${piece.role} per side.`);
+        if (!isReplacingSame && (piece.role === "archer" || piece.role == "painter") && countOfRole >= 1) {
+          flashWarning(`You can only place one ${piece.role}.`);
+          return;
+        }
+        else if (!isReplacingSame && ( piece.role == "amazon" || piece.role === "queen" || piece.role === "champion" || piece.role === "princess") && countOfRole >= 2) {
+          flashWarning(`You can only place two ${piece.role}s.`);
+          return;
+        }
+        else if (!isReplacingSame && ( piece.role == "rook" || piece.role === "wizard") && countOfRole >= 3) {
+          flashWarning(`You can only place three ${piece.role}s.`);
+          return;
+        }
+        else if (!isReplacingSame && ( piece.role == "knight" || piece.role === "bishop" || piece.role === "snare" || piece.role === "commoner") && countOfRole >= 4) {
+          flashWarning(`You can only place four ${piece.role}s.`);
           return;
         }
       }
@@ -769,7 +781,7 @@ useEffect(() => {
             ))}
           </div>
 
-          <div style={{ display: "flex", justifyContent: "center" }}>
+{/*           <div style={{ display: "flex", justifyContent: "center" }}>
             <button
               onClick={handleTogglePerspective}
               aria-label="Toggle perspective"
@@ -787,7 +799,7 @@ useEffect(() => {
             >
               Show {perspective === "white" ? "Black" : "White"} Perspective
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

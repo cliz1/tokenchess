@@ -5,7 +5,7 @@ import { useAuth } from "../AuthContext";
 export default function CreateRoomPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [length, setLength] = useState<number>(6);
+  const [length] = useState<number>(6);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
