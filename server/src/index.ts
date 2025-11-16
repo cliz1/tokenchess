@@ -107,29 +107,43 @@ app.get("/api/me", authMiddleware, async (req: any, res) => {
 app.get("/api/drafts", authMiddleware, async (req: any, res) => {
   const drafts = await prisma.draft.findMany({
     where: { userId: req.user.id },
-    orderBy: { createdAt: "asc" },
+    orderBy: { slot: "asc" },   // slot, not createdAt
   });
+
   res.json(drafts);
 });
 
-
 app.post("/api/drafts", authMiddleware, async (req: any, res) => {
-  const { name, data, isPublic } = req.body;
-  if (!name) return res.status(400).json({ error: "Missing name" });
+  const { name, data, isPublic, slot } = req.body;
 
-  const draft = await prisma.draft.create({
-    data: {
-      name,
-      data: data ?? {},
-      isPublic: !!isPublic,
-      isActive: false,   // default false on creation
-      userId: req.user.id,
-    },
-  });
+  if (!slot || slot < 1 || slot > 5) {
+    return res.status(400).json({ error: "Slot (1–5) is required" });
+  }
+  if (!name) {
+    return res.status(400).json({ error: "Missing name" });
+  }
 
-  res.json(draft);
+  try {
+    const draft = await prisma.draft.create({
+      data: {
+        slot,
+        name,
+        data: data ?? {},
+        isPublic: !!isPublic,
+        isActive: false,
+        userId: req.user.id,
+      },
+    });
+
+    res.json(draft);
+  } catch (err: any) {
+    // Slot collision → 409 Conflict
+    if (err.code === "P2002") {
+      return res.status(409).json({ error: "Slot already taken" });
+    }
+    throw err;
+  }
 });
-
 
 app.get("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
@@ -143,9 +157,9 @@ app.put("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { name, data, isPublic, isActive } = req.body;
 
   const draft = await prisma.draft.findUnique({ where: { id }});
-  if (!draft || draft.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-
-  // If this draft is being set active, deactivate all others for this user
+  if (!draft || draft.userId !== req.user.id) {
+    return res.status(404).json({ error: "Not found" });
+  }
   if (isActive) {
     await prisma.draft.updateMany({
       where: { userId: req.user.id, NOT: { id } },
@@ -165,7 +179,6 @@ app.put("/api/drafts/:id", authMiddleware, async (req: any, res) => {
 
   res.json(updated);
 });
-
 
 app.delete("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
