@@ -196,74 +196,61 @@ useEffect(() => {
   challengeIndexRef.current = challengeIndex;
 }, [challengeIndex]);
 
-  const playMove = (move: any, fromAlg?: string, toAlg?: string, isAutomated = false) => {
-    const ch = chessRef.current;
-    if (!ch || !groundRef.current) return;
+const playMove = (move: any, fromAlg?: string, toAlg?: string, isAutomated = false) => {
+  const ch = chessRef.current;
+  if (!ch || !groundRef.current) return;
 
-    group(`playMove ${fromAlg ?? makeSquare(move.from)}→${toAlg ?? makeSquare(move.to)} (isAutomated=${isAutomated})`, () => {
-      const beforeFen = makeFen(ch.toSetup());
-      const beforeTurn = ch.turn;
-      debug("before", { fen: beforeFen, turn: beforeTurn });
+  const from = fromAlg ?? makeSquare(move.from);
+  const to = toAlg ?? makeSquare(move.to);
 
-      if (!ch.isLegal(move)) {
-        debug("ILLEGAL move; restoring fen");
-        groundRef.current.set({ fen: beforeFen });
-        return;
-      }
+  group(`playMove ${from}→${to} (isAutomated=${isAutomated})`, () => {
+    const beforeFen = makeFen(ch.toSetup());
+    const beforeTurn = ch.turn;
+    debug("before", { fen: beforeFen, turn: beforeTurn });
 
-      const captured = ch.board.get(move.to);
-      const piece = ch.board.get(move.from)!;
-      
-      ch.play(move);
-      const newFen = makeFen(ch.toSetup());
-      setInternalFen(newFen);
-      onMove?.(fromAlg ?? makeSquare(move.from), toAlg ?? makeSquare(move.to));
+    if (!ch.isLegal(move)) {
+      debug("ILLEGAL move; restoring fen");
+      groundRef.current.set({ fen: beforeFen });
+      return;
+    }
 
-      const toIdx = typeof move.to === "number" ? move.to : parseSquare(move.to)!;
-      const toFile = toIdx % 8;
-      const toRankIdx = Math.floor(toIdx / 8);
+    const preCaptured = ch.board.get(move.to) ?? null;
 
-      const leftIdx = toFile > 0 ? toIdx - 1 : undefined;
-      const rightIdx = toFile < 7 ? toIdx + 1 : undefined;
-      const frontIdx = toRankIdx < 7 ? toIdx + 8 : undefined;
-      const behindIdx = toRankIdx > 0 ? toIdx - 8 : undefined;
+    playMoveSound(ch, move, from, to, preCaptured);
 
-      // chosen neighbors relative to white perspective
-      const relIdxs = piece.color === "white"
-        ? [leftIdx, rightIdx, frontIdx]
-        : [leftIdx, rightIdx, behindIdx];
+    ch.play(move);
 
-      // map to pieces (null if off-board/empty)
-      const neighbors = relIdxs.map((idx) => (idx !== undefined ? ch.board.get(idx) ?? null : null));
+    const newFen = makeFen(ch.toSetup());
+    setInternalFen(newFen);
 
-      // did the move place a snare next to an enemy piece?
-      const hasEnemyAdjacent = neighbors.some((n) => n !== null && n.color !== piece.color);
+    onMove?.(from, to);
 
-      // did the move put the moved piece next to an enemy snare?
-      const hasEnemySnareAdjacent = neighbors.some((n) => n !== null && n.color !== piece.color && n.role === "snare");
+    lastMoveRef.current = [from, to];
 
-      // final boolean
-      const isSnaredMove = (piece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent;
-
-      lastMoveRef.current = [fromAlg ?? makeSquare(move.from), toAlg ?? makeSquare(move.to)];
-
-      const dests = makeDestsFromChess(ch);
-      groundRef.current.set({
-        fen: newFen,
-        turnColor: ch.turn,
-        orientation: currentOrientation,
-        movable: { color: ch.turn, free: false, dests, events: { after: handleMove }, showDests: true },
-        lastMove: lastMoveRef.current,
-        highlight: { check: true, custom: getCheckHighlights(ch) },
-      });
-      debug("after", { fen: newFen, turn: ch.turn, lastMove: lastMoveRef.current, waitingForBlack: waitingForBlackRef.current });
-
-      if (isAutomated) {
-        debug("playMove done (automated)");
-        return;
-      }
+    const dests = makeDestsFromChess(ch);
+    groundRef.current.set({
+      fen: newFen,
+      turnColor: ch.turn,
+      orientation: currentOrientation,
+      movable: { color: ch.turn, free: false, dests, events: { after: handleMove }, showDests: true },
+      lastMove: lastMoveRef.current,
+      highlight: { check: true, custom: getCheckHighlights(ch) },
     });
-  };
+
+    debug("after", {
+      fen: newFen,
+      turn: ch.turn,
+      lastMove: lastMoveRef.current,
+      waitingForBlack: waitingForBlackRef.current,
+    });
+
+    if (isAutomated) {
+      debug("playMove done (automated)");
+      return;
+    }
+  });
+};
+
 
 const handleMove = (from: string, to: string) => {
   group(`handleMove ${from}→${to}`, () => {
