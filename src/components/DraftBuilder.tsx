@@ -16,11 +16,14 @@ export default function DraftBuilder({ onSave, initialFen }: { onSave?: (fen: st
 
   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
+  const PAWNS_FEN = "4k3/8/8/8/8/8/PPPPPPPP/4K3 w - - 0 1"
   const INITIAL_TOKENS = 39;
 
   const [fen, setFen] = useState<string>(initialFen ?? EMPTY_FEN);
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [perspective, setPerspective] = useState<"white" | "black">("white");
+  const [saved, setSaved] = useState(false);
+
 
   const [tokens, setTokens] = useState<number>(INITIAL_TOKENS);
   const tokensRef = useRef<number>(tokens);
@@ -649,6 +652,17 @@ useEffect(() => {
     try { groundRef.current?.set?.({ fen: EMPTY_FEN }); } catch {}
   }
 
+    function handleSetPawnsPosition() {
+    const newTokens = INITIAL_TOKENS;
+    setTokens(newTokens);
+    tokensRef.current = newTokens;
+
+    setFen(PAWNS_FEN);
+    try { groundRef.current?.set?.({ fen: PAWNS_FEN }); } catch {}
+  }
+
+
+
   return (
     <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: 24 }}>
       <div style={{ display: "flex", gap: 28, alignItems: "flex-start" }}>
@@ -697,6 +711,21 @@ useEffect(() => {
             >
               Empty Board
             </button>
+                        <button
+              onClick={handleSetPawnsPosition}
+              style={{
+                flex: 1,
+                padding: "6px 8px",
+                borderRadius: 6,
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.06)",
+                color: "#ddd",
+                cursor: "pointer",
+                fontSize: 13,
+              }}
+            >
+              Only Pawns
+            </button>
           </div>
 
           <div style={{ fontSize: 13, color: "#bbb" }}>Tokens</div>
@@ -740,8 +769,23 @@ useEffect(() => {
           />
           <div style={{ marginTop: 10, fontFamily: "monospace", color: "#ddd" }}>FEN: {fen}</div>
           <div style={{ paddingTop: ".75rem" }}>
-            <button onClick={() => { if (onSave) onSave(fen); }}>Save</button>
+            <button
+              onClick={() => {
+                if (onSave) onSave(fen);
+                setSaved(true);
+                setTimeout(() => setSaved(false), 1500);
+              }}
+            >
+              Save
+            </button>
           </div>
+
+          {saved && (
+            <div style={{ marginTop: 4, fontSize: 12, color: "#7fda7f" }}>
+              Saved!
+            </div>
+          )}
+
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
             Tip: Alt+click or right-click a square to remove a piece.
           </div>

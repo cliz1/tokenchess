@@ -34,7 +34,7 @@ export default function TutorialsPage() {
       },
       {
         heading: "3. Token Chess Rules",
-        items: [{ key: "token-values", label: "Token Values" },
+        items: [{ key: "token-values", label: "Tokens" },
           { key: "draft", label: "Drafting" }
         ],
       },

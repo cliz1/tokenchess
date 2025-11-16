@@ -38,7 +38,7 @@
   },
     "token-chess": {
     "title": "Token Chess",
-    "quote": "“His name is Tol-kien?” – Randy Marsh",
+    "quote":  "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
       {
         "text": "Token Chess adds 8 fairy pieces and a draft system to the classic game. Each piece has a token cost, and players decide their own starting setup within a budget of 39 tokens.",
@@ -235,15 +235,15 @@
         "note": "Promote the Snare, catch the enemy King, then deliver checkmate."
       },
                   {
-        "text": "Click the Rolling Snare to see its full movement space, which resembles a diamond.",
+        "text": "Click the Rolling Snare to see its full movement space, which resembles a diamond. For clarity on its snaring capabilities, move the Rolling Snare to the center of this rook-square and click the rooks as in the first exercise.",
         "challenge": {
-          "initialFen": "1k6/8/8/8/4L3/8/8/1K6 w - - 0 1",
+          "initialFen": "1k6/6r1/5r1r/6r1/4L3/8/8/1K6 w - - 0 1",
           "steps": [
-            { "white": { "from": "a4", "to": "b5" }, "black": { "from": "b8", "to": "e8" } },
-            { "white": { "from": "d2", "to": "a5" } }
+            { "white": { "from": "e4", "to": "f5" }, "black": { "from": "b8", "to": "c8" } },
+            { "white": { "from": "f5", "to": "g6" } }
           ]
         },
-        "note": "Ensnare the King, then deliver checkmate."
+        "note": "The Rolling Snare traps pieces in 4 directions."
       }
     ]
   },
@@ -337,10 +337,10 @@
     ]
   },
   "token-values": {
-    "title": "Token Values",
-    "quote": "“Tell me, how much a dollar cost?” – Kendrick Lamar",
+    "title": "Tokens",
+    "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
-      { "text": "Tokens give you budgeted points to spend on pieces. Use the Army Builder to create armies using the token budget." },
+     { "text": "Chess is a modern, western variation of a type of board game that has been played for thousands of years. \n Games of this family have a coordinate system as well as a set of movable figures, one of which is deemed important to the game's result.", "image": "/images/chess.svg" },
       { "text": "In the Army Builder you can save and export armies as JSON so the Board Editor can place them." }
     ]
   },

@@ -1,7 +1,8 @@
 // src/components/TutorialLesson.tsx
-import React from "react";
 import TutorialBoard from "./TutorialBoard";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 
 type Step = {
   text?: string;
@@ -36,9 +37,16 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
             paddingLeft: 12,
           }}
         >
-          {quote}
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          children={quote}
+          components={{
+            p: ({ node, ...props }) => <span {...props} />,
+          }}
+        />
         </div>
       )}
+
 
       {steps.map((s, i) => {
         const boardFen = s.fen ?? s.challenge?.initialFen;
