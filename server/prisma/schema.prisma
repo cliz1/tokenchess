@@ -25,6 +25,7 @@ model Draft {
   data       Json
   isPublic   Boolean  @default(false)
   isActive   Boolean  @default(false)
+  slot       Int
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

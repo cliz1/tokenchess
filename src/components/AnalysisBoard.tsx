@@ -9,7 +9,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import type { Dests } from "chessground/types";
-import { calculateDests, getCheckHighlights, moveToUci, movesEqual, playSound } from "../utils/chessHelpers";
+import { calculateDests, getCheckHighlights, moveToUci, movesEqual, playMoveSound } from "../utils/chessHelpers";
 import { defaultGame, extend } from 'chessops/pgn';
 import type { PgnNodeData, Game, Node as PNode, ChildNode as CNode } from 'chessops/pgn';
 import { makeSan } from 'chessops/san';
@@ -145,33 +145,13 @@ const isSnaredMove = (piece.role === "snare" && hasEnemyAdjacent) || hasEnemySna
     currentNodeRef.current = nextNode;
     pathRef.current = [...pathRef.current, nextNode];
 
+    const preCaptured = chess.board.get(parseSquare(to)!) ?? null;
+    playMoveSound(chess, move, from, to, preCaptured);
+
     chess.play(move);
     const newFen = makeFen(chess.toSetup());
     setFen(newFen);
     onMove?.(from, to);
-
-    // sounds logic
-    if (captured){
-      if (piece.role === "painter") playSound("paint");
-      else if (piece.role === "wizard" && captured.color === piece.color) playSound("wizard");
-      else if (piece.role === "archer" && Math.abs(toRank-fromRank)>1) {playSound("archer"); playSound("x_capture");}
-      else playSound("capture");
-      if (chess.isCheck()){
-        playSound("check");
-      }
-      if (isSnaredMove){
-        playSound("snare")
-      }
-    }
-    else {
-      if (chess.isCheck()){
-        playSound("check");
-      }
-      playSound("move");
-      if (isSnaredMove){
-        playSound("snare")
-      }
-    }
 
     lastMoveRef.current = [from, to];
     const newDests = calculateDests(chess);

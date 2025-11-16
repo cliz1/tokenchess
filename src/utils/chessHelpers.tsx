@@ -127,15 +127,27 @@ export function playMoveSound(
   const isSnaredMove =
     ((movingPiece.role === "snare" || movingPiece.role === "rollingsnare") && hasEnemyAdjacent) || hasEnemySnareAdjacent;
 
+  const isCastleMove = 
+    ((capturedPiece) && (capturedPiece.color === movingPiece.color));
+
+  const isPawnCapture = 
+    ((movingPiece.role === "pawn") && ((fromIdx % 8) !== (toIdx % 8)))
   // --- play sounds ---
-  if (capturedPiece) {
+  if (isPawnCapture){
+    playSound("capture");
+  }
+  else if (capturedPiece) {
     if (movingPiece.role === "painter" || movingPiece.role === "royalpainter") playSound("paint");
     else if (movingPiece.role === "wizard" && capturedPiece.color === movingPiece.color)
       playSound("wizard");
     else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
       playSound("archer");
       playSound("x_capture");
-    } else playSound("capture");
+    } 
+    else if (isCastleMove){
+      playSound("move");
+    }
+    else playSound("capture");
 
     if (afterChess.isCheck()) playSound("check");
     if (isSnaredMove) playSound("snare");

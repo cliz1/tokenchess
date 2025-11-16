@@ -10,7 +10,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import type { Dests } from "chessground/types";
-import { calculateDests, getCheckHighlights, playSound } from "../utils/chessHelpers";
+import { calculateDests, getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
 
 type PromotionRole = "queen" | "rook" | "bishop" | "knight" | "champion" | "princess";
 type UciMove = { from: string; to: string; promotion?: PromotionRole };
@@ -213,7 +213,6 @@ useEffect(() => {
 
       const captured = ch.board.get(move.to);
       const piece = ch.board.get(move.from)!;
-    //test
       
       ch.play(move);
       const newFen = makeFen(ch.toSetup());
@@ -245,27 +244,6 @@ useEffect(() => {
 
       // final boolean
       const isSnaredMove = (piece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent;
-
-
-      // sounds
-      if (captured) {
-        if (piece.role === "painter") playSound("paint");
-        else if (piece.role === "wizard" && captured.color === piece.color) playSound("wizard");
-        else if (piece.role === "archer" && Math.abs(Math.floor(move.to / 8) - Math.floor(move.from / 8)) > 1) {
-          playSound("archer"); playSound("x_capture");
-        } else playSound("capture");
-        if (ch.isCheck()) playSound("check");
-         if (isSnaredMove){
-        playSound("snare")
-      }
-      } else {
-        if (piece.role === "snare") playSound("move");
-        if (ch.isCheck()) playSound("check");
-        playSound("move");
-         if (isSnaredMove){
-        playSound("snare")
-      }
-      }
 
       lastMoveRef.current = [fromAlg ?? makeSquare(move.from), toAlg ?? makeSquare(move.to)];
 
