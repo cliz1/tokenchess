@@ -12,7 +12,7 @@ export default function TutorialsPage() {
   const groups = useMemo(
     () => [
       {
-        heading: "1. Introduction",
+        heading: "Introduction",
         items: [
           { key: "standard-rules", label: "Chess" },
           { key: "fairy-chess", label: "Fairy Chess" },
@@ -20,7 +20,7 @@ export default function TutorialsPage() {
         ],
       },
       {
-        heading: "2. Token Chess Pieces",
+        heading: "Pieces",
         items: [
           { key: "Champion", label: "Champion" },
           { key: "Princess", label: "Princess" },
@@ -33,7 +33,7 @@ export default function TutorialsPage() {
         ],
       },
       {
-        heading: "3. Token Chess Rules",
+        heading: "Setup",
         items: [{ key: "token-values", label: "Tokens" },
           { key: "draft", label: "Drafting" }
         ],

@@ -31,7 +31,7 @@ type Props = {
   challenge?: Challenge | null;
   challengeLabel?: string;
   debugName?: string;
-};
+}
 
 const now = () => new Date().toISOString().slice(11, 23);
 const debug = (...args: any[]) => console.log(`[TB ${now()}]`, ...args);
@@ -478,7 +478,7 @@ useEffect(() => {
     movable: { color: chess?.turn ?? "white", free: false, showDests: true, dests: new Map(), events: { after: handleMove } },
     animation: { enabled: true, duration: 240 },
     draggable: { enabled: true },
-    drawable: { enabled: false },
+    drawable: { enabled: true },
   };
 
   group("mount Chessground", () => {

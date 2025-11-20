@@ -340,8 +340,18 @@
     "title": "Tokens",
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
-     { "text": "Chess is a modern, western variation of a type of board game that has been played for thousands of years. \n Games of this family have a coordinate system as well as a set of movable figures, one of which is deemed important to the game's result.", "image": "/images/chess.svg" },
-      { "text": "In the Army Builder you can save and export armies as JSON so the Board Editor can place them." }
+     { "text": "The token is a unit of measurement of a single piece's value. It is equivalent to evaluating pieces by unit of the pawn.  \n For example, standard chess theory states that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns etc.  ", "image": "/images/Coin_of_Kushan.jpg" },
+                 {
+        "text": "In this game, each player is granted 39 Tokens to spend on their starting setup, which is called a 'Draft'. \n A player chooses their setup without any knowledge of their opponent's own setup.",
+        "challenge": {
+          "initialFen": "4k3/8/8/8/8/8/PPYPPPSP/XINQK1W1",
+          "steps": [
+            { "white": { "from": "e2", "to": "e4" } }
+          ]
+        },
+        "note": "An example draft (not an exercise)."
+      },
+      { "text": "As of November 2025, the token values for pieces are as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 9 \n Princess: 8 \n Amazon: 13 \n Commoner: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 5 \n Archer: 4" }
     ]
   },
     "draft": {
