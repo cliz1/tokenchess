@@ -12,14 +12,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.15.0",
+    "@prisma/client": "^4.16.2",
     "bcrypt": "^6.0.0",
+    "chessops": "github:cliz1/chessops",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "prisma": "^6.15.0",
-    "ws": "^8.18.3",
-    "chessops": "git+https://github.com/cliz1/chessops.git"
+    "prisma": "^4.16.2",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.7.10",
