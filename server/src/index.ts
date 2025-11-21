@@ -8,17 +8,41 @@ import http from "http";
 import { parseSquare } from "chessops/util";
 import { parseFen, makeFen } from "chessops/fen";
 import { Chess } from "chessops";
+import path from "path";
+
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const prisma = new PrismaClient();
 const app = express();
 
 // Dev: allow Vite + other local frontends. Keeps it explicit and simple.
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000"],
+  origin: ["http://localhost:5173", "http://localhost:3000", "https://server-lingering-sun-4320.fly.dev/"],
   credentials: true,
 }));
 
 app.use(express.json());
+
+// serve frontend static files (built Vite output)
+const staticDir = path.resolve(__dirname, "../../dist");
+app.use(express.static(staticDir));
+
+// SPA fallback: send index.html for non-API routes so client-side routing works.
+// Skip API and WS endpoints so they still hit the server logic.
+// SPA fallback: send index.html for non-API routes (robust / compatible)
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/socket") || req.path.startsWith("/ws")) {
+    return next();
+  }
+  res.sendFile(path.join(staticDir, "index.html"));
+});
+
+
+
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -54,6 +78,10 @@ function authMiddleware(req: any, res: any, next: any) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
+
+app.get("/health", (req, res) => {
+  res.json({ ok: true });
+});
 
 // ---------- routes: auth ----------
 app.post("/api/auth/register", async (req, res) => {
@@ -657,8 +685,13 @@ if (data.type === "rematch" && roomId) {
   });
 });
 
-const port = Number(process.env.PORT || 4000);
-server.listen(port, () => console.log(`HTTP + WS server listening on ${port}`));
+const port = Number(process.env.PORT) || 4000;
+
+server.listen(port, '0.0.0.0', () => {
+  console.log(`Server listening on port ${port}`);
+});
+
+
 // ---------- end ----------
 
 /// helpers:
