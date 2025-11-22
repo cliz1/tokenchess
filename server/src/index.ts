@@ -199,6 +199,24 @@ app.delete("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   res.json({ ok: true });
 });
 
+// routes : rooms
+
+app.get("/api/rooms/:id", (req, res) => {
+  const id = req.params.id;
+  const room = rooms[id];
+
+  if (!room) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  res.json({
+    roomId: id,
+    players: room.players,
+    createdAt: room.createdAt,
+    result: room.result ?? null,
+  });
+});
+
 app.post("/api/rooms", authMiddleware, async (req: any, res) => {
   try {
     const { length = 6, fen = START_FEN } = req.body ?? {};
