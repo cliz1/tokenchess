@@ -347,8 +347,9 @@
     "title": "Drafting",
     "quote": "",
     "steps": [
-       { "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games." },
-      { "text": "" }
+        { "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games.", "image": "/images/draftpage.png" },
+      { "text": "In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page. This will be the draft used for playing games and may be changed at any time.", "image": "/images/horde.png" },
+      {"text": "As a balance measure, there are special restrictions on the quantity of each piece type in a draft. For example, one can only place a single Archer, or up to 2 Queens, or 4 Commoners, etc. This is designed to promote diversity in piece choice to keep things fun. In the above example, white's horde of Archers is nearly impossible to face."}
     ]
   }
 }
