@@ -8,24 +8,28 @@ export default function JoinRoomPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleJoin(e?: React.FormEvent) {
-    e?.preventDefault();
-    setError(null);
-    if (!roomId.trim()) {
-      setError("Enter a room code");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await apiFetch(`/rooms/${encodeURIComponent(roomId.trim())}`);
-      if (!res.ok) throw new Error("Room not found");
-      navigate(`/game?room=${encodeURIComponent(roomId.trim())}`);
-    } catch (err: any) {
-      setError(err.message || "Unable to join");
-    } finally {
-      setLoading(false);
-    }
+async function handleJoin(e?: React.FormEvent) {
+  e?.preventDefault();
+  setError(null);
+
+  const trimmed = roomId.trim();
+  if (!trimmed) {
+    setError("Enter a room code");
+    return;
   }
+
+  setLoading(true);
+  try {
+    // apiFetch will throw if the server returns !ok
+    await apiFetch(`/rooms/${encodeURIComponent(trimmed)}`);
+
+    navigate(`/game?room=${encodeURIComponent(trimmed)}`);
+  } catch (err: any) {
+    setError(err.message || "Unable to join");
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <div style={{ padding: 20 }}>

@@ -24,12 +24,7 @@ export default function CreateRoomPage() {
         method: "POST",
         body: JSON.stringify({ length }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error || "Failed to create room");
-      }
-      const body = await res.json();
-      const roomId = body.roomId as string;
+      const roomId = res.roomId;
       navigate(`/game?room=${encodeURIComponent(roomId)}`);
     } catch (err: any) {
       setError(err.message || "Create failed");
