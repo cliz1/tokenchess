@@ -1,0 +1,25 @@
+app = "server-lingering-sun-4320"
+primary_region = "iad"
+
+[env]
+PORT = "4000"
+
+[deploy]
+#release_command = "npx prisma migrate deploy --schema ./server/prisma/schema.prisma"
+
+[[services]]
+internal_port = 4000
+protocol = "tcp"
+processes = ["app"]
+
+  [[services.ports]]
+  port = 80
+
+  [[services.tcp_checks]]
+  interval = "10s"
+  timeout = "2s"
+
+[machine]
+memory = "1gb"
+cpu_kind = "shared"
+cpus = 1

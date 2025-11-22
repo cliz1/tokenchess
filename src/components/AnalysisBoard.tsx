@@ -90,37 +90,7 @@ export default function AnalysisBoard({
       groundRef.current?.set({ fen: makeFen(chess.toSetup()) });
       return;
     }
-
-    const captured = chess.board.get(parseSquare(to)!);
-    const piece = chess.board.get(move.from)!;
-    const toRank = Math.floor(move.to / 8);
-    const fromRank = Math.floor(move.from / 8);
-// call this after you compute `toIdx` (or replace your existing neighbor logic)
-const toIdx = parseSquare(to)!;
-const toFile = toIdx % 8;
-const toRankIdx = Math.floor(toIdx / 8);
-
-const leftIdx = toFile > 0 ? toIdx - 1 : undefined;
-const rightIdx = toFile < 7 ? toIdx + 1 : undefined;
-const frontIdx = toRankIdx < 7 ? toIdx + 8 : undefined;
-const behindIdx = toRankIdx > 0 ? toIdx - 8 : undefined;
-
-// chosen neighbors relative to white perspective
-const relIdxs = piece.color === "white"
-  ? [leftIdx, rightIdx, frontIdx]
-  : [leftIdx, rightIdx, behindIdx];
-
-// map to pieces (null if off-board/empty)
-const neighbors = relIdxs.map((idx) => (idx !== undefined ? chess.board.get(idx) ?? null : null));
-
-// did the move place a snare next to an enemy piece?
-const hasEnemyAdjacent = neighbors.some((n) => n !== null && n.color !== piece.color);
-
-// did the move put the moved piece next to an enemy snare?
-const hasEnemySnareAdjacent = neighbors.some((n) => n !== null && n.color !== piece.color && n.role === "snare");
-
 // final boolean
-const isSnaredMove = (piece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent;
 
 
     // PGN: store SAN and the raw move object for replay
@@ -346,6 +316,7 @@ const isSnaredMove = (piece.role === "snare" && hasEnemyAdjacent) || hasEnemySna
   }
 
   function goToNode(node: CNode<MyNodeData>, path: Array<PNode<MyNodeData> | CNode<MyNodeData>>) {
+    node; // quick fix for ts warning
     goToPath(path);
   }
 

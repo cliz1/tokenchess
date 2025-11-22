@@ -26,24 +26,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// serve frontend static files (built Vite output)
-const staticDir = path.resolve(__dirname, "../../dist");
-app.use(express.static(staticDir));
-
-// SPA fallback: send index.html for non-API routes so client-side routing works.
-// Skip API and WS endpoints so they still hit the server logic.
-// SPA fallback: send index.html for non-API routes (robust / compatible)
-app.use((req, res, next) => {
-  if (req.path.startsWith("/api") || req.path.startsWith("/socket") || req.path.startsWith("/ws")) {
-    return next();
-  }
-  res.sendFile(path.join(staticDir, "index.html"));
-});
-
-
-
-
-
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 

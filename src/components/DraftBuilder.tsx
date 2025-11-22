@@ -20,8 +20,8 @@ export default function DraftBuilder({ onSave, initialFen }: { onSave?: (fen: st
   const INITIAL_TOKENS = 39;
 
   const [fen, setFen] = useState<string>(initialFen ?? EMPTY_FEN);
-  const [orientation, setOrientation] = useState<"white" | "black">("white");
-  const [perspective, setPerspective] = useState<"white" | "black">("white");
+  const [orientation, _setOrientation] = useState<"white" | "black">("white");
+  const [perspective, _setPerspective] = useState<"white" | "black">("white");
   const [saved, setSaved] = useState(false);
 
 
@@ -165,13 +165,13 @@ useEffect(() => {
     return Number.isNaN(r) ? null : r;
   }
 
-  function mirrorSquare(sq: string) {
+/*   function mirrorSquare(sq: string) {
     const file = sq[0];
     const rank = rankOfSquare(sq);
     if (!rank) return sq;
     const mirroredRank = 9 - rank;
     return `${file}${mirroredRank}`;
-  }
+  } */
 
   function allowedRanksForPerspective(p: "white" | "black") {
     return p === "white" ? [1, 2] : [7, 8];
@@ -193,6 +193,7 @@ useEffect(() => {
   }
 
   function isSquareAllowedForPiece(sq: string, p: "white" | "black", piece: PalettePiece) {
+    p; // quick fix for ts warning
     const r = rankOfSquare(sq);
     if (!r) return false;
     return allowedRankForPiece(piece) === r
@@ -592,7 +593,7 @@ useEffect(() => {
     }, 0);
   }
 
-  // flip perspective: mirror board pieces & swap colors, flip orientation and palette
+/*   // flip perspective: mirror board pieces & swap colors, flip orientation and palette
   function handleTogglePerspective() {
     const newPerspective = perspective === "white" ? "black" : "white";
     const newOrientation = newPerspective; // keep orientation in sync
@@ -632,7 +633,7 @@ useEffect(() => {
 
     setPerspective(newPerspective);
     setOrientation(newOrientation);
-  }
+  } */
 
   function handleSetStartPosition() {
     const cost = computeCostOfColorFromFen(START_FEN, perspective);

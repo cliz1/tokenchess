@@ -340,7 +340,7 @@
     "title": "Tokens",
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
-     { "text": "The token is a unit of measurement of a single piece's value. It is equivalent to evaluating pieces by unit of the pawn.  \n For example, standard chess theory states that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns etc.  ", "image": "/images/Coin_of_Kushan.jpg" },
+     { "text": "The token is a unit of measurement of a single piece's value. It is equivalent to evaluating pieces by unit of the pawn.  \n For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns etc.  ", "image": "/images/Coin_of_Kushan.jpg" },
                  {
         "text": "In this game, each player is granted 39 Tokens to spend on their starting setup, which is called a 'Draft'. \n A player chooses their setup without any knowledge of their opponent's own setup.",
         "challenge": {
@@ -356,10 +356,10 @@
   },
     "draft": {
     "title": "Drafting",
-    "quote": "“The pawn is the soul of chess.” – Philidor",
+    "quote": "",
     "steps": [
-      { "text": "Tokens give you budgeted points to spend on pieces. Use the Army Builder to create armies using the token budget." },
-      { "text": "In the Army Builder you can save and export armies as JSON so the Board Editor can place them." }
+       { "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games." },
+      { "text": "" }
     ]
   }
 }

@@ -1,6 +1,4 @@
 // src/pages/HomePage.tsx
-import React from "react";
-import { Link } from "react-router-dom";
 import "../assets/custom-pieces.css"; // ensures cg-piece classes apply
 
 export default function HomePage() {

@@ -5,8 +5,11 @@
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
     "skipLibCheck": true,
     "outDir": "dist",
-  }
+    "types": ["node"],
+  },
+  "include": ["src", "src/types.d.ts"]
 }

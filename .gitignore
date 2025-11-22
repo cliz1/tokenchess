@@ -27,3 +27,8 @@ notes.txt
 commands.txt
 fens.txt
 .env
+.env.production
+
+# deployment stuff
+db/
+

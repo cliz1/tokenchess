@@ -8,6 +8,9 @@
     "dev": "node --loader ts-node/esm src/index.ts",
     "build": "tsc"
   },
+  "prisma": {
+    "binaryTargets": ["native"]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

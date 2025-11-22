@@ -3,3 +3,11 @@ node_modules
 .env
 
 /generated/prisma
+
+# old postgres toml
+
+postgres.fly.toml
+
+# deployment stuff
+Dockerfile
+fly.toml

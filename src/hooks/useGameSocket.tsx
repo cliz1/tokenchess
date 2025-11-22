@@ -21,7 +21,10 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
   }, [onUpdate]);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:4000");
+    const API_BASE = (import.meta as any).env.VITE_API_BASE ?? "http://localhost:4000/api";
+    // derive WS url from API_BASE
+    const WS_BASE = API_BASE.replace(/^http/, "ws").replace(/\/api$/, "");
+    const ws = new WebSocket(`${WS_BASE}`);
     wsRef.current = ws;
 
     ws.onopen = () => {

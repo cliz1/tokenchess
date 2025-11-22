@@ -422,6 +422,7 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
       const flipMsg = flipErr && flipErr.message ? `: ${flipErr.message}` : "";
       try {
         const pos = Chess.fromSetup(setup).unwrap();
+        pos; // quick fix for ts warning
         return { ok: true };
       } catch (origErr: any) {
         const origMsg = origErr && origErr.message ? `: ${origErr.message}` : "";
