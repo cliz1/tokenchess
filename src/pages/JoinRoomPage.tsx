@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiFetch } from "../api";
 
 export default function JoinRoomPage() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function JoinRoomPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/rooms/${encodeURIComponent(roomId.trim())}`);
+      const res = await apiFetch(`/rooms/${encodeURIComponent(roomId.trim())}`);
       if (!res.ok) throw new Error("Room not found");
       navigate(`/game?room=${encodeURIComponent(roomId.trim())}`);
     } catch (err: any) {

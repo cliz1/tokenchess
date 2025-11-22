@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { apiFetch } from "../api";
 
 export default function CreateRoomPage() {
   const navigate = useNavigate();
@@ -18,13 +19,9 @@ export default function CreateRoomPage() {
     }
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:4000/api/rooms", {
+      //const token = localStorage.getItem("token");
+      const res = await apiFetch("/rooms", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
         body: JSON.stringify({ length }),
       });
       if (!res.ok) {

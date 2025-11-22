@@ -20,7 +20,7 @@ const app = express();
 
 // Dev: allow Vite + other local frontends. Keeps it explicit and simple.
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000", "https://server-lingering-sun-4320.fly.dev/"],
+  origin: ["http://localhost:5173", "http://localhost:3000", "https://radiant-haupia-edd849.netlify.app"],
   credentials: true,
 }));
 
@@ -61,9 +61,10 @@ function authMiddleware(req: any, res: any, next: any) {
   }
 }
 
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
+
 
 // ---------- routes: auth ----------
 app.post("/api/auth/register", async (req, res) => {
