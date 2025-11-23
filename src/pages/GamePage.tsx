@@ -147,7 +147,7 @@ export default function GamePage() {
             const chess = chessRef.current;
             const fromSq = parseSquare(from);
             const toSq = parseSquare(to);
-            if (!fromSq || !toSq) return;
+            if (fromSq == null || toSq == null) return;
 
             const fromPiece = chess.board.get(fromSq);
             const toPiece = chess.board.get(toSq);
@@ -299,7 +299,7 @@ const promotePawn = (role: string) => {
                       const chess = chessRef.current;
                       const fromSq = parseSquare(from);
                       const toSq = parseSquare(to);
-                      if (!fromSq || !toSq) return;
+                      if (fromSq == null || toSq == null) return;
 
                       const fromPiece = chess.board.get(fromSq);
                       const toPiece = chess.board.get(toSq);

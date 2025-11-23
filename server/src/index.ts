@@ -533,7 +533,7 @@ if (data.type === "move" && roomId) {
   const [fromStr, toStr, promotion] = lastMove;
   const from = parseSquare(fromStr);
   const to = parseSquare(toStr);
-  if (!from || !to) return;
+  if (from == null || to == null) return;
 
   const moveObj: any = { from, to };
   if (typeof promotion === "string") moveObj.promotion = promotion;
