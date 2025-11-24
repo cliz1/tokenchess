@@ -9,7 +9,7 @@ export default defineConfig({
 
   build: {
     // output to repo root/dist
-    outDir: path.resolve(__dirname, "dist"),
+    outDir: path.resolve(__dirname, "src/dist"),
     emptyOutDir: true,
   },
 });

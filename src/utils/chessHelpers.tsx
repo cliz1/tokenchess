@@ -4,7 +4,7 @@ import { makeSquare, parseSquare } from "chessops/util";
 import { parseFen } from "chessops/fen";
 import '../App.css';
 
-export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard" | "archer" | "x_capture" | "snare") {
+export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard" | "archer" | "x_capture" | "snare" | "win" | "lose" | "draw") {
   const src = {
     move: "/sounds/move.mp3",
     capture: "/sounds/capture.mp3",
@@ -13,7 +13,10 @@ export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard
     wizard: "/sounds/wizard.mp3",
     archer: "/sounds/arrow.mp3",
     x_capture: "/sounds/x_capture.mp3",
-    snare: "/sounds/snare.mp3"
+    snare: "/sounds/snare.mp3",
+    win: "/sounds/Victory.mp3",
+    lose: "/sounds/Defeat.mp3",
+    draw:"/sounds/Draw.mp3"
   }[type];
   const audio = new Audio(src);
   audio.play().catch((err) => {
@@ -62,6 +65,19 @@ export function moveToUci(m: any) {
 }
 export function movesEqual(a: any, b: any) {
   return a?.from === b?.from && a?.to === b?.to && (a?.promotion ?? null) === (b?.promotion ?? null);
+}
+
+export function playResultSound(result: string){
+  if (result == 'win'){
+    playSound('win');
+  }
+  else if (result == 'lose'){
+    playSound('lose');
+  }
+  else if (result == 'draw'){
+    playSound('draw');
+  }
+
 }
 
 export function playMoveSound(

@@ -5,7 +5,7 @@ import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
 import { Chess } from "chessops/chess";
 import { parseFen, makeFen } from "chessops/fen";
-import { calculateDests } from "../utils/chessHelpers";
+import { calculateDests, playResultSound } from "../utils/chessHelpers";
 import { useGameSocket } from "../hooks/useGameSocket";
 import type { GameUpdate } from "../hooks/useGameSocket";
 import { parseSquare } from "chessops/util";
@@ -65,6 +65,21 @@ export default function GamePage() {
 
     if (update.result !== undefined) {
       console.log("[onGameUpdate] Setting gameResult =", update.result);
+            // --- Determine win/lose/draw from the perspective of the client ---
+        let outcome: "win" | "lose" | "draw" | null = null;
+
+        if (playerColor) {
+          if (update.result === "1-0") {
+            outcome = playerColor === "white" ? "win" : "lose";
+          } else if (update.result === "0-1") {
+            outcome = playerColor === "black" ? "win" : "lose";
+          } else if (update.result === "1/2-1/2") {
+            outcome = "draw";
+          }
+        }
+        if (outcome) {
+          playResultSound(outcome);
+        }
       setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
     } else if (update.type === "newGame") {
       console.log("[onGameUpdate] Clearing gameResult (new game detected)");
