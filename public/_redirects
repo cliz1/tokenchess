@@ -1,2 +1,5 @@
 /sounds/*    /sounds/:splat    200
-/*    /index.html    200
+/images/*    /images/:splat    200
+/assets/*    /assets/:splat    200
+/*           /index.html       200
+
