@@ -14,9 +14,9 @@ export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard
     archer: "/sounds/arrow.mp3",
     x_capture: "/sounds/x_capture.mp3",
     snare: "/sounds/snare.mp3",
-    win: "/sounds/Victory.mp3",
-    lose: "/sounds/Defeat.mp3",
-    draw:"/sounds/Draw.mp3"
+    win: "/sounds/victory.mp3",
+    lose: "/sounds/defeat.mp3",
+    draw:"/sounds/draw.mp3"
   }[type];
   const audio = new Audio(src);
   audio.play().catch((err) => {

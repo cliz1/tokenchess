@@ -20,7 +20,7 @@ const app = express();
 
 // Dev: allow Vite + other local frontends. Keeps it explicit and simple.
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000", "https://radiant-haupia-edd849.netlify.app", "https://tokenchess.net", "https://www.tokenchess.net", "http://tokenchess.net", "http://www.tokenchess.net"],
+  origin: ["http://localhost:5173", "http://localhost:3000", "https://radiant-haupia-edd849.netlify.app", "https://tokenchess.net", "https://www.tokenchess.net", "http://tokenchess.net", "http://www.tokenchess.net", "https://ffd2e328.tokenchess.pages.dev"],
   credentials: true,
 }));
 

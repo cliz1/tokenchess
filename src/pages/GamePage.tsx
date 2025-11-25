@@ -37,6 +37,10 @@ export default function GamePage() {
   const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
 
+  // keep color ref for game termination update
+  const playerColorRef = useRef<"white" | "black" | null>(playerColor);
+  useEffect(() => { playerColorRef.current = playerColor; }, [playerColor]);
+
   const [pendingPromotion, setPendingPromotion] = useState<{
   from: string;
   to: string;
@@ -64,16 +68,22 @@ export default function GamePage() {
     if (sameFen && sameLastMove && update.result === undefined) return;
 
     if (update.result !== undefined) {
-      console.log("[onGameUpdate] Setting gameResult =", update.result);
+      //console.log("[onGameUpdate] Setting gameResult =", update.result);
             // --- Determine win/lose/draw from the perspective of the client ---
         let outcome: "win" | "lose" | "draw" | null = null;
 
-        if (playerColor) {
-          if (update.result === "1-0") {
-            outcome = playerColor === "white" ? "win" : "lose";
-          } else if (update.result === "0-1") {
-            outcome = playerColor === "black" ? "win" : "lose";
-          } else if (update.result === "1/2-1/2") {
+        const effectiveColor = update.color ?? playerColorRef.current;
+
+        // Match a score that appears at the *end* of the string
+        const match = update.result.match(/(1-0|0-1|1\/2-1\/2)$/);
+        const score = match ? (match[1] as any) : null;
+
+        if (effectiveColor && score) {
+          if (score === "1-0") {
+            outcome = effectiveColor === "white" ? "win" : "lose";
+          } else if (score === "0-1") {
+            outcome = effectiveColor === "black" ? "win" : "lose";
+          } else if (score === "1/2-1/2") {
             outcome = "draw";
           }
         }
@@ -82,7 +92,6 @@ export default function GamePage() {
         }
       setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
     } else if (update.type === "newGame") {
-      console.log("[onGameUpdate] Clearing gameResult (new game detected)");
       setGameResult(null);
       setLastMove(null);
       lastMoveRef.current = null;
@@ -242,7 +251,6 @@ const promotePawn = (role: string) => {
   sendMove([from, to, role]);
   setPendingPromotion(null);
 };
-
 
   // --- Helper: format score display ---
   const formatPlayerLine = (p: { id: string; username: string }) => {
