@@ -12,6 +12,7 @@ import DraftsPage from "./pages/DraftsPage";
 import GamePage from "./pages/GamePage";
 import CreateRoomPage from "./pages/CreateRoomPage";
 import JoinRoomPage from "./pages/JoinRoomPage";
+import PuzzlesPage from "./pages/PuzzlesPage";
 
 import "./App.css";
 
@@ -54,11 +55,12 @@ export default function App() {
 function AppContent() {
   const location = useLocation();
   // Hide nav + footer on any `/game` route
-  const hideNav = location.pathname.startsWith("/game");
+  const hideNav = location.pathname.startsWith("/game") || location.pathname.startsWith("/puzzles");;
 useEffect(() => {
   const isGame = location.pathname.startsWith("/game");
   const isHome = location.pathname === "/";
-  const shouldLock = isGame || isHome;
+  const isPuzzle = location.pathname.startsWith("/puzzles");
+  const shouldLock = isGame || isHome || isPuzzle;
 
   if (shouldLock) {
     document.body.style.overflow = "hidden";  // disable scroll
@@ -132,6 +134,18 @@ useEffect(() => {
     >
       Join Game
     </NavLink>
+        <NavLink
+      to="/puzzles"
+      style={({ isActive }) => ({
+        color: isActive ? "#fff" : "#aaa",
+        textDecoration: "none",
+        padding: "6px 10px",
+        display: "block",
+      })}
+      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
+    >
+      Puzzle
+    </NavLink>
   </div>
 </div>
 
@@ -155,6 +169,7 @@ useEffect(() => {
           <Route path="/game" element={<GamePage />} />
           <Route path="/game/create" element={<CreateRoomPage />} />
           <Route path="/game/join" element={<JoinRoomPage />} />
+          <Route path="/puzzles" element={<PuzzlesPage />} />
         </Routes>
       </main>
     </div>
