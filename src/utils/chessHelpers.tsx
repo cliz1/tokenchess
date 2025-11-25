@@ -4,19 +4,25 @@ import { makeSquare, parseSquare } from "chessops/util";
 import { parseFen } from "chessops/fen";
 import '../App.css';
 
-export function playSound(type: "move" | "capture" | "check" | "paint" | "wizard" | "archer" | "x_capture" | "snare" | "win" | "lose" | "draw") {
+export function playSound(type: "move1" | "move2" | "move3" | "move4" |  "capture1" | "capture2" | "capture3" |"check" | "paint" | "wizard" | "archer" | "x_capture" | "snare" | "win" | "lose" | "draw" | "castle") {
   const src = {
-    move: "/sounds/move.mp3",
-    capture: "/sounds/capture.mp3",
+    move1: "/sounds/move1.mp3",
+    move2: "/sounds/move2.mp3",
+    move3: "/sounds/move3.mp3",
+    move4: "/sounds/move4.mp3",
+    capture1: "/sounds/capture1.mp3",
+    capture2: "/sounds/capture2.mp3",
+    capture3: "/sounds/capture3.mp3",
     check: "/sounds/check.mp3",
     paint: "/sounds/paint.mp3",
     wizard: "/sounds/wizard.mp3",
     archer: "/sounds/arrow.mp3",
     x_capture: "/sounds/x_capture.mp3",
     snare: "/sounds/snare.mp3",
-    win: "/sounds/victory.mp3",
-    lose: "/sounds/defeat.mp3",
-    draw:"/sounds/draw.mp3"
+    win: "/sounds/win.mp3",
+    lose: "/sounds/lose.mp3",
+    draw:"/sounds/draw.mp3",
+    castle: "/sounds/castle.mp3"
   }[type];
   const audio = new Audio(src);
   audio.play().catch((err) => {
@@ -150,7 +156,8 @@ export function playMoveSound(
     ((movingPiece.role === "pawn") && ((fromIdx % 8) !== (toIdx % 8)))
   // --- play sounds ---
   if (isPawnCapture){
-    playSound("capture");
+    const r = Math.floor(Math.random() * 3) + 1; // 1–3
+    playSound(`capture${r}` as "capture1" | "capture2" | "capture3");
   }
   else if (capturedPiece) {
     if (movingPiece.role === "painter" || movingPiece.role === "royalpainter") playSound("paint");
@@ -161,15 +168,19 @@ export function playMoveSound(
       playSound("x_capture");
     } 
     else if (isCastleMove){
-      playSound("move");
+      playSound("castle");
     }
-    else playSound("capture");
+    else {
+      const r = Math.floor(Math.random() * 3) + 1; // 1–3
+      playSound(`capture${r}` as "capture1" | "capture2" | "capture3");
+    }
 
-    if (afterChess.isCheck()) playSound("check");
+    //if (afterChess.isCheck()) playSound("check");
     if (isSnaredMove) playSound("snare");
   } else {
-    if (afterChess.isCheck()) playSound("check");
-    playSound("move");
+    //if (afterChess.isCheck()) playSound("check");
+    const r = Math.floor(Math.random() * 4) + 1; // 1–4
+    playSound(`move${r}` as "move1" | "move2" | "move3" | "move4");
     if (isSnaredMove) playSound("snare");
   }
 }
