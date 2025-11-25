@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import TutorialBoard from "../components/TutorialBoard";
 
 const examplePuzzle = {
-  initialFen: "r4bk1/5ppp/aip5/1b3N2/7W/1YB5/1K2B3/6Q1 w - - 0 1",
+  initialFen: "r4bk1/5ppp/aip5/1b3N2/7W/1YB5/1K2B3/6R1 w - - 0 1",
   steps: [
     { white: { from: "f5", to: "h6" }, black: {from: "g8", to: "h8"} },
     { white: { from: "h6", to: "f7" }, black: {from: "h8", to: "g8"} },
