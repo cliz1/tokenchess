@@ -100,8 +100,6 @@ export default function DraftsPage() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Your drafts</h2>
-
       {!user && <div>Please sign in to manage drafts.</div>}
 
       {user && (
