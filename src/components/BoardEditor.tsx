@@ -26,6 +26,10 @@ export default function BoardEditor() {
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const [paletteColor, setPaletteColor] = useState<"white" | "black">("white");
 
+  const isApplyingFenRef = useRef(false);
+  const pendingApplyTimeoutRef = useRef<number | null>(null);
+
+
   function squareFromClientPos(x: number, y: number, rect: DOMRect, orientation: "white" | "black") {
     const relX = x - rect.left;
     const relY = y - rect.top;
@@ -124,17 +128,39 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
       events: {
         // called after any change to the state (baseMove, baseNewPiece, etc.)
         change: () => {
-          try {
-            const api = groundRef.current;
-            if (!api) return;
-            const newFen =
-              typeof api.getFen === "function"
-                ? api.getFen()
-                : piecesToFen(statePiecesToObject(api.state.pieces));
-            setFen(newFen);
-          } catch (err) {
-            // ignore
-          }
+          // Defer to the next animation frame so the chessground internal state is stable
+          requestAnimationFrame(() => {
+            try {
+              const api = groundRef.current;
+              if (!api) return;
+
+              // If we just applied a FEN programmatically, ignore this first change to avoid loops
+              if (isApplyingFenRef.current) {
+                // clear the flag after ignoring the programmatic change
+                isApplyingFenRef.current = false;
+                return;
+              }
+
+              // Prefer a provided getFen() if available (it returns full FEN)
+              let newFen =
+                typeof api.getFen === "function"
+                  ? api.getFen()
+                  : piecesToFen(statePiecesToObject(api.state.pieces));
+
+              // Normalize the fen to a consistent shape
+              newFen = normalizeFen(newFen);
+
+              // If the input already equals newFen, still update sideToMove (in case it changed)
+              setFen((prev) => {
+                if (prev !== newFen) return newFen;
+                return prev;
+              });
+              const turn = newFen.split(/\s+/)[1] ?? "w";
+              setSideToMove(turn === "w" ? "white" : "black");
+            } catch (err) {
+              // ignore errors while reading state
+            }
+          });
         },
       },
     };
@@ -241,6 +267,12 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
       document.removeEventListener("contextmenu", onContextMenu);
       groundRef.current?.destroy();
       groundRef.current = null;
+
+       // clean up fallback timer
+      if (pendingApplyTimeoutRef.current) {
+        window.clearTimeout(pendingApplyTimeoutRef.current);
+        pendingApplyTimeoutRef.current = null;
+      }
     };
   }, [orientation]);
 
@@ -500,6 +532,72 @@ function buildFenFromPiecesWithSide(pieces: Record<string, { role: string; color
   return `${ranks.join("/")} ${turnShort} - - 0 1`;
 }
 
+function normalizeFen(input: string): string {
+  // Trim spaces
+  let fen = input.trim();
+
+  // If user only provided placement (no spaces) OR only placement + turn
+  const parts = fen.split(/\s+/);
+
+  if (parts.length === 1) {
+    // Only placement → add defaults
+    return `${parts[0]} w - - 0 1`;
+  }
+  if (parts.length === 2) {
+    // placement + turn only
+    return `${parts[0]} ${parts[1]} - - 0 1`;
+  }
+  if (parts.length === 3) {
+    return `${parts[0]} ${parts[1]} ${parts[2]} - 0 1`;
+  }
+  if (parts.length === 4) {
+    return `${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]} 0 1`;
+  }
+
+  // Already valid length (5 or 6 fields)
+  return fen;
+}
+
+function tryApplyFen(rawInput: string) {
+  const normalized = normalizeFen(rawInput);
+
+  try {
+    // will throw if invalid
+    parseFen(normalized).unwrap();
+
+    // success → update state + board
+    setFen(normalized);
+
+    // mark that we're programmatically applying a FEN so the change handler ignores the immediate event
+    isApplyingFenRef.current = true;
+
+    // Use the chessground API to set the fen. If set() is synchronous we still guard using the flag.
+    try {
+      groundRef.current?.set?.({ fen: normalized });
+          // safety fallback: clear flag if change doesn't arrive within 150ms
+    if (pendingApplyTimeoutRef.current) {
+      window.clearTimeout(pendingApplyTimeoutRef.current);
+    }
+    pendingApplyTimeoutRef.current = window.setTimeout(() => {
+      isApplyingFenRef.current = false;
+      pendingApplyTimeoutRef.current = null;
+    }, 150);
+
+    } catch (err) {
+      // ignore
+    }
+
+    // update side-to-move dropdown to stay in sync
+    const turnField = normalized.split(/\s+/)[1];
+    if (turnField === "w" || turnField === "b") {
+      setSideToMove(turnField === "w" ? "white" : "black");
+    }
+  } catch (err) {
+    // Invalid FEN while typing: don't throw — user is still typing
+    // Make sure we don't leave the isApplyingFenRef stuck true
+    isApplyingFenRef.current = false;
+  }
+}
 
 
 
@@ -518,7 +616,28 @@ function buildFenFromPiecesWithSide(pieces: Record<string, { role: string; color
               overflow: "hidden",
             }}
           />
-          <div style={{ marginTop: 10, marginBottom: 10, fontFamily: "monospace", color: "#ddd" }}>FEN: {fen} </div>
+          <div style={{ marginTop: 10, marginBottom: 10, width: "100%", textAlign: "center" }}>
+              <input
+                value={fen}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFen(v);      
+                  tryApplyFen(v); 
+                }
+              }
+                spellCheck={false}
+                style={{
+                  width: "95%",
+                  padding: "6px 8px",
+                  borderRadius: 6,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  fontFamily: "monospace",
+                  fontSize: 13,
+                }}
+              />
+          </div>
           <div>
                   <button
               onClick={handleSetStartPosition}
