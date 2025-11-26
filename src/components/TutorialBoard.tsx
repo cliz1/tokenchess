@@ -177,10 +177,33 @@ export default function TutorialBoard({
     prevPropsRef.current = { controlledFen, initialFen, challenge };
   }, [controlledFen, initialFen, challenge]);
 
+      // sync incoming prop -> currentOrientation state and Chessground
+    useEffect(() => {
+      const newOri = orientation ?? "white";
+      if (newOri === currentOrientation) {
+        // nothing to do
+        return;
+      }
+      debug("prop orientation changed ->", newOri);
+      setCurrentOrientation(newOri);
+      if (groundRef.current) {
+        try {
+          groundRef.current.set({ orientation: newOri });
+          debug("applied orientation to ground ->", newOri);
+        } catch (e) {
+          debug("failed to set orientation on ground", e);
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orientation]);
+
+
   // init / when challenge or initial fen changes
-  useEffect(() => {
-    resetChallengeAndBoard(null, "deps: controlledFen|initialFen|challenge");
-  }, [controlledFen, initialFen, challenge]);
+// init / when challenge or initial fen or orientation changes
+    useEffect(() => {
+      resetChallengeAndBoard(null, "deps: controlledFen|initialFen|challenge|orientation");
+    }, [controlledFen, initialFen, challenge, orientation]);
+
 
   // log challengeIndex transitions
   useEffect(() => {
@@ -268,10 +291,6 @@ const handleMove = (from: string, to: string) => {
 
     const ch = chessRef.current;
     if (!ch) { debug("no chessRef.current"); return; }
-    if (ch.turn !== "white") {
-      debug("IGNORED: not white's turn", { turn: ch.turn });
-      return;
-    }
 
     const fromSq = parseSquare(from);
     const toSq = parseSquare(to);
@@ -280,8 +299,8 @@ const handleMove = (from: string, to: string) => {
       return;
     }
 
+    // Normal promotions detection (works for either color)
     const piece = ch.board.get(fromSq);
-
     if (
       piece &&
       piece.role === "pawn" &&
@@ -293,9 +312,8 @@ const handleMove = (from: string, to: string) => {
       return; // stop here until user picks promotion
     }
 
+    // auto-promotion special roles (snare/painter)
     let promotionRole: string | null = null;
-
-    // === AUTO-PROMOTION RULES (snare/painter) ===
     if ((piece?.role === "painter") && (Math.floor(toSq / 8) === 0 || Math.floor(toSq / 8) === 7)) {
       promotionRole = "royalpainter";
     } else if ((piece?.role === "snare") && (Math.floor(toSq / 8) === 0 || Math.floor(toSq / 8) === 7)) {
@@ -306,7 +324,7 @@ const handleMove = (from: string, to: string) => {
       ? { from: fromSq, to: toSq, promotion: promotionRole }
       : { from: fromSq, to: toSq };
 
-
+    // ---------- Challenge-specific handling ----------
     if (!challenge) {
       debug("no challenge → normal play");
       playMove(move, from, to, false);
@@ -320,59 +338,72 @@ const handleMove = (from: string, to: string) => {
       return;
     }
 
-    const altstep = challenge.alt_steps?.[challengeIndexRef.current];
+      // Use actual board turn to decide which color we expect the player to play.
+      const expectedColor: "white" | "black" = chessRef.current?.turn ?? ch.turn;
+      const replyColor: "white" | "black" = expectedColor === "white" ? "black" : "white";
 
-    const expectedWhite = step.white;
-    debug("expected white @index", challengeIndex, expectedWhite);
+      const altstep = challenge.alt_steps?.[challengeIndexRef.current];
 
-    const matches = uciEqual(expectedWhite, from, to, undefined) ||(altstep ? uciEqual(altstep.white, from, to, undefined) : false);
+      const expectedMove = (step as any)[expectedColor] as UciMove | undefined;
+      const altExpected = (altstep as any)?.[expectedColor] as UciMove | undefined;
+
+      debug("expected move @index", challengeIndexRef.current, { expectedColor, expectedMove, turn: ch.turn });
+
+
+    debug("expected move @index", challengeIndexRef.current, { expectedColor, expectedMove });
+
+    const matches = uciEqual(expectedMove, from, to, undefined) || (altExpected ? uciEqual(altExpected, from, to, undefined) : false);
 
     debug("uciEqual =", matches);
 
     if (matches) {
-      if (expectedWhite.promotion) move.promotion = expectedWhite.promotion;
+      if (expectedMove?.promotion) move.promotion = expectedMove.promotion;
 
       playMove(move, from, to, false);
       setFeedback("Correct!");
 
-      if (step.black) {
-        // Wait for black reply before incrementing challengeIndex
+      const opponentReply = (step as any)[replyColor] as UciMove | undefined;
+      if (opponentReply) {
+        // Wait for opponent reply before incrementing challengeIndex
         waitingForBlackRef.current = true;
-        groundRef.current?.set({ movable: { color: ch.turn, free: false, dests: new Map(), showDests: false } });
+        try {
+          groundRef.current?.set({ movable: { color: ch.turn, free: false, dests: new Map(), showDests: false } });
+        } catch {}
 
         const delay = 450;
         blackMoveTimeoutRef.current = window.setTimeout(() => {
-          group("auto black reply fired", () => {
+          group("auto reply fired", () => {
             blackMoveTimeoutRef.current = null;
-            const b = step.black!;
+            const b = opponentReply;
             const fromS = parseSquare(b.from);
             const toS = parseSquare(b.to);
-            debug("black reply step", b, { fromS, toS });
+            debug("opponent reply step", b, { fromS, toS, replyColor });
 
             if (fromS !== undefined && toS !== undefined) {
               const bm: any = { from: fromS, to: toS };
               if (b.promotion) bm.promotion = b.promotion;
+              // playMove expects alg coords for automated moves for sound/highlight; pass both forms
               playMove(bm, b.from, b.to, true);
             } else {
-              console.warn("[tutorial] invalid black reply in challenge", b);
+              console.warn("[tutorial] invalid opponent reply in challenge", b);
             }
 
             waitingForBlackRef.current = false;
             setChallengeIndex((prev) => {
               const next = prev + 1;
-              debug("advance challengeIndex AFTER black reply", { prev, next });
+              debug("advance challengeIndex AFTER opponent reply", { prev, next });
               if (next >= challenge.steps.length) setFeedback("Completed!");
               else setFeedback(null);
               return next;
             });
           });
         }, delay);
-        debug("scheduled auto black reply in", delay, "ms");
+        debug("scheduled auto opponent reply in", delay, "ms");
       } else {
-        // No black reply: safe to increment immediately
+        // No opponent reply: safe to increment immediately
         setChallengeIndex((prev) => {
           const next = prev + 1;
-          debug("advance challengeIndex (white-only step)", { prev, next });
+          debug("advance challengeIndex (player-only step)", { prev, next });
           if (next >= challenge.steps.length) setFeedback("Completed!");
           else setFeedback(null);
           return next;
@@ -383,7 +414,7 @@ const handleMove = (from: string, to: string) => {
 
     // Incorrect
     setFeedback("Incorrect — try again");
-    debug("INCORRECT move", { from, to, expected: expectedWhite, index: challengeIndex });
+    debug("INCORRECT move", { from, to, expected: expectedMove, index: challengeIndex });
     window.setTimeout(() => resetChallengeAndBoard(null, "incorrect"), 700);
   });
 };
@@ -417,27 +448,34 @@ const handleMove = (from: string, to: string) => {
         const expected = step?.white;
         debug("promotion expected @index", challengeIndex, expected);
 
-        if (expected && expected.promotion) {
-          if (uciEqual(expected, from, to, role)) {
-            playMove(move, from, to, false);
-            setPendingPromotion(null);
-            setFeedback("Correct!");
+      if (expected && expected.promotion) {
+        // match against the expected move for whoever the promotion color is
+        const expectedForColor = (step as any)[pendingPromotion.color] as UciMove | undefined;
+        debug("promotion expected @index", challengeIndex, expectedForColor);
 
-            setChallengeIndex((prev) => {
-              const next = prev + 1;
-              debug("advance challengeIndex (promotion)", { prev, next });
-              if (next >= challenge!.steps.length) setFeedback("Completed!");
-              else setFeedback(null);
-              return next;
-            });
+        if (expectedForColor && uciEqual(expectedForColor, from, to, role)) {
+          playMove(move, from, to, false);
+          setPendingPromotion(null);
+          setFeedback("Correct!");
 
-            if (step.black) {
+          setChallengeIndex((prev) => {
+            const next = prev + 1;
+            debug("advance challengeIndex (promotion)", { prev, next });
+            if (next >= challenge!.steps.length) setFeedback("Completed!");
+            else setFeedback(null);
+            return next;
+          });
+
+          if (step.black || step.white) {
+            // schedule opponent reply if present for the opposite color
+            const replyColor2: "white" | "black" = pendingPromotion.color === "white" ? "black" : "white";
+            const b = (step as any)[replyColor2] as UciMove | undefined;
+            if (b) {
               waitingForBlackRef.current = true;
               try {
                 groundRef.current?.set({ movable: { color: ch.turn, free: false, dests: new Map(), showDests: false } });
               } catch {}
               blackMoveTimeoutRef.current = window.setTimeout(() => {
-                const b = step.black!;
                 const fromS = parseSquare(b.from);
                 const toS = parseSquare(b.to);
                 if (fromS !== undefined && toS !== undefined) {
@@ -448,15 +486,17 @@ const handleMove = (from: string, to: string) => {
                 waitingForBlackRef.current = false;
               }, 450);
             }
-
-            return;
-          } else {
-            setFeedback("Incorrect promotion — try again");
-            setPendingPromotion(null);
-            window.setTimeout(() => resetChallengeAndBoard(null, "wrong-promotion"), 700);
-            return;
           }
+
+          return;
+        } else {
+          setFeedback("Incorrect promotion — try again");
+          setPendingPromotion(null);
+          window.setTimeout(() => resetChallengeAndBoard(null, "wrong-promotion"), 700);
+          return;
         }
+      }
+
       }
 
       // Not a challenge or not expected promotion — play normally

@@ -8,10 +8,11 @@ type Puzzle = {
   steps: any[];
   alt_steps: any[];
   label?: string;
+  orientation?: "white" | "black";
 };
 
 export default function PuzzlesPage() {
-  const [puzzles] = useState<Puzzle[]>(puzzlesData);
+  const [puzzles] = useState<Puzzle[]>(puzzlesData as unknown as Puzzle[]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const nextPuzzle = () => {
@@ -60,6 +61,7 @@ export default function PuzzlesPage() {
           size={600}
           showControls={false}
           debugName="PuzzleBoard"
+          orientation={puzzle.orientation}
         />
       </div>
 
