@@ -144,7 +144,7 @@ useEffect(() => {
       })}
       onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
     >
-      Puzzle
+      Puzzles
     </NavLink>
   </div>
 </div>

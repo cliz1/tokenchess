@@ -22,7 +22,17 @@
       { "white": { "from": "c6", "to": "c4" } }
     ],
     "alt_steps": [],
-    "label": "By Thomas Johannes Werndly (1859)"
+    "label": "Puzzle by Thomas Johannes Werndly (1859)"
+  },
+    {
+    "initialFen": "2R5/r2A4/k7/1b6/q7/p7/K7/8 w - - 0 1",
+    "steps": [
+      { "white": { "from": "c8", "to": "c6" }, "black": { "from": "a6", "to": "a5" } },
+      { "white": { "from": "d7", "to": "b6" }, "black": { "from": "a5", "to": "b4" } },
+      { "white": { "from": "c6", "to": "c4" } }
+    ],
+    "alt_steps": [],
+    "label": "Puzzle by Thomas Johannes Werndly (1859)"
   }
 ]
 

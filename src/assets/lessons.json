@@ -92,6 +92,17 @@
           ]
         },
         "note": "Find the checkmate in one."
+      },
+        {
+        "text": "As seen in the above example, the Princess wastes no time delivering checkmate to a cornered King. \n Below is another illustration of this idea.",
+        "challenge": {
+          "initialFen": "8/8/8/8/8/7p/5I1k/4K3 w - - 0 1",
+          "steps": [
+            { "white": { "from": "f2", "to": "h4" }, "black": {"from": "h2", "to":"h1"} },
+            {"white": {"from": "h4", "to": "f3"}}
+          ]
+        },
+        "note": "Find the checkmate in one."
       }
     ]
   },
