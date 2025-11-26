@@ -1,40 +1,29 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import TutorialBoard from "../components/TutorialBoard";
+import puzzlesData from '../assets/puzzles.json';
 
 type Puzzle = {
   initialFen: string;
   steps: any[];
   alt_steps: any[];
-  label?: string; // optional custom label
+  label?: string;
 };
 
 export default function PuzzlesPage() {
-  const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
+  const [puzzles] = useState<Puzzle[]>(puzzlesData);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    fetch("../assets/puzzles.json")
-      .then((res) => res.json())
-      .then((data) => setPuzzles(data))
-      .catch((err) => console.error("Failed to load puzzles:", err));
-  }, []);
-
   const nextPuzzle = () => {
-    if (puzzles.length === 0) return;
     setCurrentIndex((i) => (i + 1) % puzzles.length);
   };
 
   const prevPuzzle = () => {
-    if (puzzles.length === 0) return;
     setCurrentIndex((i) => (i - 1 + puzzles.length) % puzzles.length);
   };
 
-  if (puzzles.length === 0) return <div>Loading puzzles...</div>;
-
   const puzzle = puzzles[currentIndex];
 
-  // compute label: prefer puzzle.label, otherwise derive "White to move" / "Black to move" from FEN
   const computeLabel = (p: Puzzle) => {
     if (p.label && p.label.trim().length > 0) return p.label;
     const parts = (p.initialFen || "").split(" ");
