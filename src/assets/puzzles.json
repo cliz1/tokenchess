@@ -1,0 +1,28 @@
+[
+  {
+    "initialFen": "r4bk1/5ppp/aip5/1b3N2/7W/1YB5/1K2B3/6R1 w - - 0 1",
+    "steps": [
+      { "white": { "from": "f5", "to": "h6" }, "black": { "from": "g8", "to": "h8" } },
+      { "white": { "from": "h6", "to": "f7" }, "black": { "from": "h8", "to": "g8" } },
+      { "white": { "from": "f7", "to": "h6" }, "black": { "from": "g8", "to": "h8" } },
+      { "white": { "from": "h4", "to": "h6" }, "black": { "from": "h8", "to": "g8" } },
+      { "white": { "from": "e2", "to": "c4" }, "black": { "from": "b5", "to": "c4" } },
+      { "white": { "from": "b3", "to": "c4" }, "black": { "from": "b6", "to": "c4" } },
+      { "white": { "from": "b3", "to": "c4" }, "black": { "from": "a6", "to": "c4" } },
+      { "white": { "from": "b3", "to": "c4" } }
+    ],
+    "alt_steps": [],
+    "label": "Painter's Paradise (2025)"
+  },
+  {
+    "initialFen": "2R5/r2A4/k7/1b6/q7/p7/K7/8 w - - 0 1",
+    "steps": [
+      { "white": { "from": "c8", "to": "c6" }, "black": { "from": "a6", "to": "a5" } },
+      { "white": { "from": "d7", "to": "b6" }, "black": { "from": "a5", "to": "b4" } },
+      { "white": { "from": "c6", "to": "c4" } }
+    ],
+    "alt_steps": [],
+    "label": "By Thomas Johannes Werndly (1859)"
+  }
+]
+

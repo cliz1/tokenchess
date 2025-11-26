@@ -1,22 +1,47 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import TutorialBoard from "../components/TutorialBoard";
 
-const examplePuzzle = {
-  initialFen: "r4bk1/5ppp/aip5/1b3N2/7W/1YB5/1K2B3/6R1 w - - 0 1",
-  steps: [
-    { white: { from: "f5", to: "h6" }, black: {from: "g8", to: "h8"} },
-    { white: { from: "h6", to: "f7" }, black: {from: "h8", to: "g8"} },
-    { white: { from: "f7", to: "h6" }, black: {from: "g8", to: "h8"} },
-    { white: { from: "h4", to: "h6" }, black: {from: "h8", to: "g8"} },
-    { white: { from: "e2", to: "c4" }, black: {from: "b5", to: "c4"} },
-    { white: { from: "b3", to: "c4" }, black: {from: "b6", to: "c4"} },
-    { white: { from: "b3", to: "c4" }, black: {from: "a6", to: "c4"} },
-    { white: { from: "b3", to: "c4" } },
-  ],
-  alt_steps: []
+type Puzzle = {
+  initialFen: string;
+  steps: any[];
+  alt_steps: any[];
+  label?: string; // optional custom label
 };
 
 export default function PuzzlesPage() {
+  const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    fetch("../assets/puzzles.json")
+      .then((res) => res.json())
+      .then((data) => setPuzzles(data))
+      .catch((err) => console.error("Failed to load puzzles:", err));
+  }, []);
+
+  const nextPuzzle = () => {
+    if (puzzles.length === 0) return;
+    setCurrentIndex((i) => (i + 1) % puzzles.length);
+  };
+
+  const prevPuzzle = () => {
+    if (puzzles.length === 0) return;
+    setCurrentIndex((i) => (i - 1 + puzzles.length) % puzzles.length);
+  };
+
+  if (puzzles.length === 0) return <div>Loading puzzles...</div>;
+
+  const puzzle = puzzles[currentIndex];
+
+  // compute label: prefer puzzle.label, otherwise derive "White to move" / "Black to move" from FEN
+  const computeLabel = (p: Puzzle) => {
+    if (p.label && p.label.trim().length > 0) return p.label;
+    const parts = (p.initialFen || "").split(" ");
+    const active = (parts[1] || "w").toLowerCase();
+    return active === "b" ? "Black to move" : "White to move";
+  };
+
   return (
     <div
       style={{
@@ -27,7 +52,7 @@ export default function PuzzlesPage() {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "transparent"
+        backgroundColor: "transparent",
       }}
     >
       <div
@@ -36,20 +61,24 @@ export default function PuzzlesPage() {
           height: 600,
           display: "flex",
           justifyContent: "center",
-          alignItems: "center"
+          alignItems: "center",
         }}
       >
         <TutorialBoard
-          initialFen={examplePuzzle.initialFen}
-          challenge={examplePuzzle}
-          challengeLabel="White to move"
+          initialFen={puzzle.initialFen}
+          challenge={puzzle}
+          challengeLabel={computeLabel(puzzle)}
           size={600}
           showControls={false}
           debugName="PuzzleBoard"
         />
       </div>
 
-      {/* Back home button */}
+      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+        <button onClick={prevPuzzle}>Previous</button>
+        <button onClick={nextPuzzle}>Next</button>
+      </div>
+
       <Link
         to="/"
         style={{

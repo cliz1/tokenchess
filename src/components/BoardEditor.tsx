@@ -9,6 +9,8 @@ import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import { parseFen } from "chessops/fen";
 import { Chess } from "chessops/chess";
+import { attacks } from "chessops/attacks";
+import { SquareSet } from "chessops";
 
 
 const FILES = "abcdefgh";
@@ -371,35 +373,93 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
   const piecesState = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
   const rawFen = piecesToFen(piecesState);
 
-  // mapping custom->standard letters
-  const mapping: Record<string, string> = {
-    c: "q", i: "q", m: "q", a: "q", w: "q",
-    y: "p",
-    s: "n", x: "n",
+  // inverse map for normalizing single-letter roles to full names only for attacks()
+  const fenLetterToRole: Record<string, string> = {
+    p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king",
+    c: "champion", i: "princess", m: "mann", l: "rollingsnare", o: "royalpainter",
+    y: "painter", s: "snare", w: "wizard", x: "archer", a: "amazon",
   };
 
-  const convertCustomLettersToStandard = (fenStr: string) => {
-    const parts = fenStr.split(" ");
-    if (!parts[0]) return fenStr;
-    const placement = parts[0];
-    let converted = "";
-    for (const ch of placement) {
-      const lower = ch.toLowerCase();
-      if (mapping[lower]) {
-        const mapped = mapping[lower];
-        converted += ch === lower ? mapped : mapped.toUpperCase();
-      } else {
-        converted += ch;
+  // helper: algebraic -> 0..63 square index (a1=0, b1=1, ..., a2=8, ...)
+  const algebraicToIndex = (sq: string) => {
+    const file = FILES.indexOf(sq[0]);
+    const rank = Number(sq[1]) - 1;
+    return rank * 8 + file;
+  };
+
+  // find opponent king square (algebraic)
+  const moverColor = sideToMove; // "white" | "black"
+  const opponentColor = moverColor === "white" ? "black" : "white";
+  let opponentKingSqAlg: string | null = null;
+  for (const sq of Object.keys(piecesState)) {
+    const p = piecesState[sq];
+    if (!p) continue;
+    const roleStr = typeof p.role === "string" ? p.role.toLowerCase() : p.role;
+    if (roleStr && roleStr.includes("king") && p.color === opponentColor) {
+      opponentKingSqAlg = sq;
+      break;
+    }
+  }
+  if (!opponentKingSqAlg) {
+    console.debug("validateFenForAnalysis: opponent king not found", { piecesState, moverColor });
+    return { ok: false, reason: `Couldn't find opponent king on the board.` };
+  }
+  const opponentKingIndex = algebraicToIndex(opponentKingSqAlg);
+
+  // build occupied SquareSet expected by chessops.attacks
+  let occupied = SquareSet.empty();
+  for (const sq of Object.keys(piecesState)) {
+    if (!sq || sq.length < 2) continue;
+    const idx = algebraicToIndex(sq);
+    occupied = occupied.with(idx);
+  }
+
+  // Manual per-piece attack check using chessops.attacks() with normalized role names
+  try {
+    for (const [sqAlg, p] of Object.entries(piecesState)) {
+      if (!p) continue;
+      if (p.color !== moverColor) continue;
+      if (!sqAlg || sqAlg.length < 2) continue;
+      const idx = algebraicToIndex(sqAlg);
+
+      // Normalize role for attacks(): if it's a single fen-letter, map it to the full role string
+      let roleName = typeof p.role === "string" ? p.role.trim().toLowerCase() : (p.role as string);
+      if (roleName && roleName.length === 1) {
+        const mapped = fenLetterToRole[roleName];
+        if (mapped) roleName = mapped;
+      }
+      if (roleName && roleName.length === 1 && /^[A-Z]$/.test(roleName)) {
+        // uppercase single-letter (just in case)
+        const mapped = fenLetterToRole[roleName.toLowerCase()];
+        if (mapped) roleName = mapped;
+      }
+
+      const pieceObj = { role: roleName, color: p.color };
+      console.debug("validateFenForAnalysis: testing piece", { sq: sqAlg, originalRole: p.role, normalizedRole: roleName, color: p.color, idx });
+
+      const attacked = attacks(pieceObj as any, idx as any, occupied as any);
+      const hitsKing = attacked.has(opponentKingIndex);
+
+      console.debug("validateFenForAnalysis: attacked contains king?", { sq: sqAlg, normalizedRole: roleName, hitsKing });
+
+      if (hitsKing) {
+        const mover = moverColor === "white" ? "White" : "Black";
+        console.warn("validateFenForAnalysis: check detected (manual). Piece attacking king:", { sq: sqAlg, roleName, moverColor });
+        return { ok: false, reason: `${mover} (side to move) appears to be giving check — fix the position before analysis.` };
       }
     }
-    parts[0] = converted;
-    return parts.join(" ");
-  };
+  } catch (err: any) {
+    console.error("validateFenForAnalysis: chessops.attacks() threw — falling back to parse/flip validation", err);
+    // continue to fallback parsing below
+  }
 
-  const convertedFen = convertCustomLettersToStandard(rawFen);
+  // --- NO MAPPING: use the raw FEN produced from the board (which contains your custom letters) ---
+  const convertedFen = rawFen; // intentionally not converting custom letters
+
+  // basic FEN sanity checks (same as before)
   const parts = convertedFen.split(" ");
   if (parts.length < 2) {
-    return { ok: false, reason: `Malformed FEN (missing fields) after conversion: "${convertedFen}"` };
+    return { ok: false, reason: `Malformed FEN (missing fields): "${convertedFen}"` };
   }
   const placement = parts[0];
   const ranks = placement.split("/");
@@ -413,30 +473,27 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
       if (ch >= "1" && ch <= "8") sum += Number(ch);
       else if (/^[a-zA-Z]$/.test(ch)) sum += 1;
       else {
-        return { ok: false, reason: `Invalid character "${ch}" in rank ${i + 1}: "${r}" — converted FEN: "${convertedFen}"` };
+        return { ok: false, reason: `Invalid character "${ch}" in rank ${i + 1}: "${r}" — FEN: "${convertedFen}"` };
       }
       if (sum > 8) {
-        return { ok: false, reason: `Rank ${i + 1} adds up to >8 (invalid FEN): rank="${r}", converted FEN="${convertedFen}"` };
+        return { ok: false, reason: `Rank ${i + 1} adds up to >8 (invalid FEN): rank="${r}", FEN="${convertedFen}"` };
       }
     }
     if (sum !== 8) {
-      return { ok: false, reason: `Rank ${i + 1} sums to ${sum} (must be 8): rank="${r}", converted FEN="${convertedFen}"` };
+      return { ok: false, reason: `Rank ${i + 1} sums to ${sum} (must be 8): rank="${r}", FEN="${convertedFen}"` };
     }
   }
+
+  // parse and flipped-check using chessops, but with raw/custom fen
   let setup;
   try {
     setup = parseFen(convertedFen).unwrap();
   } catch (err: any) {
     const msg = err && err.message ? `: ${err.message}` : "";
-    return { ok: false, reason: `Unable to parse converted FEN${msg}. Converted FEN: "${convertedFen}".` };
+    return { ok: false, reason: `Unable to parse FEN${msg}. FEN: "${convertedFen}".` };
   }
 
-  // 1) Build a flipped-setup object and test whether the flipped position is a check.
-  //    If flippedPos.isCheck() === true => original side-to-move is GIVING check => reject.
-  // 2) If flipped build succeeds and is NOT check => allow analysis (we don't need the original pos).
-  // 3) If flipped build fails, fall back to trying to build the original setup and surface errors.
   try {
-    // narrow the flip to the literal union type so TS won't widen it to string
     const flippedTurn = setup.turn === "white" ? ("black" as "black") : ("white" as "white");
     const flippedSetup = { ...setup, turn: flippedTurn };
 
@@ -449,23 +506,24 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
       // flipped build succeeded and opponent is NOT in check -> allow analysis
       return { ok: true };
     } catch (flipErr: any) {
-      // If building the flipped position fails, don't immediately give up: try the original setup
-      // (surface the flip error if both fail, below).
       const flipMsg = flipErr && flipErr.message ? `: ${flipErr.message}` : "";
       try {
         const pos = Chess.fromSetup(setup).unwrap();
-        pos; // quick fix for ts warning
+        pos;
         return { ok: true };
       } catch (origErr: any) {
         const origMsg = origErr && origErr.message ? `: ${origErr.message}` : "";
-        return { ok: false, reason: `Failed to validate checks. Flipped build error${flipMsg}. Original build error${origMsg}. Converted FEN: "${convertedFen}".` };
+        return { ok: false, reason: `Failed to validate checks. Flipped build error${flipMsg}. Original build error${origMsg}. FEN: "${convertedFen}".` };
       }
     }
   } catch (err: any) {
     const msg = err && err.message ? `: ${err.message}` : "";
-    return { ok: false, reason: `Unexpected error validating checks${msg}. Converted FEN: "${convertedFen}".` };
+    return { ok: false, reason: `Unexpected error validating checks${msg}. FEN: "${convertedFen}".` };
   }
 }
+
+
+
 
 function handleOpenInAnalysis() {
   const res = validateFenForAnalysis();

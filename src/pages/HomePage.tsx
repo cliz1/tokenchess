@@ -3,7 +3,7 @@ import "../assets/custom-pieces.css"; // ensures cg-piece classes apply
 
 export default function HomePage() {
   const standardPieces = ["pawn", "knight", "bishop", "rook", "queen", "king"];
-  const customPieces = ["champion", "princess", "amazon", "commoner", "painter", "snare", "wizard", "archer"];
+  const customPieces = ["champion", "princess", "amazon", "mann", "painter", "snare", "wizard", "archer"];
 
   const renderRow = (pieces: string[], color: "white" | "black") => (
     <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 32, flexWrap: "wrap" }}>
