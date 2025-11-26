@@ -25,7 +25,7 @@ export default function TutorialsPage() {
           { key: "Champion", label: "Champion" },
           { key: "Princess", label: "Princess" },
           { key: "Amazon", label: "Amazon" },
-          { key: "Commoner", label: "Commoner" },
+          { key: "Mann", label: "Mann" },
           { key: "Painter", label: "Painter" },
           { key: "Snare", label: "Snare" },
           { key: "Wizard", label: "Wizard" },

@@ -114,12 +114,12 @@
       }
     ]
   },
-  "Commoner": {
-    "title": "Commoner",
+  "Mann": {
+    "title": "Mann",
     "quote": "“The mob is always right.” – Napoleon",
     "steps": [
       {
-        "text": "The Commoner is just like a King, but as it was not born into royalty, the game does not hinge on its well-being. \n The Commoner is a strong defender, and it is most valuable in endgames. For example, despite having the same token cost as a Bishop or Knight, the Commoner can deliver checkmate with the help of the King.",
+        "text": "The Mann is just like a King, but as it was not born into royalty, the game does not hinge on its well-being. \n The Mann is a strong defender, and it is most valuable in endgames. For example, despite having the same token cost as a Bishop or Knight, the Mann can deliver checkmate with the help of the King.",
         "challenge": {
           "initialFen": "4M3/7k/5K2/8/8/8/8/8 w - - 0 1",
           "steps": [
@@ -140,7 +140,7 @@
             { "white": { "from": "c4", "to": "b4" } }
           ]
         },
-        "note": "Use the Commoner to block the checks."
+        "note": "Use the Mann to block the checks."
       }
     ]
   },
@@ -340,7 +340,7 @@
         },
         "note": "An example draft (not an exercise)."
       },
-      { "text": "As of November 2025, the token values for pieces are as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 9 \n Princess: 8 \n Amazon: 13 \n Commoner: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 5 \n Archer: 4" }
+      { "text": "As of November 2025, the token values for pieces are as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 9 \n Princess: 8 \n Amazon: 13 \n Mann: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 5 \n Archer: 4" }
     ]
   },
     "draft": {
@@ -349,7 +349,7 @@
     "steps": [
         { "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games.", "image": "/images/draftpage.png" },
       { "text": "In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page. This will be the draft used for playing games and may be changed at any time.", "image": "/images/horde.png" },
-      {"text": "As a balance measure, there are special restrictions on the quantity of each piece type in a draft. For example, one can only place a single Archer, or up to 2 Queens, or 4 Commoners, etc. This is designed to promote diversity in piece choice to keep things fun. In the above example, white's horde of Archers is nearly impossible to face."}
+      {"text": "As a balance measure, there are special restrictions on the quantity of each piece type in a draft. For example, one can only place a single Archer, or up to 2 Queens, or 4 Mannen, etc. This is designed to promote diversity in piece choice to keep things fun. In the above example, white's horde of Archers is nearly impossible to face."}
     ]
   }
 }
