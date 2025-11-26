@@ -115,16 +115,20 @@
         {
         "text": "If you think you might have enough material to hold off the Amazon, you probably don't. \n A Princess, Champion, a band of pawns, all of these can easily lose to the Amazon before they know what hit them.",
         "challenge": {
-          "initialFen": "8/8/8/3kc3/8/8/PA6/K7 w - - 0 1",
+          "initialFen": "8/8/8/3kc3/8/1p6/p7/K3A3 w - - 0 1",
           "steps": [
-            { "white": { "from": "b2", "to": "b4" }, "black": {"from": "d5", "to": "e6"} },
+            { "white": { "from": "e1", "to": "b4" }, "black": {"from": "d5", "to": "e6"} },
             { "white": { "from": "b4", "to": "f4" }, "black": {"from": "e6", "to": "d6"} },
-            { "white": { "from": "a1", "to": "b2" }, "black": {"from": "d6", "to": "c7"}},
+            { "white": { "from": "a1", "to": "b2" }, "black": {"from": "a2", "to": "a1", "promotion": "queen"}},
+            { "white": { "from": "b2", "to": "a1" }, "black": {"from": "b3", "to": "b2"} },
+            { "white": { "from": "a1", "to": "b2" }, "black": {"from": "d6", "to": "c7"} },
             { "white": { "from": "f4", "to": "e5" } }
           ],
           "alt_steps": [
-            { "white": { "from": "b2", "to": "b4" }, "black": {"from": "d5", "to": "e6"} },
+            { "white": { "from": "e1", "to": "b4" }, "black": {"from": "d5", "to": "e6"} },
             { "white": { "from": "b4", "to": "f4" }, "black": {"from": "e6", "to": "d6"} },
+            { "white": { "from": "a1", "to": "b2" }, "black": {"from": "a2", "to": "a1", "promotion": "queen"}},
+            { "white": { "from": "b2", "to": "a1" }, "black": {"from": "b3", "to": "b2"} },
             { "white": { "from": "a1", "to": "b1" }, "black": {"from": "d6", "to": "c7"} },
             { "white": { "from": "f4", "to": "e5" } }
           ]
