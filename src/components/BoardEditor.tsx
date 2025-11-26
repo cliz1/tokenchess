@@ -49,7 +49,7 @@ export default function BoardEditor() {
     if (r.includes("rook")) return "r";
     if (r.includes("champion")) return "c";
     if (r.includes("princess")) return "i";
-    if (r.includes("commoner")) return "m";
+    if (r.includes("mann")) return "m";
     if (r.includes("rollingsnare")) return "l";
     if (r.includes("royalpainter")) return "o";
     else if (r.includes("painter")) return "y";
@@ -254,7 +254,7 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
     "champion",
     "princess",
     "amazon",
-    "commoner",
+    "mann",
     "painter",
     "snare",
     "wizard",
