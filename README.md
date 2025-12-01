@@ -54,6 +54,5 @@ Key endpoints:
 
 ## Deployment
 
-- **Frontend**: Netlify or Vercel
-- **Backend**: Railway, Render, or Fly.io (with PostgreSQL)
-- See `fly.toml` and `Dockerfile` for container setup
+- **Frontend**: Cloudfare
+- **Backend**: Fly.io (with PostgreSQL)

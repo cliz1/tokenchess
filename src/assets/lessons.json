@@ -205,17 +205,17 @@
         "note": "Push the painter, then paint en passant."
       },
             {
-        "text": "The painter has a special promotion, meaning when it reaches the back rank it automatically promotes without choice by the player. The resulting piece is called the “Royal Painter“, which moves like a King but paints instead of capturing.",
+        "text": "The painter has a unique promotion mechanic: when it reaches the back rank it becomes the incredible and exceedingly rare “Royal Painter“, which moves like a Queen but paints instead of capturing.",
         "challenge": {
-          "initialFen": "3k4/1K6/2Yr4/8/8/8/8/8 w - - 0 1",
+          "initialFen": "8/8/YK6/8/8/8/6kp/8 w - - 0 1",
           "steps": [
-            { "white": { "from": "c6", "to": "c7" }, "black": { "from": "d8", "to": "d7" } },
-            { "white": { "from": "c7", "to": "c8" }, "black": { "from": "d7", "to": "e7" } },
-            { "white": { "from": "c8", "to": "c7" }, "black": { "from": "d6", "to": "d7" } },
-            { "white": { "from": "c7", "to": "d7" } }
+            { "white": { "from": "a6", "to": "a7" }, "black": { "from": "h2", "to": "h1", "promotion": "queen" } },
+            { "white": { "from": "a7", "to": "a8" }, "black": { "from": "g2", "to": "g1" } },
+            { "white": { "from": "a8", "to": "h1" }, "black": { "from": "g1", "to": "f2" } },
+            { "white": {"from": "a8", "to": "f3"}}
           ]
         },
-        "note": "Push the painter to promotion, then paint the rook with the Royal Painter."
+        "note": "White to move and win."
       }
     ]
   },

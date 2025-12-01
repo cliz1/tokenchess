@@ -78,7 +78,7 @@ useEffect(() => {
     if (r.includes("king")) return 0;
     if (r.includes("princess")) return 8; 
     if (r.includes("amazon")) return 13;
-    if (r.includes("commoner")) return 3;
+    if (r.includes("mann")) return 3;
     if (r.includes("painter")) return 2;
     if (r.includes("snare")) return 2;
     if (r.includes("wizard")) return 5;
@@ -112,7 +112,7 @@ useEffect(() => {
     if (r.includes("champion")) return "c";
     if (r.includes("princess")) return "i";
     if (r.includes("amazon")) return "a";
-    if (r.includes("commoner")) return "m";
+    if (r.includes("mann")) return "m";
     if (r.includes("painter")) return "y";
     if (r.includes("snare")) return "s";
     if (r.includes("wizard")) return "w";
@@ -259,7 +259,7 @@ useEffect(() => {
           role = "amazon";  
           break;
         case "M":
-          role = "commoner";
+          role = "mann";
           break;
         case "S":
           role = "snare"; 
@@ -405,7 +405,7 @@ useEffect(() => {
           flashWarning(`You can only place three ${piece.role}s.`);
           return;
         }
-        else if (!isReplacingSame && ( piece.role == "knight" || piece.role === "bishop" || piece.role === "snare" || piece.role === "commoner") && countOfRole >= 4) {
+        else if (!isReplacingSame && ( piece.role == "knight" || piece.role === "bishop" || piece.role === "snare" || piece.role === "mann") && countOfRole >= 4) {
           flashWarning(`You can only place four ${piece.role}s.`);
           return;
         }
@@ -554,7 +554,7 @@ useEffect(() => {
     "champion",
     "princess",
     "amazon",
-    "commoner",
+    "mann",
     "painter",
     "snare",
     "wizard",
