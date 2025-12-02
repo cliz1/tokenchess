@@ -286,12 +286,12 @@
     "quote": "“A wizard is never late. Nor is he early. He arrives precisely when he means to.” – Gandalf",
     "steps": [
       {
-        "text": "The Wizard moves up to two squares orthogonally. Like a Knight, the Wizard can jump over pieces.",
+        "text": "The Wizard moves up to 2 squares like a Queen. Like a Knight, the Wizard can jump over any pieces in the way.",
         "challenge": {
-          "initialFen": "8/8/5k2/8/3WP3/8/5b2/3K4 w - - 0 1",
+          "initialFen": "4kbq1/5n2/8/4p3/4W3/3K4/8/8 w - - 0 1",
           "steps": [
-            { "white": { "from": "d4", "to": "f4" }, "black": { "from": "f6", "to": "e5" } },
-            { "white": { "from": "f4", "to": "f2" } }
+            { "white": { "from": "e4", "to": "e6" }, "black": { "from": "e8", "to": "d8" } },
+            { "white": { "from": "e6", "to": "g8" }}
           ]
         },
         "note": "Jump over the pawn, then capture the bishop."
@@ -315,18 +315,6 @@
           ]
         },
         "note": "Escape the checkmate attempt."
-      },
-      {
-        "text": "While not a strong attacker, the Wizard is sufficient to deliver checkmate in an endgame.",
-        "challenge": {
-          "initialFen": "2k5/8/1W1K4/8/8/8/8/8 w - - 0 1",
-          "steps": [
-            { "white": { "from": "b6", "to": "d6" }, "black": { "from": "c8", "to": "b8" } },
-            { "white": { "from": "d6", "to": "d8" }, "black": { "from": "b8", "to": "a8" } },
-            { "white": { "from": "d8", "to": "c8" } }
-          ]
-        },
-        "note": "Use the Wizard to checkmate in three moves."
       }
     ]
   },
@@ -374,7 +362,7 @@
         },
         "note": "An example draft (not an exercise)."
       },
-      { "text": "As of November 2025, the token values for pieces are as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 9 \n Princess: 8 \n Amazon: 13 \n Mann: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 5 \n Archer: 4" }
+      { "text": "As of November 2025, the token values for pieces are as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 9 \n Princess: 8 \n Amazon: 13 \n Mann: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 5 \n Archer: 7" }
     ]
   },
     "draft": {

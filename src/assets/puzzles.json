@@ -22,19 +22,17 @@
       { "white": { "from": "c6", "to": "c4" } }
     ],
     "alt_steps": [],
-    "label": "Puzzle by Thomas Johannes Werndly (1859)"
+    "label": "by Thomas Johannes Werndly (1859)"
   },
     {
     "initialFen": "2k3r1/1pp5/p1p5/4R2p/7n/2NP1w1P/PPP4K/6R1 b - - 0 1",
     "orientation": "black",
     "steps": [
       { "black": { "from": "f3", "to": "f2" }, "white": { "from": "h2", "to": "h1" } },
-      { "black": { "from": "f2", "to": "h2" }, "white": { "from": "h1", "to": "h2" } },
-      { "black": { "from": "h4", "to": "f3" }, "white": { "from": "h2", "to": "h1" } },
-      { "black": { "from": "g8", "to": "g1" } }
+      { "black": { "from": "f2", "to": "h4" }}
     ],
     "alt_steps": [],
-    "label": "Rendition of Tartakower - Schlechter (1908)"
+    "label": "Black Magic (2025)"
   }
 ]
 
