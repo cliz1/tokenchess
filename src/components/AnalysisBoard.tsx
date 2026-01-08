@@ -51,18 +51,18 @@ export default function AnalysisBoard({
     const move: any = { from: fromSquare, to: toSquare };
     const fromPiece = chess.board.get(fromSquare);
     const toPiece = chess.board.get(toSquare);
-    const toRank = Math.floor(toSquare / 8);
+    const toRank = Math.floor(toSquare / 8); 
     const fromRank = Math.floor(fromSquare / 8);
 
         // --- AUTO-PROMOTION RULES ---
     let promotionRole: string | null = null;
 
     // Painter auto-promotes to RoyalPainter
-    if (fromPiece?.role === "painter" && (toRank === 0 || toRank === 7)) {
+    if (fromPiece?.role === "painter" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'painter' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'painter' && fromRank === 0))) {
       promotionRole = "royalpainter";
     }
     // Snare auto-promotes to RollingSnare
-    else if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7)) {
+    else if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'snare' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'snare' && fromRank === 0))) {
       promotionRole = "rollingsnare";
     }
 
@@ -92,6 +92,7 @@ export default function AnalysisBoard({
     if (!chess) return;
 
     if (!chess.isLegal(move)) {
+      //console.log("move not legal. move: ", move);
       groundRef.current?.set({ fen: makeFen(chess.toSetup()) });
       return;
     }
@@ -122,6 +123,8 @@ export default function AnalysisBoard({
 
     const preCaptured = chess.board.get(parseSquare(to)!) ?? null;
     playMoveSound(chess, move, from, to, preCaptured);
+
+    //console.log("calling chess.play(). move: ", move);
 
     chess.play(move);
     const newFen = makeFen(chess.toSetup());
@@ -310,7 +313,7 @@ export default function AnalysisBoard({
     pathRef.current = path;
 
     const dests = calculateDests(newChess);
-    console.log("lastMove", lastMove);
+    //console.log("lastMove", lastMove);
     groundRef.current?.set({
       fen: newFen,
       turnColor: newChess.turn,
@@ -334,7 +337,7 @@ export default function AnalysisBoard({
   }
 
   function goToPrev() {
-    console.log(pathRef.current.length)
+    //console.log(pathRef.current.length)
     if (pathRef.current.length === 2){
       lastMoveRef.current = undefined;
       groundRef.current?.set({ lastMove: undefined });

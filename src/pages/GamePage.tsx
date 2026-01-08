@@ -198,9 +198,12 @@ export default function GamePage() {
 
             // determine move and optional promotion role
             let promotionRole: string | null = null;
-            if ((fromPiece?.role === "painter") && (toRank === 0 || toRank === 7)) {
+            // Painter auto-promotes to RoyalPainter
+            if (fromPiece?.role === "painter" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'painter' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'painter' && fromRank === 0))) {
               promotionRole = "royalpainter";
-            } else if ((fromPiece?.role === "snare") && (toRank === 0 || toRank === 7)) {
+            }
+            // Snare auto-promotes to RollingSnare
+            else if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'snare' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'snare' && fromRank === 0))) {
               promotionRole = "rollingsnare";
             }
             
