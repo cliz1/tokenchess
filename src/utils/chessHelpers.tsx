@@ -150,7 +150,7 @@ export function playMoveSound(
     ((movingPiece.role === "snare" || movingPiece.role === "rollingsnare") && hasEnemyAdjacent) || hasEnemySnareAdjacent;
 
   const isCastleMove = 
-    ((capturedPiece) && (capturedPiece.color === movingPiece.color));
+    ((capturedPiece) && (capturedPiece.color === movingPiece.color && movingPiece.role !== "wizard"));
 
   const isPawnCapture = 
     ((movingPiece.role === "pawn") && ((fromIdx % 8) !== (toIdx % 8)))

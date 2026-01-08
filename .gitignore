@@ -33,3 +33,9 @@ fens.txt
 db/
 
 sounds_unused
+
+# other
+
+index_with_WIP.ts
+GamePage_WIP.tsx
+gamesocket_WIP.tsx

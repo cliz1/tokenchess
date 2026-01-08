@@ -76,8 +76,13 @@ export default function AnalysisBoard({
 
     // Intercept promotion
     if ((fromPiece?.role === "pawn") && (toRank === 0 || toRank === 7) || (fromPiece?.role==="wizard" && toPiece?.role==="pawn" && (fromRank === 0 || fromRank === 7))) {
+      if ((fromPiece.color === 'white' && fromRank === 0) || (fromPiece.color === 'black' && fromRank === 7)){
+        ;
+      }
+      else{
       setPendingPromotion({ from, to, color: chess.turn });
       return; // wait for modal
+      }
     }
 
     playMove(move, from, to);
