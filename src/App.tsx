@@ -13,6 +13,7 @@ import GamePage from "./pages/GamePage";
 import CreateRoomPage from "./pages/CreateRoomPage";
 import JoinRoomPage from "./pages/JoinRoomPage";
 import PuzzlesPage from "./pages/PuzzlesPage";
+import LobbyPage from "./pages/LobbyPage";
 
 import "./App.css";
 
@@ -170,6 +171,7 @@ useEffect(() => {
           <Route path="/game/create" element={<CreateRoomPage />} />
           <Route path="/game/join" element={<JoinRoomPage />} />
           <Route path="/puzzles" element={<PuzzlesPage />} />
+          <Route path="/lobby" element={<LobbyPage />} />
         </Routes>
       </main>
     </div>

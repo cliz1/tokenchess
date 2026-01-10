@@ -3,13 +3,12 @@ import cors from "cors";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import http from "http";
 import { parseSquare } from "chessops/util";
 import { parseFen, makeFen } from "chessops/fen";
 import { Chess } from "chessops";
 import path from "path";
-
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,15 +18,27 @@ const prisma = new PrismaClient();
 const app = express();
 
 // Dev: allow Vite + other local frontends. Keeps it explicit and simple.
-app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000", "https://radiant-haupia-edd849.netlify.app", "https://tokenchess.net", "https://www.tokenchess.net", "http://tokenchess.net", "http://www.tokenchess.net", "https://ffd2e328.tokenchess.pages.dev"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://radiant-haupia-edd849.netlify.app",
+      "https://tokenchess.net",
+      "https://www.tokenchess.net",
+      "http://tokenchess.net",
+      "http://www.tokenchess.net",
+      "https://ffd2e328.tokenchess.pages.dev",
+    ],
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
-const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const START_FEN =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // ---------- helpers ----------
 function signToken(payload: object) {
@@ -47,10 +58,59 @@ function generateRoomCode(length = 6) {
   return code;
 }
 
+// ---------- types & in-memory store ----------
+export type RoomStatus = "open" | "playing" | "finished";
+
+export type Room = {
+  id: string;
+  fen: string;
+  status: RoomStatus;
+
+  createdAt: number;
+
+  players: string[]; // user IDs
+  usernames: Record<string, string>; // uid -> username
+
+  clients: Set<WebSocket>;
+
+  // legacy-style fields kept for game lifecycle
+  lastMove?: [string, string];
+  ownerId?: string;
+  concluded?: boolean;
+  result?: RoomResult | string;
+  rematchVotes?: Set<string>;
+  drawVotes?: Set<string>;
+  cleanupTimeout?: NodeJS.Timeout | number;
+  scores?: Record<string, number>;
+};
+
+export const rooms = new Map<string, Room>();
+
+// ---------- lobby helpers ----------
+const lobbyClients = new Set<WebSocket>();
+
+function serializeLobby() {
+  return [...rooms.values()]
+    .filter((r) => r.status === "open")
+    .map((r) => ({
+      roomId: r.id,
+      owner: r.usernames[r.players[0]] ?? "Unknown",
+      createdAt: r.createdAt,
+    }));
+}
+
+function broadcastLobby() {
+  const payload = JSON.stringify({ type: "lobby", rooms: serializeLobby() });
+  for (const ws of lobbyClients) {
+    if (ws.readyState === ws.OPEN) ws.send(payload);
+  }
+}
+
 // ---------- auth middleware ----------
 function authMiddleware(req: any, res: any, next: any) {
   const auth = req.headers.authorization;
-  if (!auth?.startsWith("Bearer ")) return res.status(401).json({ error: "Missing auth" });
+  if (!auth?.startsWith("Bearer "))
+    return res.status(401).json({ error: "Missing auth" });
   const token = auth.slice(7);
   try {
     const data = verifyToken(token);
@@ -61,10 +121,9 @@ function authMiddleware(req: any, res: any, next: any) {
   }
 }
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
-
 
 // ---------- routes: auth ----------
 app.post("/api/auth/register", async (req, res) => {
@@ -107,18 +166,17 @@ app.post("/api/auth/login", async (req, res) => {
   res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
 });
 
-
 app.get("/api/me", authMiddleware, async (req: any, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   if (!user) return res.status(404).json({ error: "User not found" });
   res.json({ id: user.id, email: user.email, username: user.username });
 });
 
-// ---------- routes: drafts ----------
+// ---------- routes: drafts (unchanged) ----------
 app.get("/api/drafts", authMiddleware, async (req: any, res) => {
   const drafts = await prisma.draft.findMany({
     where: { userId: req.user.id },
-    orderBy: { slot: "asc" },   // slot, not createdAt
+    orderBy: { slot: "asc" }, // slot, not createdAt
   });
 
   res.json(drafts);
@@ -158,7 +216,7 @@ app.post("/api/drafts", authMiddleware, async (req: any, res) => {
 
 app.get("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
-  const draft = await prisma.draft.findUnique({ where: { id }});
+  const draft = await prisma.draft.findUnique({ where: { id } });
   if (!draft || draft.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
   res.json(draft);
 });
@@ -167,7 +225,7 @@ app.put("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
   const { name, data, isPublic, isActive } = req.body;
 
-  const draft = await prisma.draft.findUnique({ where: { id }});
+  const draft = await prisma.draft.findUnique({ where: { id } });
   if (!draft || draft.userId !== req.user.id) {
     return res.status(404).json({ error: "Not found" });
   }
@@ -193,30 +251,25 @@ app.put("/api/drafts/:id", authMiddleware, async (req: any, res) => {
 
 app.delete("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const { id } = req.params;
-  const draft = await prisma.draft.findUnique({ where: { id }});
+  const draft = await prisma.draft.findUnique({ where: { id } });
   if (!draft || draft.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
-  await prisma.draft.delete({ where: { id }});
+  await prisma.draft.delete({ where: { id } });
   res.json({ ok: true });
 });
 
-// routes : rooms
-
+// ---------- rooms HTTP API (updated to use Map & lobby) ----------
 app.get("/api/rooms/:id", (req, res) => {
   const id = req.params.id;
-  const room = rooms[id];
+  const room = rooms.get(id);
 
   if (!room) {
     return res.status(404).json({ error: "Room not found" });
   }
 
-  res.json({
-    roomId: id,
-    players: room.players,
-    createdAt: room.createdAt,
-    result: room.result ?? null,
-  });
+  res.json({ roomId: id, players: room.players, createdAt: room.createdAt, result: room.result ?? null });
 });
 
+// create room (open room visible in lobby)
 app.post("/api/rooms", authMiddleware, async (req: any, res) => {
   try {
     const { length = 6, fen = START_FEN } = req.body ?? {};
@@ -226,51 +279,46 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       roomId = generateRoomCode(length);
       attempts++;
       if (attempts > 10) break;
-    } while (rooms[roomId]);
-    if (rooms[roomId]) roomId = `${roomId}-${Date.now().toString(36)}`; // fallback to ensure uniqueness
+    } while (rooms.has(roomId));
+    if (rooms.has(roomId)) roomId = `${roomId}-${Date.now().toString(36)}`; // fallback to ensure uniqueness
 
     // fetch username
     const dbUser = await prisma.user.findUnique({ where: { id: req.user.id } });
     const username = dbUser?.username ?? "Unknown";
 
     // create and register the room
-    rooms[roomId] = {
+    const room: Room = {
+      id: roomId,
       fen,
-      clients: new Set(),
-      lastMove: undefined,
-      ownerId: req.user.id,
-      players: [req.user.id],
-      usernames: { [req.user.id]: username }, 
+      status: "open",
       createdAt: Date.now(),
+      players: [req.user.id],
+      usernames: { [req.user.id]: username },
+      clients: new Set(),
     };
-    res.json({ roomId, fen});
-  } catch (err){
+
+    rooms.set(roomId, room);
+
+    // notify lobby clients
+    broadcastLobby();
+
+    res.json({ roomId, fen });
+  } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// ---------- start ----------
+// lobby poll fallback
+app.get("/api/lobby", (_req, res) => {
+  res.json(serializeLobby());
+});
+
+// ---------- start server & websocket ----------
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-type Room = {
-  fen: string;
-  clients: Set<any>;
-  lastMove?: [string, string];
-  ownerId?: string;
-  players?: string[];
-  usernames?: Record<string, string>;
-  createdAt?: number;
-  concluded?: boolean;
-  result?: RoomResult;
-  rematchVotes?: Set<string>;
-  drawVotes?: Set<string>;
-  cleanupTimeout?: NodeJS.Timeout | number;
-  scores?: Record<string, number>;
-};
-
-
+// Result type preserved from previous code
 type RoomResult =
   | "Checkmate: 1-0"
   | "Checkmate: 0-1"
@@ -280,10 +328,8 @@ type RoomResult =
   | "Black Resigns: 1-0"
   | "Agreement: 1/2-1/2";
 
-const rooms: Record<string, Room> = {};
-
 // helper: safely award points
-function applyResultToScores(room: Room, result: RoomResult, whiteId?: string, blackId?: string) {
+function applyResultToScores(room: Room, result: RoomResult | string, whiteId?: string, blackId?: string) {
   if (!whiteId || !blackId) return;
   if (!room.players || room.players.length < 2) return;
   room.scores = room.scores ?? {};
@@ -311,22 +357,13 @@ function applyResultToScores(room: Room, result: RoomResult, whiteId?: string, b
 
 // helper: build consistent player list
 function serializePlayers(room: Room) {
-  return room.players?.map((pid) => ({
-    id: pid,
-    username: room.usernames?.[pid] ?? "Unknown",
-    score: room.scores?.[pid] ?? 0,
-  }));
+  return room.players?.map((pid) => ({ id: pid, username: room.usernames?.[pid] ?? "Unknown", score: room.scores?.[pid] ?? 0 }));
 }
 
 // helper: broadcast a room update to all clients, computing role/color per-client from room.players
 function sendRoomUpdate(
   room: Room,
-  payload: {
-    fen?: string;
-    lastMove?: [string, string];
-    result?: RoomResult | string;
-    reason?: string;
-  } = {},
+  payload: { fen?: string; lastMove?: [string, string]; result?: RoomResult | string; reason?: string } = {},
   msgType: "update" | "gameOver" | "newGame" | "sync" = "update",
 ) {
   for (const client of room.clients) {
@@ -348,7 +385,7 @@ function sendRoomUpdate(
       players: serializePlayers(room),
       scores: room.scores,
       reason: payload.reason,
-    };
+    } as any;
 
     try {
       client.send(JSON.stringify(out));
@@ -359,13 +396,16 @@ function sendRoomUpdate(
   }
 }
 
-wss.on("connection", (ws) => {
+wss.on("connection", (ws: WebSocket, req) => {
   let roomId: string | null = null;
 
   // cleanup closed sockets from room.clients and schedule room deletion with grace period
   ws.on("close", () => {
+    // remove from lobby clients (if present)
+    lobbyClients.delete(ws);
+
     if (!roomId) return;
-    const room = rooms[roomId];
+    const room = rooms.get(roomId);
     if (!room) return;
 
     room.clients.delete(ws);
@@ -374,7 +414,9 @@ wss.on("connection", (ws) => {
       if (room.cleanupTimeout) clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
       // schedule deletion after 30s grace
       room.cleanupTimeout = setTimeout(() => {
-        delete rooms[roomId!];
+        rooms.delete(roomId!);
+        // update lobby since an open room might have been removed
+        broadcastLobby();
       }, 30_000);
     }
   });
@@ -385,6 +427,13 @@ wss.on("connection", (ws) => {
       data = JSON.parse(msg.toString());
     } catch {
       ws.send(JSON.stringify({ type: "error", message: "invalid-json" }));
+      return;
+    }
+
+    // ---------- LOBBY JOIN (ws channel for lobby updates) ----------
+    if (data.type === "lobby-join") {
+      lobbyClients.add(ws);
+      ws.send(JSON.stringify({ type: "lobby", rooms: serializeLobby() }));
       return;
     }
 
@@ -406,13 +455,13 @@ wss.on("connection", (ws) => {
         ws.send(JSON.stringify({ type: "error", message: "Missing roomId" }));
         return;
       }
-      if (!rooms[requestedId]) {
+      if (!rooms.has(requestedId)) {
         ws.send(JSON.stringify({ type: "error", message: "Room not found" }));
         return;
       }
 
       roomId = requestedId;
-      const room = rooms[roomId]!;
+      const room = rooms.get(roomId)!;
 
       // ensure clients set and arrays exist
       room.clients = room.clients ?? new Set();
@@ -436,7 +485,20 @@ wss.on("connection", (ws) => {
           // claim next available slot
           (ws as any).playerId = uid;
           room.players.push(uid);
-
+          // when second player joins, transition to playing
+          if (room.players.length === 2 && room.status === "open") {
+            room.status = "playing";
+            // compute start fen from drafts (best effort)
+            try {
+              const [p1, p2] = room.players;
+              const { normalFen } = await getCombinedStartFens(p1, p2);
+              room.fen = normalFen;
+            } catch (err) {
+              // keep existing fen (usually START_FEN)
+              console.warn("Failed to compute combined start fen for rematch/start:", err);
+            }
+            broadcastLobby();
+          }
         } else {
           // full -> spectator
           (ws as any).playerId = undefined;
@@ -484,111 +546,116 @@ wss.on("connection", (ws) => {
           }),
         );
       }
+
       return;
     }
 
     // ---------- MOVE ----------
-if (data.type === "move" && roomId) {
-  const room = rooms[roomId]!;
-  const senderId = (ws as any).playerId;
-  if (!senderId || !room.players?.includes(senderId)) return;
+    if (data.type === "move" && roomId) {
+      const room = rooms.get(roomId)!;
+      const senderId = (ws as any).playerId;
+      if (!senderId || !room.players?.includes(senderId)) return;
 
-  // Support promotion: [from, to, promotion?]
-  const lastMove = data.lastMove as [string, string, string?];
-  if (!lastMove) return;
+      // Support promotion: [from, to, promotion?]
+      const lastMove = data.lastMove as [string, string, string?];
+      if (!lastMove) return;
 
-  const parsed = parseFen(room.fen);
-  if (parsed.isErr) return;
-  const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
+      const parsed = parseFen(room.fen);
+      if (parsed.isErr) return;
+      const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
 
-  const whiteId = room.players?.[0];
-  const blackId = room.players?.[1];
-  const expected = chess.turn === "white" ? whiteId : blackId;
-  if (senderId !== expected) return;
+      const whiteId = room.players?.[0];
+      const blackId = room.players?.[1];
+      const expected = chess.turn === "white" ? whiteId : blackId;
+      if (senderId !== expected) return;
 
-  const [fromStr, toStr, promotion] = lastMove;
-  const from = parseSquare(fromStr);
-  const to = parseSquare(toStr);
-  if (from == null || to == null) return;
+      const [fromStr, toStr, promotion] = lastMove;
+      const from = parseSquare(fromStr);
+      const to = parseSquare(toStr);
+      if (from == null || to == null) return;
 
-  const moveObj: any = { from, to };
-  if (typeof promotion === "string") moveObj.promotion = promotion;
-  if (!chess.isLegal(moveObj)) return;
+      const moveObj: any = { from, to };
+      if (typeof promotion === "string") moveObj.promotion = promotion;
+      if (!chess.isLegal(moveObj)) return;
 
-  chess.play(moveObj);
-  room.drawVotes = new Set();
-  let gameOver = false;
-  let result: RoomResult = "ongoing";
+      chess.play(moveObj);
+      room.drawVotes = new Set();
+      let gameOver = false;
+      let result: RoomResult | string = "ongoing";
 
-  if (chess.isCheckmate()) {
-    gameOver = true;
-    result = chess.turn === "black" ? "Checkmate: 1-0" : "Checkmate: 0-1";
-  } else if (chess.isStalemate()) {
-    gameOver = true;
-    result = "Stalemate: 1/2-1/2";
-  }
+      if (chess.isCheckmate()) {
+        gameOver = true;
+        result = chess.turn === "black" ? "Checkmate: 1-0" : "Checkmate: 0-1";
+      } else if (chess.isStalemate()) {
+        gameOver = true;
+        result = "Stalemate: 1/2-1/2";
+      }
 
-  room.fen = makeFen(chess.toSetup());
-  room.lastMove = [fromStr, toStr];
+      room.fen = makeFen(chess.toSetup());
+      room.lastMove = [fromStr, toStr];
 
-  if (gameOver) {
-    room.concluded = true;
-    room.result = result;
-    applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
-    sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result }, "gameOver");
-    return;
-  }
+      if (gameOver) {
+        room.concluded = true;
+        room.result = result;
+        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+        // when a game finishes, mark finished and update lobby
+        room.status = "finished";
+        broadcastLobby();
+        sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result }, "gameOver");
+        return;
+      }
 
-  sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove }, "update");
-  return;
-}
+      sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove }, "update");
+      return;
+    }
 
+    // ---------- REMATCH ----------
+    if (data.type === "rematch" && roomId) {
+      const room = rooms.get(roomId)!;
+      if (!room.concluded) return;
 
-// ---------- REMATCH ----------
-if (data.type === "rematch" && roomId) {
-  const room = rooms[roomId]!;
-  if (!room.concluded) return;
+      const uid = (ws as any).playerId;
+      if (!uid) return;
 
-  const uid = (ws as any).playerId;
-  if (!uid) return;
+      room.rematchVotes = room.rematchVotes ?? new Set();
+      room.rematchVotes.add(uid);
 
-  room.rematchVotes = room.rematchVotes ?? new Set();
-  room.rematchVotes.add(uid);
+      if (room.rematchVotes.size !== 2) return;
 
-  if (room.rematchVotes.size !== 2) return;
+      const [p1, p2] = room.players!;
 
-  const [p1, p2] = room.players!;
+      // alternate colors by swapping players
+      room.players = [p2, p1];
 
-  // alternate colors by swapping players
-  room.players = [p2, p1];
+      // RECOMPUTE FEN FROM ACTIVE DRAFTS
+      let startFen: string;
+      try {
+        const { normalFen } = await getCombinedStartFens(room.players[0], room.players[1]);
 
-  // RECOMPUTE FEN FROM ACTIVE DRAFTS
-  let startFen: string;
-  try {
-    const { normalFen, reversedFen } =
-      await getCombinedStartFens(room.players[0], room.players[1]);
+        // alternate orientation implicitly via player order
+        startFen = normalFen;
+      } catch (err) {
+        console.error("Failed to compute start FEN:", err);
+        startFen = START_FEN;
+      }
 
-    // alternate orientation implicitly via player order
-    startFen = normalFen;
-  } catch (err) {
-    console.error("Failed to compute start FEN:", err);
-    startFen = START_FEN;
-  }
+      room.fen = startFen;
+      room.lastMove = undefined;
+      room.concluded = false;
+      room.result = undefined;
+      room.rematchVotes.clear();
 
-  room.fen = startFen;
-  room.lastMove = undefined;
-  room.concluded = false;
-  room.result = undefined;
-  room.rematchVotes.clear();
+      // set status back to playing
+      room.status = "playing";
+      broadcastLobby();
 
-  sendRoomUpdate(room, { fen: room.fen }, "newGame");
-  return;
-}
-
+      sendRoomUpdate(room, { fen: room.fen }, "newGame");
+      return;
+    }
 
     // ---------- RESIGN ----------
     if (data.type === "resign" && roomId) {
-      const room = rooms[roomId]!;
+      const room = rooms.get(roomId)!;
       if (room.concluded) return;
       const uid = (ws as any).playerId;
       if (!uid) return;
@@ -604,13 +671,17 @@ if (data.type === "rematch" && roomId) {
       // Apply result to scores
       applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
 
+      // mark finished in lobby
+      room.status = "finished";
+      broadcastLobby();
+
       sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: room.result, reason: "resignation" }, "gameOver");
       return;
     }
 
     // ---------- DRAW ----------
     if (data.type === "draw" && roomId) {
-      const room = rooms[roomId]!;
+      const room = rooms.get(roomId)!;
       if (room.concluded) return;
       const uid = (ws as any).playerId;
       if (!uid || !room.players?.includes(uid)) return;
@@ -624,6 +695,10 @@ if (data.type === "rematch" && roomId) {
         // Apply draw points using stable ids
         applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
 
+        // mark finished
+        room.status = "finished";
+        broadcastLobby();
+
         sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: "1/2-1/2", reason: "draw-agreement" }, "gameOver");
       }
       return;
@@ -631,7 +706,7 @@ if (data.type === "rematch" && roomId) {
 
     // ---------- LEAVE / CLEANUP ----------
     if (data.type === "leave" && roomId) {
-      const room = rooms[roomId];
+      const room = rooms.get(roomId);
       if (!room) return;
 
       // remove this socket from the clients
@@ -646,7 +721,10 @@ if (data.type === "rematch" && roomId) {
 
       if (room.clients.size === 0) {
         if (room.cleanupTimeout) clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
-        room.cleanupTimeout = setTimeout(() => delete rooms[roomId!], 30_000);
+        room.cleanupTimeout = setTimeout(() => {
+          rooms.delete(roomId!);
+          broadcastLobby();
+        }, 30_000);
       } else {
         sendRoomUpdate(room, {}, "update");
       }
@@ -661,25 +739,15 @@ if (data.type === "rematch" && roomId) {
 
 const port = Number(process.env.PORT) || 4000;
 
-server.listen(port, '0.0.0.0', () => {
+server.listen(port, "0.0.0.0", () => {
   console.log(`Server listening on port ${port}`);
 });
 
-
-// ---------- end ----------
-
-/// helpers:
-
+// ---------- helpers continued: combine drafts into a start FEN ----------
 async function getCombinedStartFens(player1Id: string, player2Id: string) {
   const drafts = await prisma.draft.findMany({
-    where: {
-      userId: { in: [player1Id, player2Id] },
-      isActive: true,
-    },
-    select: {
-      userId: true,
-      data: true,
-    },
+    where: { userId: { in: [player1Id, player2Id] }, isActive: true },
+    select: { userId: true, data: true },
   });
 
   if (drafts.length !== 2) {
@@ -718,31 +786,18 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
   const normalBlackTop = mirrorAndLower(whiteRowsB);
   const normalWhiteBottom = whiteRowsA;
 
-  const normalCombined = [
-    ...normalBlackTop,
-    "8", "8", "8", "8",
-    ...normalWhiteBottom,
-  ].join("/");
+  const normalCombined = [...normalBlackTop, "8", "8", "8", "8", ...normalWhiteBottom].join("/");
   const normalFen = `${normalCombined} w KQkq - 0 1`;
 
   // --- Reversed color version ---
   const reversedBlackTop = mirrorAndLower(whiteRowsA);
   const reversedWhiteBottom = whiteRowsB;
 
-  const reversedCombined = [
-    ...reversedBlackTop,
-    "8", "8", "8", "8",
-    ...reversedWhiteBottom,
-  ].join("/");
+  const reversedCombined = [...reversedBlackTop, "8", "8", "8", "8", ...reversedWhiteBottom].join("/");
   const reversedFen = `${reversedCombined} w KQkq - 0 1`;
-
-  //console.log("Combined start FEN (normal):", normalFen);
-  //console.log("Combined start FEN (reversed):", reversedFen);
 
   return { normalFen, reversedFen };
 }
-
-
 
 
 

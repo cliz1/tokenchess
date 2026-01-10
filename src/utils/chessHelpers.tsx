@@ -19,9 +19,9 @@ export function playSound(type: "move1" | "move2" | "move3" | "move4" |  "captur
     archer: "/sounds/arrow.mp3",
     x_capture: "/sounds/x_capture.mp3",
     snare: "/sounds/snare.mp3",
-    win: "/sounds/win.mp3",
-    lose: "/sounds/lose.mp3",
-    draw:"/sounds/draw.mp3",
+    win: "/sounds/GenericNotify.mp3",
+    lose: "/sounds/GenericNotify.mp3",
+    draw:"/sounds/GenericNotify.mp3",
     castle: "/sounds/castle.mp3"
   }[type];
   const audio = new Audio(src);
@@ -78,10 +78,10 @@ export function playResultSound(result: string){
     playSound('win');
   }
   else if (result == 'lose'){
-    //playSound('lose');
+    playSound('lose');
   }
   else if (result == 'draw'){
-    //playSound('draw');
+    playSound('draw');
   }
 
 }
