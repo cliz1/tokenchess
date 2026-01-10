@@ -78,10 +78,10 @@ export function playResultSound(result: string){
     playSound('win');
   }
   else if (result == 'lose'){
-    playSound('lose');
+    //playSound('lose');
   }
   else if (result == 'draw'){
-    playSound('draw');
+    //playSound('draw');
   }
 
 }

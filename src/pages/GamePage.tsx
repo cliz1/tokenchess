@@ -10,6 +10,9 @@ import { useGameSocket } from "../hooks/useGameSocket";
 import type { GameUpdate } from "../hooks/useGameSocket";
 import { parseSquare } from "chessops/util";
 import { getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
+import { apiFetch } from "../api";
+import { useAuth } from "../AuthContext";
+
 
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
@@ -37,6 +40,17 @@ export default function GamePage() {
   const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
 
+  type Draft = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  slot: number;
+};
+
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [draftOpen, setDraftOpen] = useState(false);
+
+
   // keep color ref for game termination update
   const playerColorRef = useRef<"white" | "black" | null>(playerColor);
   useEffect(() => { playerColorRef.current = playerColor; }, [playerColor]);
@@ -47,6 +61,19 @@ export default function GamePage() {
   color: "white" | "black";
 } | null>(null);
 
+// ensure no draft fetching during active play
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user || !gameResult) return;
+    loadDrafts();
+  }, [user, gameResult]);
+
+  async function loadDrafts() {
+    const res: Draft[] = await apiFetch("/drafts");
+    res.sort((a, b) => a.slot - b.slot);
+    setDrafts(res);
+  }
 
   // --- stable WS callback ---
   const onGameUpdate = useCallback((update: GameUpdate) => {
@@ -261,6 +288,72 @@ const promotePawn = (role: string) => {
     return `${p.username} (${score})`;
   };
 
+  // helper: draft change menu
+  function ChangeDraftDropdown() {
+  return (
+    <div style={{ position: "relative" }}>
+      <button onClick={() => setDraftOpen(o => !o)}>
+        Switch Draft
+      </button>
+
+      {draftOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            background: "#111",
+            border: "1px solid #444",
+            borderRadius: 6,
+            padding: 6,
+            zIndex: 20,
+            minWidth: 160,
+          }}
+        >
+          {drafts.map(d => (
+            <div
+              key={d.id}
+              onClick={() => activateDraft(d)}
+              style={{
+                padding: "6px 10px",
+                cursor: "pointer",
+                borderRadius: 4,
+                marginBottom: 4,
+                background: d.isActive ? "#2a7" : "#222",
+                color: "#fff",
+              }}
+            >
+              {d.name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// helper: set draft 
+async function activateDraft(draft: Draft) {
+  try {
+    await apiFetch(`/drafts/${draft.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ isActive: true }),
+    });
+
+    // Optimistic UI update
+    setDrafts(ds =>
+      ds.map(d => ({
+        ...d,
+        isActive: d.id === draft.id,
+      }))
+    );
+
+    setDraftOpen(false);
+  } catch (err: any) {
+    alert(err.message);
+  }
+}
+
   return (
     <div
       style={{
@@ -284,6 +377,7 @@ const promotePawn = (role: string) => {
             <div>{gameResult}</div>
             <button onClick={() => sendRematch()}>Rematch</button>
             <button onClick={handleLeave}>Leave</button>
+            <ChangeDraftDropdown />
           </div>
         )}
       </div>

@@ -268,12 +268,6 @@ type Room = {
   drawVotes?: Set<string>;
   cleanupTimeout?: NodeJS.Timeout | number;
   scores?: Record<string, number>;
-  fenCalculated?: boolean;
-
-  // New fields:
-  normalFen?: string;
-  reversedFen?: string;
-  currentFenIndex?: 0 | 1; // 0 = normal, 1 = reversed
 };
 
 
@@ -443,24 +437,6 @@ wss.on("connection", (ws) => {
           (ws as any).playerId = uid;
           room.players.push(uid);
 
-          if (room.players.length === 2 && !room.fenCalculated) {
-            try {
-              const [player1Id, player2Id] = room.players;
-              const { normalFen, reversedFen } = await getCombinedStartFens(player1Id, player2Id);
-
-              room.normalFen = normalFen;
-              room.reversedFen = reversedFen;
-              room.currentFenIndex = 0; // start with normal
-              room.fen = normalFen;
-              room.fenCalculated = true;
-
-              //console.log("Room initialized with FENs:", { normalFen, reversedFen });
-            } catch (err) {
-              console.error("Error fetching active draft FENs:", err);
-            }
-          }
-
-
         } else {
           // full -> spectator
           (ws as any).playerId = undefined;
@@ -579,36 +555,33 @@ if (data.type === "rematch" && roomId) {
   room.rematchVotes = room.rematchVotes ?? new Set();
   room.rematchVotes.add(uid);
 
-  // Only start new game when both players agree
-  if (room.rematchVotes.size === 2) {
-    const [p1, p2] = room.players!;
+  if (room.rematchVotes.size !== 2) return;
 
-    // swap players for color reversal
-    room.players = [p2, p1];
+  const [p1, p2] = room.players!;
 
-    // toggle which FEN is used (normal <-> reversed)
-    room.currentFenIndex = room.currentFenIndex === 0 ? 1 : 0;
-    const nextFen =
-      room.currentFenIndex === 0
-        ? room.normalFen ?? START_FEN
-        : room.reversedFen ?? START_FEN;
+  // alternate colors by swapping players
+  room.players = [p2, p1];
 
-    // reset board state
-    room.fen = nextFen;
-    room.lastMove = undefined;
-    room.concluded = false;
-    room.result = undefined;
+  // RECOMPUTE FEN FROM ACTIVE DRAFTS
+  let startFen: string;
+  try {
+    const { normalFen, reversedFen } =
+      await getCombinedStartFens(room.players[0], room.players[1]);
 
-    // clear votes for future rematches
-    room.rematchVotes.clear();
-
-    console.log(
-      `Starting rematch with ${room.currentFenIndex === 0 ? "normal" : "reversed"} FEN`
-    );
-
-    // broadcast newGame — sendRoomUpdate will include new fen
-    sendRoomUpdate(room, { fen: room.fen }, "newGame");
+    // alternate orientation implicitly via player order
+    startFen = normalFen;
+  } catch (err) {
+    console.error("Failed to compute start FEN:", err);
+    startFen = START_FEN;
   }
+
+  room.fen = startFen;
+  room.lastMove = undefined;
+  room.concluded = false;
+  room.result = undefined;
+  room.rematchVotes.clear();
+
+  sendRoomUpdate(room, { fen: room.fen }, "newGame");
   return;
 }
 
