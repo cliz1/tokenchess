@@ -567,10 +567,10 @@ wss.on("connection", (ws: WebSocket, req) => {
           if (room.players.length === 2 && room.status === "open") {
             room.status = "playing";
             room.clock = {
-            initialMs: 1 * 60 * 1000,
+            initialMs: 10 * 60 * 1000,
             incrementMs: 0, // or Fischer increment later
-            whiteMs: 1 * 60 * 1000,
-            blackMs: 1 * 60 * 1000,
+            whiteMs: 10 * 60 * 1000,
+            blackMs: 10 * 60 * 1000,
             running: "white",
             lastStartTs: Date.now(),
           };
@@ -756,7 +756,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       // set status back to playing
       room.status = "playing";
-      const INITIAL_MS = 1 * 60 * 1000;
+      const INITIAL_MS = 10 * 60 * 1000;
       const INCREMENT_MS = 0;
 
       room.clock = {
