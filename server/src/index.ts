@@ -61,6 +61,15 @@ function generateRoomCode(length = 6) {
 // ---------- types & in-memory store ----------
 export type RoomStatus = "open" | "playing" | "finished";
 
+type ClockState = {
+  initialMs: number;            // e.g. 5 * 60 * 1000
+  incrementMs: number;          // e.g. 2000
+  whiteMs: number;
+  blackMs: number;
+  running: "white" | "black" | null;
+  lastStartTs: number | null;   // Date.now() when current clock started
+};
+
 export type Room = {
   id: string;
   fen: string;
@@ -73,7 +82,9 @@ export type Room = {
 
   clients: Set<WebSocket>;
 
-  // legacy-style fields kept for game lifecycle
+  clock?: ClockState;
+
+  // legacy fields
   lastMove?: [string, string];
   ownerId?: string;
   concluded?: boolean;
@@ -82,9 +93,61 @@ export type Room = {
   drawVotes?: Set<string>;
   cleanupTimeout?: NodeJS.Timeout | number;
   scores?: Record<string, number>;
+
+
+
+
 };
 
 export const rooms = new Map<string, Room>();
+
+const CLOCK_TICK_MS = 250; // resolution (ms)
+
+setInterval(() => {
+  const now = Date.now();
+
+  for (const room of rooms.values()) {
+    if (room.status !== "playing") continue;
+    const clock = room.clock;
+    if (!clock || !clock.running || !clock.lastStartTs) continue;
+
+    const elapsed = now - clock.lastStartTs;
+
+    const remaining =
+      clock.running === "white"
+        ? clock.whiteMs - elapsed
+        : clock.blackMs - elapsed;
+
+    if (remaining > 0) continue;
+
+    // ---- FLAG FALL ----
+    const flaggedSide = clock.running;
+
+    clock.whiteMs = Math.max(0, clock.whiteMs);
+    clock.blackMs = Math.max(0, clock.blackMs);
+    clock.running = null;
+    clock.lastStartTs = null;
+
+    room.concluded = true;
+    room.status = "finished";
+
+    room.result =
+      flaggedSide === "white"
+        ? "White flagged: 0-1"
+        : "Black flagged: 1-0";
+
+
+    applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+    broadcastLobby();
+
+    sendRoomUpdate(
+      room,
+      { result: room.result, reason: "time" },
+      "gameOver",
+    );
+  }
+}, CLOCK_TICK_MS);
+
 
 // ---------- lobby helpers ----------
 const lobbyClients = new Set<WebSocket>();
@@ -350,6 +413,15 @@ function applyResultToScores(room: Room, result: RoomResult | string, whiteId?: 
       room.scores[whiteId] = (room.scores[whiteId] ?? 0) + 0.5;
       room.scores[blackId] = (room.scores[blackId] ?? 0) + 0.5;
       break;
+    case "Black flagged: 1-0":
+    room.scores[whiteId] = (room.scores[whiteId] ?? 0) + 1;
+    room.scores[blackId] = room.scores[blackId] ?? 0;
+    break;
+
+    case "White flagged: 0-1":
+    room.scores[whiteId] = room.scores[whiteId] ?? 0;
+    room.scores[blackId] = (room.scores[blackId] ?? 0) + 1;
+    break;
     default:
       break;
   }
@@ -385,6 +457,12 @@ function sendRoomUpdate(
       players: serializePlayers(room),
       scores: room.scores,
       reason: payload.reason,
+      clock: room.clock? {
+        whiteMs: room.clock.whiteMs,
+        blackMs: room.clock.blackMs,
+        running: room.clock.running,
+      }
+    : undefined,
     } as any;
 
     try {
@@ -488,7 +566,16 @@ wss.on("connection", (ws: WebSocket, req) => {
           // when second player joins, transition to playing
           if (room.players.length === 2 && room.status === "open") {
             room.status = "playing";
-            // compute start fen from drafts (best effort)
+            room.clock = {
+            initialMs: 1 * 60 * 1000,
+            incrementMs: 0, // or Fischer increment later
+            whiteMs: 1 * 60 * 1000,
+            blackMs: 1 * 60 * 1000,
+            running: "white",
+            lastStartTs: Date.now(),
+          };
+
+            // compute start fen from drafts 
             try {
               const [p1, p2] = room.players;
               const { normalFen } = await getCombinedStartFens(p1, p2);
@@ -579,6 +666,25 @@ wss.on("connection", (ws: WebSocket, req) => {
       if (!chess.isLegal(moveObj)) return;
 
       chess.play(moveObj);
+      // ----- CLOCK UPDATE -----
+      const sideToMove = room.clock?.running;
+      const flagged = applyClockAfterMove(room);
+
+      if (flagged) {
+        freezeClock(room);
+        room.concluded = true;
+        room.status = "finished";
+
+        room.result =
+          sideToMove === "white"
+            ? "White flagged: 0-1"
+            : "Black flagged: 1-0";
+
+        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+        broadcastLobby();
+        sendRoomUpdate(room, { result: room.result, reason: "time" }, "gameOver");
+        return;
+      }
       room.drawVotes = new Set();
       let gameOver = false;
       let result: RoomResult | string = "ongoing";
@@ -595,6 +701,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.lastMove = [fromStr, toStr];
 
       if (gameOver) {
+        freezeClock(room);
         room.concluded = true;
         room.result = result;
         applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
@@ -643,10 +750,24 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.lastMove = undefined;
       room.concluded = false;
       room.result = undefined;
+
+
       room.rematchVotes.clear();
 
       // set status back to playing
       room.status = "playing";
+      const INITIAL_MS = 1 * 60 * 1000;
+      const INCREMENT_MS = 0;
+
+      room.clock = {
+        initialMs: INITIAL_MS,
+        incrementMs: INCREMENT_MS,
+        whiteMs: INITIAL_MS,
+        blackMs: INITIAL_MS,
+        running: "white",
+        lastStartTs: Date.now(),
+      };
+
       broadcastLobby();
 
       sendRoomUpdate(room, { fen: room.fen }, "newGame");
@@ -665,6 +786,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       if (!winnerId) return;
 
       const winnerColor: "white" | "black" = room.players?.[0] === winnerId ? "white" : "black";
+      freezeClock(room);
       room.result = winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
       room.concluded = true;
 
@@ -690,6 +812,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.drawVotes.add(uid);
       if (room.drawVotes.size === 2) {
         room.concluded = true;
+        freezeClock(room);
         room.result = "Agreement: 1/2-1/2";
 
         // Apply draw points using stable ids
@@ -797,6 +920,36 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
   const reversedFen = `${reversedCombined} w KQkq - 0 1`;
 
   return { normalFen, reversedFen };
+}
+
+// clock helpers
+function applyClockAfterMove(room: Room): boolean {
+  const clock = room.clock;
+  if (!clock || !clock.running || !clock.lastStartTs) return false;
+
+  const now = Date.now();
+  const elapsed = now - clock.lastStartTs;
+
+  if (clock.running === "white") {
+    clock.whiteMs -= elapsed;
+    clock.whiteMs += clock.incrementMs;
+    if (clock.whiteMs <= 0) return true; // flag fall
+  } else {
+    clock.blackMs -= elapsed;
+    clock.blackMs += clock.incrementMs;
+    if (clock.blackMs <= 0) return true; // flag fall
+  }
+
+  clock.running = clock.running === "white" ? "black" : "white";
+  clock.lastStartTs = now;
+
+  return false;
+}
+
+function freezeClock(room: Room) {
+  if (!room.clock) return;
+  room.clock.running = null;
+  room.clock.lastStartTs = null;
 }
 
 

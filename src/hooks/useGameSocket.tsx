@@ -9,6 +9,11 @@ export type GameUpdate = {
   result?: "1-0" | "0-1" | "1/2-1/2" | "ongoing";
   players?: { id: string; username: string }[];
   scores?: Record<string, number>;
+  clock?: {
+    whiteMs: number;
+    blackMs: number;
+    running: "white" | "black" | null;
+  };
 };
 
 export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => void) {
@@ -54,6 +59,7 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
           color: data.color,
           players: data.players,
           scores: data.scores,
+          clock: data.clock,
         });
       }
     };

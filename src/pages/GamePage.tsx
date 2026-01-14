@@ -40,6 +40,18 @@ export default function GamePage() {
   const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
 
+  type ClockState = {
+  whiteMs: number;
+  blackMs: number;
+  running: "white" | "black" | null;
+  };
+
+  const [clock, setClock] = useState<ClockState | null>(null);
+  const clockRef = useRef<ClockState | null>(null);
+  const tickRef = useRef<number | null>(null);
+
+
+
   type Draft = {
   id: string;
   name: string;
@@ -162,6 +174,12 @@ export default function GamePage() {
         lastMoveRef.current = update.lastMove;
       }
     }
+    if (update.clock) {
+      setClock(update.clock);
+    }
+    if (update.type === "gameOver") {
+      setClock(update.clock ?? null);
+    }
   }, []);
 
   const { sendMove, sendLeave, sendRematch, sendResign, sendDraw } = useGameSocket(roomId, onGameUpdate);
@@ -174,6 +192,41 @@ export default function GamePage() {
     } as Config);
     return () => groundRef.current?.destroy();
   }, []);
+
+  useEffect(() => {
+  clockRef.current = clock;
+}, [clock]);
+
+useEffect(() => {
+  if (!clock || !clock.running) return;
+
+  const start = performance.now();
+  const base = clock;
+
+  function tick(now: number) {
+    const elapsed = now - start;
+
+    if (!clockRef.current || clockRef.current.running !== base.running) return;
+
+    setClock((prev) => {
+      if (!prev) return prev;
+      if (prev.running === "white") {
+        return { ...prev, whiteMs: base.whiteMs - elapsed };
+      } else {
+        return { ...prev, blackMs: base.blackMs - elapsed };
+      }
+    });
+
+    tickRef.current = requestAnimationFrame(tick);
+  }
+
+  tickRef.current = requestAnimationFrame(tick);
+
+  return () => {
+    if (tickRef.current) cancelAnimationFrame(tickRef.current);
+  };
+}, [clock?.running]);
+
 
   useEffect(() => {
     if (!groundRef.current) return;
@@ -249,8 +302,10 @@ export default function GamePage() {
             setLastMove([from, to]);
             lastMoveRef.current = [from, to];
             if (promotionRole) {
+              switchClockAfterLocalMove();
               sendMove([from, to, promotionRole]);
             } else {
+              switchClockAfterLocalMove();
               sendMove([from, to]);
             }
           },
@@ -278,6 +333,7 @@ const promotePawn = (role: string) => {
   fenRef.current = newFen;
   setLastMove([from, to]);
   lastMoveRef.current = [from, to];
+  switchClockAfterLocalMove();
   sendMove([from, to, role]);
   setPendingPromotion(null);
 };
@@ -354,6 +410,29 @@ async function activateDraft(draft: Draft) {
   }
 }
 
+function formatMs(ms: number) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function switchClockAfterLocalMove() {
+  setClock(prev => {
+    if (!prev || !prev.running) return prev;
+
+    const next =
+      prev.running === "white" ? "black" : "white";
+
+    return {
+      ...prev,
+      running: next,
+    };
+  });
+}
+
+
+
   return (
     <div
       style={{
@@ -366,6 +445,18 @@ async function activateDraft(draft: Draft) {
       <div style={{ marginTop: 5, fontFamily: "monospace" }}>
         {players.map(formatPlayerLine).join(" vs ")} &nbsp; Room: {roomId}
       </div>
+
+        {clock && (
+    <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
+      <div style={{ fontWeight: clock.running === "white" ? "bold" : "normal" }}>
+        White: {formatMs(clock.whiteMs)}
+      </div>
+      <div style={{ fontWeight: clock.running === "black" ? "bold" : "normal" }}>
+        Black: {formatMs(clock.blackMs)}
+      </div>
+    </div>
+  )}
+
 
       {/* Horizontal container */}
       <div style={{ display: "flex", alignItems: "flex-start", marginTop: 10 }}>
@@ -455,6 +546,7 @@ async function activateDraft(draft: Draft) {
                       fenRef.current = newFen;
                       setLastMove([from, to]);
                       lastMoveRef.current = [from, to];
+                      switchClockAfterLocalMove();
                       sendMove([from, to]);
                     },
                   },
