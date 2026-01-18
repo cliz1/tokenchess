@@ -8,16 +8,25 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const nav = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      await register(email, password, username);
-      nav("/");
-    } catch (err: any) {
-      alert(err.message);
+ async function onSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  setError(null);
+
+  try {
+    await register(email, password, username);
+    nav("/");
+  } catch (err: any) {
+    if (err.message === "USERNAME_TAKEN") {
+      setError("That username is already taken.");
+    } else if (err.message === "EMAIL_TAKEN") {
+      setError("That email is already registered.");
+    } else {
+      setError("Something went wrong. Please try again.");
     }
   }
+}
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -43,6 +52,20 @@ export default function RegisterPage() {
   return (
     <div style={{ padding: 24, maxWidth: 400, margin: "0 auto" }}>
       <h2 style={{ marginBottom: 20 }}>Create Account</h2>
+      {error && (
+        <div
+          style={{
+            marginBottom: 14,
+            padding: "10px 12px",
+            borderRadius: 6,
+            background: "#ffecec",
+            color: "#a40000",
+            fontSize: 14,
+          }}
+        >
+          {error}
+        </div>
+      )}
       <form onSubmit={onSubmit}>
         <div>
           <input

@@ -189,6 +189,8 @@ app.get("/api/health", (_req, res) => {
 });
 
 // ---------- routes: auth ----------
+import { Prisma } from "@prisma/client";
+
 app.post("/api/auth/register", async (req, res) => {
   const { email, password, username } = req.body;
   if (!email || !password || !username)
@@ -196,7 +198,8 @@ app.post("/api/auth/register", async (req, res) => {
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) return res.status(409).json({ error: "Email already exists" });
+    if (existing)
+      return res.status(409).json({ error: "EMAIL_TAKEN" });
 
     const hash = await bcrypt.hash(password, 10);
 
@@ -206,11 +209,29 @@ app.post("/api/auth/register", async (req, res) => {
 
     const token = signToken({ id: user.id, email: user.email });
 
-    res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
+    res.json({
+      token,
+      user: { id: user.id, email: user.email, username: user.username },
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+  if (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === "P2002"
+  ) {
+    const target = err.meta?.target;
+
+    if (
+      (Array.isArray(target) && target.includes("username")) ||
+      target === "username"
+    ) {
+      return res.status(409).json({ error: "USERNAME_TAKEN" });
+    }
   }
+
+  console.error(err);
+  res.status(500).json({ error: "SERVER_ERROR" });
+}
+
 });
 
 app.post("/api/auth/login", async (req, res) => {
