@@ -461,6 +461,9 @@ function sendRoomUpdate(
         whiteMs: room.clock.whiteMs,
         blackMs: room.clock.blackMs,
         running: room.clock.running,
+        lastStartTs: room.clock.lastStartTs,
+        initialMs: room.clock.initialMs,
+        incrementMs: room.clock.incrementMs
       }
     : undefined,
     } as any;
@@ -630,6 +633,16 @@ wss.on("connection", (ws: WebSocket, req) => {
             color: cliColor,
             players: serializePlayers(room),
             scores: room.scores,
+            clock: room.clock
+            ? {
+                whiteMs: room.clock.whiteMs,
+                blackMs: room.clock.blackMs,
+                running: room.clock.running,
+                lastStartTs: room.clock.lastStartTs,
+                initialMs: room.clock.initialMs,
+                incrementMs: room.clock.incrementMs,
+              }
+            : undefined,
           }),
         );
       }

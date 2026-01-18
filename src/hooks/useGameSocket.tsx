@@ -13,6 +13,9 @@ export type GameUpdate = {
     whiteMs: number;
     blackMs: number;
     running: "white" | "black" | null;
+    lastStartTs: number | null;
+    initialMs: number;
+    incrementMs: number;
   };
 };
 

@@ -13,13 +13,12 @@ import { getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
 import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
 
-
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 
-export default function GamePage() {
+export default function GamePage2() {
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<any>(null);
   const chessRef = useRef<Chess>(Chess.default());
@@ -40,65 +39,49 @@ export default function GamePage() {
   const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
 
- type ClockState = {
-  whiteMs: number;
-  blackMs: number;
-  running: "white" | "black" | null;
-  lastStartTs: number | null;
-  initialMs: number;
-  incrementMs: number;
-};
+  type ClockState = {
+    whiteMs: number;
+    blackMs: number;
+    running: "white" | "black" | null;
+  };
 
+  // displayed clock (what UI renders)
   const [clock, setClock] = useState<ClockState | null>(null);
+
+  // authoritative server snapshot + local receive time
+  const serverClockRef = useRef<ClockState | null>(null);
+  const [serverClockReceivedAt, setServerClockReceivedAt] = useState<number | null>(null);
+
   const clockRef = useRef<ClockState | null>(null);
-  const [, forceRender] = useState(0);
-
-
-
+  const tickRef = useRef<number | null>(null);
 
   type Draft = {
-  id: string;
-  name: string;
-  isActive: boolean;
-  slot: number;
-};
+    id: string;
+    name: string;
+    isActive: boolean;
+    slot: number;
+  };
 
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [draftOpen, setDraftOpen] = useState(false);
-
 
   // keep color ref for game termination update
   const playerColorRef = useRef<"white" | "black" | null>(playerColor);
   useEffect(() => { playerColorRef.current = playerColor; }, [playerColor]);
 
   const [pendingPromotion, setPendingPromotion] = useState<{
-  from: string;
-  to: string;
-  color: "white" | "black";
-} | null>(null);
+    from: string;
+    to: string;
+    color: "white" | "black";
+  } | null>(null);
 
-// ensure no draft fetching during active play
+  // ensure no draft fetching during active play
   const { user } = useAuth();
 
   useEffect(() => {
     if (!user || !gameResult) return;
     loadDrafts();
   }, [user, gameResult]);
-
-  useEffect(() => {
-  if (!clock?.running) return;
-
-  let raf: number;
-
-  const tick = () => {
-    forceRender(t => t + 1); // visual tick only
-    raf = requestAnimationFrame(tick);
-  };
-
-  raf = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(raf);
-}, [clock?.running, clock?.lastStartTs]);
-
 
   async function loadDrafts() {
     const res: Draft[] = await apiFetch("/drafts");
@@ -108,7 +91,6 @@ export default function GamePage() {
 
   // --- stable WS callback ---
   const onGameUpdate = useCallback((update: GameUpdate) => {
-    //console.log("[onGameUpdate]", update);
     if (update.players) setPlayers(update.players);
     if (update.role) setRole(update.role);
     if (update.color) setPlayerColor(update.color);
@@ -123,37 +105,21 @@ export default function GamePage() {
       update.lastMove[0] === prevLast[0] &&
       update.lastMove[1] === prevLast[1];
 
-    if (update.clock) {
-      console.log("[ONGAMEUPDATE]: received update.clock.running: ", update.clock.running)
-      setClock(update.clock);
-    }
-
     if (sameFen && sameLastMove && update.result === undefined) return;
 
     if (update.result !== undefined) {
-      //console.log("[onGameUpdate] Setting gameResult =", update.result);
-            // --- Determine win/lose/draw from the perspective of the client ---
-        let outcome: "win" | "lose" | "draw" | null = null;
+      let outcome: "win" | "lose" | "draw" | null = null;
+      const effectiveColor = update.color ?? playerColorRef.current;
+      const match = update.result.match(/(1-0|0-1|1\/2-1\/2)$/);
+      const score = match ? (match[1] as any) : null;
 
-        const effectiveColor = update.color ?? playerColorRef.current;
-
-        // Match a score that appears at the *end* of the string
-        const match = update.result.match(/(1-0|0-1|1\/2-1\/2)$/);
-        const score = match ? (match[1] as any) : null;
-
-        if (effectiveColor && score) {
-          if (score === "1-0") {
-            outcome = effectiveColor === "white" ? "win" : "lose";
-          } else if (score === "0-1") {
-            outcome = effectiveColor === "black" ? "win" : "lose";
-          } else if (score === "1/2-1/2") {
-            outcome = "draw";
-          }
-        }
-        if (outcome) {
-          playResultSound(outcome);
-        }
-      setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
+      if (effectiveColor && score) {
+        if (score === "1-0") outcome = effectiveColor === "white" ? "win" : "lose";
+        else if (score === "0-1") outcome = effectiveColor === "black" ? "win" : "lose";
+        else if (score === "1/2-1/2") outcome = "draw";
+      }
+      if (outcome) playResultSound(outcome);
+      setGameResult(update.result as any);
     } else if (update.type === "newGame") {
       setGameResult(null);
       setLastMove(null);
@@ -198,8 +164,23 @@ export default function GamePage() {
         lastMoveRef.current = update.lastMove;
       }
     }
+
+    // --- clock handling: record authoritative server snapshot + receive time
+    if (update.clock) {
+      serverClockRef.current = update.clock;
+      setServerClockReceivedAt(performance.now());
+      // also update displayed clock immediately to server snapshot (will be animated by tick loop)
+      setClock(update.clock);
+    }
     if (update.type === "gameOver") {
-      setClock(update.clock ?? null);
+      // if server sends gameOver with a clock, we already set it above; otherwise just clear running
+      if (update.clock) {
+        serverClockRef.current = update.clock;
+        setServerClockReceivedAt(performance.now());
+        setClock(update.clock);
+      } else {
+        setClock((prev) => prev ? { ...prev, running: null } : prev);
+      }
     }
   }, []);
 
@@ -214,12 +195,52 @@ export default function GamePage() {
     return () => groundRef.current?.destroy();
   }, []);
 
+  // ---- Tick loop derived from authoritative server snapshot ----
   useEffect(() => {
-  clockRef.current = clock;
-}, [clock]);
+    // if no server snapshot, nothing to animate
+    const base = serverClockRef.current;
+    if (!base || serverClockReceivedAt == null) {
+      // ensure UI shows whatever clock state we have (or null)
+      clockRef.current = clock;
+      return;
+    }
 
+    // if no running side, just display server snapshot (no animation)
+    if (!base.running) {
+      setClock(base);
+      clockRef.current = base;
+      return;
+    }
 
+    let raf = 0;
+    function frame() {
+      const now = performance.now();
+      const elapsed = Math.max(0, now - (serverClockReceivedAt ?? now));
+      const b = serverClockRef.current!;
+      const running = b.running;
+      const display: ClockState = { ...b };
 
+      if (running === "white") {
+        display.whiteMs = Math.max(0, Math.floor(b.whiteMs - elapsed));
+      } else if (running === "black") {
+        display.blackMs = Math.max(0, Math.floor(b.blackMs - elapsed));
+      }
+
+      // update displayed clock
+      setClock(display);
+      clockRef.current = display;
+
+      raf = requestAnimationFrame(frame);
+    }
+
+    raf = requestAnimationFrame(frame);
+    tickRef.current = raf;
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      tickRef.current = null;
+    };
+  }, [serverClockReceivedAt]); // restarts whenever we receive a new server snapshot
 
   useEffect(() => {
     if (!groundRef.current) return;
@@ -240,7 +261,6 @@ export default function GamePage() {
         showDests: true,
         events: {
           after: (from: string, to: string) => {
-            console.trace('[AFTER]')
             if (role !== "player") return;
             const chess = chessRef.current;
             const fromSq = parseSquare(from);
@@ -253,10 +273,7 @@ export default function GamePage() {
             const fromRank = Math.floor(fromSq / 8);
 
             // intercept pawn promotion
-            if (
-              (fromPiece?.role === "pawn") &&
-              (toRank === 0 || toRank === 7)
-            ) {
+            if ((fromPiece?.role === "pawn") && (toRank === 0 || toRank === 7)) {
               setPendingPromotion({ from, to, color: chess.turn });
               return;
             }
@@ -264,7 +281,7 @@ export default function GamePage() {
             if (
               fromPiece?.role === "wizard" &&
               toPiece?.role === "pawn" &&
-              ((fromPiece?.color === 'white' && fromRank === 0) || ( fromPiece?.color === 'black' && fromRank === 7))
+              ((fromPiece?.color === "white" && fromRank === 0) || (fromPiece?.color === "black" && fromRank === 7))
             ) {
               setPendingPromotion({ from, to, color: chess.turn });
               return;
@@ -272,19 +289,23 @@ export default function GamePage() {
 
             // determine move and optional promotion role
             let promotionRole: string | null = null;
-            // Painter auto-promotes to RoyalPainter
-            if (fromPiece?.role === "painter" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'painter' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'painter' && fromRank === 0))) {
+            if (
+              (fromPiece?.role === "painter" && (toRank === 0 || toRank === 7)) ||
+              (fromPiece?.role === "wizard" && fromPiece?.color === "white" && toPiece?.role === "painter" && fromRank === 7) ||
+              (fromPiece?.role === "wizard" && fromPiece?.color === "black" && toPiece?.role === "painter" && fromRank === 0)
+            ) {
               promotionRole = "royalpainter";
-            }
-            // Snare auto-promotes to RollingSnare
-            else if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'snare' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'snare' && fromRank === 0))) {
+            } else if (
+              (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7)) ||
+              (fromPiece?.role === "wizard" && fromPiece?.color === "white" && toPiece?.role === "snare" && fromRank === 7) ||
+              (fromPiece?.role === "wizard" && fromPiece?.color === "black" && toPiece?.role === "snare" && fromRank === 0)
+            ) {
               promotionRole = "rollingsnare";
             }
-            
+
             const move: any = promotionRole
               ? { from: fromSq, to: toSq, promotion: promotionRole }
               : { from: fromSq, to: toSq };
-
 
             if (!chess.isLegal(move)) return;
             const preCaptured = chess.board.get(toSq) ?? null;
@@ -295,14 +316,10 @@ export default function GamePage() {
             fenRef.current = newFen;
             setLastMove([from, to]);
             lastMoveRef.current = [from, to];
-            const mover: "white" | "black" = chess.turn === "white" ? "black" : "white";
-            console.log("[AFTER]: mover: ", mover)
-            console.log("[AFTER]: move (from, to)", from, to)
-            if (promotionRole) {
-              sendMove([from, to, promotionRole]);
-            } else {
-              sendMove([from, to]);
-            }
+
+            // *** DO NOT optimistically flip the clock locally here. ***
+            // Wait for server to send authoritative clock snapshot.
+            sendMove(promotionRole ? [from, to, promotionRole] : [from, to]);
           },
         },
       },
@@ -315,22 +332,24 @@ export default function GamePage() {
     navigate("/");
   };
 
-const promotePawn = (role: string) => {
-  if (!pendingPromotion || !chessRef.current) return;
-  const { from, to } = pendingPromotion;
+  const promotePawn = (role: string) => {
+    if (!pendingPromotion || !chessRef.current) return;
+    const { from, to } = pendingPromotion;
 
-  const move: any = { from: parseSquare(from), to: parseSquare(to), promotion: role };
-  const preCaptured = chessRef.current.board.get(parseSquare(to)!) ?? null;
-  playMoveSound(chessRef.current, move, from, to, preCaptured);
-  chessRef.current.play(move);
-  const newFen = makeFen(chessRef.current.toSetup());
-  setFen(newFen);
-  fenRef.current = newFen;
-  setLastMove([from, to]);
-  lastMoveRef.current = [from, to];
-  sendMove([from, to, role]);
-  setPendingPromotion(null);
-};
+    const move: any = { from: parseSquare(from), to: parseSquare(to), promotion: role };
+    const preCaptured = chessRef.current.board.get(parseSquare(to)!) ?? null;
+    playMoveSound(chessRef.current, move, from, to, preCaptured);
+    chessRef.current.play(move);
+    const newFen = makeFen(chessRef.current.toSetup());
+    setFen(newFen);
+    fenRef.current = newFen;
+    setLastMove([from, to]);
+    lastMoveRef.current = [from, to];
+
+    // again: don't flip the clock locally; wait for server snapshot
+    sendMove([from, to, role]);
+    setPendingPromotion(null);
+  };
 
   // --- Helper: format score display ---
   const formatPlayerLine = (p: { id: string; username: string }) => {
@@ -340,78 +359,247 @@ const promotePawn = (role: string) => {
 
   // helper: draft change menu
   function ChangeDraftDropdown() {
-  return (
-    <div style={{ position: "relative" }}>
-      <button onClick={() => setDraftOpen(o => !o)}>
-        Switch Draft
-      </button>
+    return (
+      <div style={{ position: "relative" }}>
+        <button onClick={() => setDraftOpen(o => !o)}>
+          Switch Draft
+        </button>
 
-      {draftOpen && (
-        <div
-          style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            background: "#111",
-            border: "1px solid #444",
-            borderRadius: 6,
-            padding: 6,
-            zIndex: 20,
-            minWidth: 160,
-          }}
-        >
-          {drafts.map(d => (
+        {draftOpen && (
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              background: "#111",
+              border: "1px solid #444",
+              borderRadius: 6,
+              padding: 6,
+              zIndex: 20,
+              minWidth: 160,
+            }}
+          >
+            {drafts.map(d => (
+              <div
+                key={d.id}
+                onClick={() => activateDraft(d)}
+                style={{
+                  padding: "6px 10px",
+                  cursor: "pointer",
+                  borderRadius: 4,
+                  marginBottom: 4,
+                  background: d.isActive ? "#2a7" : "#222",
+                  color: "#fff",
+                }}
+              >
+                {d.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // helper: set draft
+  async function activateDraft(draft: Draft) {
+    try {
+      await apiFetch(`/drafts/${draft.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ isActive: true }),
+      });
+
+      // Optimistic UI update
+      setDrafts(ds =>
+        ds.map(d => ({
+          ...d,
+          isActive: d.id === draft.id,
+        }))
+      );
+
+      setDraftOpen(false);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  }
+
+  function formatMs(ms: number) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  }
+
+  function switchClockAfterLocalMove() {
+    // kept for compatibility but NOT used by move handlers in this version.
+    setClock(prev => {
+      if (!prev || !prev.running) return prev;
+
+      const next =
+        prev.running === "white" ? "black" : "white";
+
+      return {
+        ...prev,
+        running: next,
+      };
+    });
+  }
+
+  // Sidebar UI (clock, players, actions) — keeps original behavior for handlers
+  function GameSidebar() {
+    return (
+      <div
+        style={{
+          width: 260,
+          padding: 14,
+          borderRadius: 10,
+          background: "#1b1b1b",
+          color: "#eee",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          fontFamily: "system-ui, sans-serif",
+        }}
+      >
+        {/* CLOCK */}
+        {clock && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <ClockRow
+              label="White"
+              ms={clock.whiteMs}
+              active={clock.running === "white"}
+            />
+            <ClockRow
+              label="Black"
+              ms={clock.blackMs}
+              active={clock.running === "black"}
+            />
+          </div>
+        )}
+
+        <Divider />
+
+        {/* PLAYERS */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {players.map((p) => (
             <div
-              key={d.id}
-              onClick={() => activateDraft(d)}
+              key={p.id}
               style={{
-                padding: "6px 10px",
-                cursor: "pointer",
-                borderRadius: 4,
-                marginBottom: 4,
-                background: d.isActive ? "#2a7" : "#222",
-                color: "#fff",
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 14,
+                opacity: 0.9,
               }}
             >
-              {d.name}
+              <span>{p.username}</span>
+              <span>{scores[p.id] ?? 0}</span>
             </div>
           ))}
         </div>
-      )}
-    </div>
-  );
-}
 
-// helper: set draft 
-async function activateDraft(draft: Draft) {
-  try {
-    await apiFetch(`/drafts/${draft.id}`, {
-      method: "PUT",
-      body: JSON.stringify({ isActive: true }),
-    });
+        {/* IN-GAME ACTIONS: exact same handlers as original */}
+        {role === "player" && !gameResult && (
+          <>
+            <Divider />
+            <div style={{ display: "flex", gap: 8 }}>
+              <SidebarButton onClick={sendResign} danger>
+                Resign
+              </SidebarButton>
+              <SidebarButton onClick={sendDraw}>
+                Draw
+              </SidebarButton>
+            </div>
+          </>
+        )}
 
-    // Optimistic UI update
-    setDrafts(ds =>
-      ds.map(d => ({
-        ...d,
-        isActive: d.id === draft.id,
-      }))
+        {/* POST-GAME ACTIONS */}
+        {role === "player" && gameResult && (
+          <>
+            <Divider />
+            <div style={{ fontSize: 14, opacity: 0.85 }}>
+              Result: <strong>{gameResult}</strong>
+            </div>
+
+            <SidebarButton onClick={sendRematch}>
+              Rematch
+            </SidebarButton>
+            <SidebarButton onClick={handleLeave}>
+              Leave
+            </SidebarButton>
+
+            <ChangeDraftDropdown />
+          </>
+        )}
+      </div>
     );
-
-    setDraftOpen(false);
-  } catch (err: any) {
-    alert(err.message);
   }
-}
 
-function formatMs(ms: number) {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
+  function Divider() {
+    return (
+      <div
+        style={{
+          height: 1,
+          background: "#333",
+          margin: "6px 0",
+        }}
+      />
+    );
+  }
 
+  function ClockRow({
+    label,
+    ms,
+    active,
+  }: {
+    label: string;
+    ms: number;
+    active: boolean;
+  }) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "6px 8px",
+          borderRadius: 6,
+          background: active ? "#2a7" : "#222",
+          fontWeight: active ? 600 : 400,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        <span>{label}</span>
+        <span>{formatMs(ms)}</span>
+      </div>
+    );
+  }
 
+  function SidebarButton({
+    children,
+    onClick,
+    danger,
+  }: {
+    children: React.ReactNode;
+    onClick: () => void;
+    danger?: boolean;
+  }) {
+    return (
+      <button
+        onClick={onClick}
+        style={{
+          flex: 1,
+          padding: "8px 10px",
+          borderRadius: 6,
+          border: "none",
+          cursor: "pointer",
+          background: danger ? "#a33" : "#333",
+          color: "#fff",
+          fontSize: 13,
+        }}
+      >
+        {children}
+      </button>
+    );
+  }
 
   return (
     <div
@@ -426,58 +614,34 @@ function formatMs(ms: number) {
         {players.map(formatPlayerLine).join(" vs ")} &nbsp; Room: {roomId}
       </div>
 
-      {clock && (() => {
-  const now = Date.now();
-
-  const whiteMs =
-    clock.running === "white" && clock.lastStartTs
-      ? Math.max(0, clock.whiteMs - (now - clock.lastStartTs))
-      : clock.whiteMs;
-
-  const blackMs =
-    clock.running === "black" && clock.lastStartTs
-      ? Math.max(0, clock.blackMs - (now - clock.lastStartTs))
-      : clock.blackMs;
-
-  return (
-    <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
-      <div style={{ fontWeight: clock.running === "white" ? "bold" : "normal" }}>
-        White: {formatMs(whiteMs)}
-      </div>
-      <div style={{ fontWeight: clock.running === "black" ? "bold" : "normal" }}>
-        Black: {formatMs(blackMs)}
-      </div>
-    </div>
-  );
-})()}
-
-
-
-      {/* Horizontal container */}
-      <div style={{ display: "flex", alignItems: "flex-start", marginTop: 10 }}>
-        <div ref={containerRef} className="cg-wrap" style={{ width: 625, height: 625 }} />
-
-        {/* Game result + buttons (right) */}
-        {gameResult && role === "player" && (
-          <div style={{ marginLeft: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-            <div>{gameResult}</div>
-            <button onClick={() => sendRematch()}>Rematch</button>
-            <button onClick={handleLeave}>Leave</button>
-            <ChangeDraftDropdown />
+      {clock && (
+        <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
+          <div style={{ fontWeight: clock.running === "white" ? "bold" : "normal" }}>
+            White: {formatMs(clock.whiteMs)}
           </div>
-        )}
-      </div>
-
-      {/* Controls below board */}
-      {role === "player" && !gameResult && (
-        <div style={{ marginTop: 20 }}>
-          <button onClick={sendResign}>Resign</button>
-          <button onClick={sendDraw} style={{ marginLeft: 8 }}>
-            Draw
-          </button>
+          <div style={{ fontWeight: clock.running === "black" ? "bold" : "normal" }}>
+            Black: {formatMs(clock.blackMs)}
+          </div>
         </div>
       )}
-    {/* Promotion Modal */}
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 20,
+          marginTop: 10,
+        }}
+      >
+        <div
+          ref={containerRef}
+          className="cg-wrap"
+          style={{ width: 625, height: 625 }}
+        />
+        <GameSidebar />
+      </div>
+
+      {/* Promotion Modal */}
       {pendingPromotion && (
         <div
           onClick={() => {
@@ -541,8 +705,8 @@ function formatMs(ms: number) {
                       fenRef.current = newFen;
                       setLastMove([from, to]);
                       lastMoveRef.current = [from, to];
-                      const mover: "white" | "black" = chess.turn === "white" ? "black" : "white";
-                      console.log("[SECOND AFTER]: SWITCHING... mover: ", mover)
+
+                      // do not flip clock locally; wait for server snapshot
                       sendMove([from, to]);
                     },
                   },

@@ -1,0 +1,85 @@
+
+RUN 1: 
+
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "white" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "white" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "white" – "whiteMs:" – 600000 – "blackMs:" – 600000 (GamePage.tsx, line 147)
+
+MOVE 1: NO CLOCK JUMP FOR BLACK
+
+[Log] Trace: [AFTER]
+	after (GamePage.tsx:191)
+[Log] [AFTER]: mover:  – "white" (GamePage.tsx, line 226)
+[Log] [AFTER]: move (from, to) – "d2" – "d4" (GamePage.tsx, line 227)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "black" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "black" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "black" – "whiteMs:" – 595522 – "blackMs:" – 600000 (GamePage.tsx, line 147)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "white" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "white" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "white" – "whiteMs:" – 591822 – "blackMs:" – 596280 (GamePage.tsx, line 147)
+
+MOVE 2: NO CLOCK JUMP FOR BLACK
+
+[Log] Trace: [AFTER]
+	after (GamePage.tsx:191)
+[Log] [AFTER]: mover:  – "white" (GamePage.tsx, line 226)
+[Log] [AFTER]: move (from, to) – "c2" – "c4" (GamePage.tsx, line 227)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "black" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "black" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "black" – "whiteMs:" – 590323 – "blackMs:" – 596280 (GamePage.tsx, line 147)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "white" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "white" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "white" – "whiteMs:" – 590323 – "blackMs:" – 593203 (GamePage.tsx, line 147)
+
+MOVE 3: CLOCK JUMP FOR BLACK
+
+[Log] Trace: [AFTER]
+	after (GamePage.tsx:191)
+[Log] [AFTER]: mover:  – "white" (GamePage.tsx, line 226)
+[Log] [AFTER]: move (from, to) – "e2" – "e4" (GamePage.tsx, line 227)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "black" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "black" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "black" – "whiteMs:" – 580419 – "blackMs:" – 583284 (GamePage.tsx, line 147)
+
+
+RUN 2: 
+
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "white" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "white" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "white" – "whiteMs:" – 600000 – "blackMs:" – 600000 (GamePage.tsx, line 147)
+
+MOVE 1: CLOCK JUMP FOR BLACK
+
+[Log] Trace: [AFTER]
+	after (GamePage.tsx:191)
+[Log] [AFTER]: mover:  – "white" (GamePage.tsx, line 226)
+[Log] [AFTER]: move (from, to) – "d2" – "d4" (GamePage.tsx, line 227)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "black" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "black" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "black" – "whiteMs:" – 597726 – "blackMs:" – 597708 (GamePage.tsx, line 147)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "white" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "white" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "white" – "whiteMs:" – 592022 – "blackMs:" – 594266 (GamePage.tsx, line 147)
+
+MOVE 2: CLOCK JUMP FOR BLACK
+
+[Log] Trace: [AFTER]
+	after (GamePage.tsx:191)
+[Log] [AFTER]: mover:  – "white" (GamePage.tsx, line 226)
+[Log] [AFTER]: move (from, to) – "e2" – "e3" (GamePage.tsx, line 227)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "black" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "black" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "black" – "whiteMs:" – 586382 – "blackMs:" – 582932 (GamePage.tsx, line 147)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "white" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "white" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "white" – "whiteMs:" – 586382 – "blackMs:" – 588159 (GamePage.tsx, line 147)
+
+MOVE 3: NO CLOCK JUMP
+
+[Log] Trace: [AFTER]
+	after (GamePage.tsx:191)
+[Log] [AFTER]: mover:  – "white" (GamePage.tsx, line 226)
+[Log] [AFTER]: move (from, to) – "c2" – "c4" (GamePage.tsx, line 227)
+[Log] [ONGAMEUPDATE]: received update.clock.running:  – "black" (GamePage.tsx, line 64)
+[Log] [CLOCK EFFECT]: clock.running:  – "black" (GamePage.tsx, line 144)
+[Log] [CLOCK RUNNING CHANGED] – "running:" – "black" – "whiteMs:" – 577370 – "blackMs:" – 588159 (GamePage.tsx, line 147)
