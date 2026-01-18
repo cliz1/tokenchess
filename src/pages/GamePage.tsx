@@ -411,6 +411,30 @@ function formatMs(ms: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function ClockDisplay({
+  ms,
+  active,
+}: {
+  ms: number;
+  active: boolean;
+}) 
+{
+  return (
+    <div
+      style={{
+        fontSize: 32,
+        fontWeight: 700,
+        textAlign: "center",
+        padding: "10px 0",
+        borderRadius: 6,
+        background: active ? "#2a2a2a" : "#141414",
+        border: active ? "2px solid #4caf50" : "2px solid #333",
+      }}
+    >
+      {formatMs(ms)}
+    </div>
+  );
+}
 
 
   return (
@@ -426,7 +450,26 @@ function formatMs(ms: number) {
         {players.map(formatPlayerLine).join(" vs ")} &nbsp; Room: {roomId}
       </div>
 
-      {clock && (() => {
+{/* Horizontal container */}
+<div style={{ display: "flex", alignItems: "flex-start", marginTop: 10, gap: 20 }}>
+  {/* Chess board */}
+  <div ref={containerRef} className="cg-wrap" style={{ width: 625, height: 625 }} />
+
+  {/* Side info panel */}
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 20,
+      minWidth: 200,
+      padding: 16,
+      backgroundColor: "#1e1e1e",
+      borderRadius: 8,
+      color: "#fff",
+      fontFamily: "monospace",
+    }}
+  >
+    {clock && (() => {
   const now = Date.now();
 
   const whiteMs =
@@ -439,44 +482,59 @@ function formatMs(ms: number) {
       ? Math.max(0, clock.blackMs - (now - clock.lastStartTs))
       : clock.blackMs;
 
+  const white = players[0];
+  const black = players[1];
+
   return (
-    <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
-      <div style={{ fontWeight: clock.running === "white" ? "bold" : "normal" }}>
-        White: {formatMs(whiteMs)}
-      </div>
-      <div style={{ fontWeight: clock.running === "black" ? "bold" : "normal" }}>
-        Black: {formatMs(blackMs)}
-      </div>
-    </div>
-  );
-})()}
+    <>
+      {/* TOP CLOCK */}
+      <ClockDisplay
+        ms={whiteMs}
+        active={clock.running === "white"}
+      />
 
-
-
-      {/* Horizontal container */}
-      <div style={{ display: "flex", alignItems: "flex-start", marginTop: 10 }}>
-        <div ref={containerRef} className="cg-wrap" style={{ width: 625, height: 625 }} />
-
-        {/* Game result + buttons (right) */}
-        {gameResult && role === "player" && (
-          <div style={{ marginLeft: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-            <div>{gameResult}</div>
-            <button onClick={() => sendRematch()}>Rematch</button>
-            <button onClick={handleLeave}>Leave</button>
-            <ChangeDraftDropdown />
-          </div>
-        )}
-      </div>
-
-      {/* Controls below board */}
-      {role === "player" && !gameResult && (
-        <div style={{ marginTop: 20 }}>
-          <button onClick={sendResign}>Resign</button>
-          <button onClick={sendDraw} style={{ marginLeft: 8 }}>
-            Draw
-          </button>
+      {/* Player 1 */}
+      {white && (
+        <div style={{ textAlign: "center", fontSize: 14 }}>
+          {white.username} · {scores[white.id] ?? 0}
         </div>
       )}
+
+      {/* Action buttons */}
+      {role === "player" && !gameResult && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+          <button onClick={sendResign} title="Resign">⚐</button>
+          <button onClick={sendDraw} title="Offer draw">½</button>
+        </div>
+      )}
+
+      {/* Player 2 */}
+      {black && (
+        <div style={{ textAlign: "center", fontSize: 14 }}>
+          {black.username} · {scores[black.id] ?? 0}
+        </div>
+      )}
+
+      {/* BOTTOM CLOCK */}
+      <ClockDisplay
+        ms={blackMs}
+        active={clock.running === "black"}
+      />
+
+      {/* Game over controls */}
+      {gameResult && role === "player" && (
+        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ textAlign: "center" }}>{gameResult}</div>
+          <button onClick={sendRematch}>Rematch</button>
+          <button onClick={handleLeave}>Leave</button>
+          <ChangeDraftDropdown />
+        </div>
+      )}
+    </>
+  );
+})()}
+  </div>
+</div>
     {/* Promotion Modal */}
       {pendingPromotion && (
         <div
