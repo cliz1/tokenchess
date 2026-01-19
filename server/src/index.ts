@@ -157,11 +157,16 @@ const lobbyClients = new Set<WebSocket>();
 
 function serializeLobby() {
   return [...rooms.values()]
-    .filter((r) => r.status === "open")
+    .filter((r) => r.status === "open" || r.status === "playing")
     .map((r) => ({
       roomId: r.id,
       owner: r.usernames[r.players[0]] ?? "Unknown",
       createdAt: r.createdAt,
+      status: r.status,
+      players:
+        r.status === "playing"
+          ? r.players.map((id) => r.usernames[id] ?? "Unknown")
+          : undefined, // only send players if in progress
     }));
 }
 
@@ -808,8 +813,8 @@ wss.on("connection", (ws: WebSocket, req) => {
         incrementMs: INCREMENT_MS,
         whiteMs: INITIAL_MS,
         blackMs: INITIAL_MS,
-        running: "white",
-        lastStartTs: Date.now(),
+        running: null,
+        lastStartTs: null,
       };
 
       broadcastLobby();

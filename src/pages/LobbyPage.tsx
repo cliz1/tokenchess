@@ -60,17 +60,21 @@ export default function LobbyPage() {
 
       <button onClick={createGame}>Create Game</button>
 
-      <ul style={{ marginTop: 20 }}>
-        {rooms.map((r) => (
-          <li
-            key={r.roomId}
-            onClick={() => navigate(`/game?room=${r.roomId}`)}
-            style={{ cursor: "pointer" }}
-          >
-            {r.owner} — waiting for opponent
-          </li>
-        ))}
-      </ul>
+    <ul style={{ marginTop: 20 }}>
+      {rooms.map((r) => (
+        <li
+          key={r.roomId}
+          onClick={() => navigate(`/game?room=${r.roomId}`)}
+          style={{ cursor: "pointer" }}
+        >
+          {r.status === "open"
+            ? `${r.owner} — waiting for opponent`
+            : r.players?.length === 2
+            ? `${r.players[0]} vs ${r.players[1]}`
+            : "In progress"} 
+        </li>
+      ))}
+    </ul>
     </div>
   );
 }
