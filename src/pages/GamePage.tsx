@@ -332,12 +332,6 @@ const promotePawn = (role: string) => {
   setPendingPromotion(null);
 };
 
-  // --- Helper: format score display ---
-  const formatPlayerLine = (p: { id: string; username: string }) => {
-    const score = scores[p.id] ?? 0;
-    return `${p.username} (${score})`;
-  };
-
   // helper: draft change menu
   function ChangeDraftDropdown() {
   return (
@@ -436,7 +430,6 @@ function ClockDisplay({
   );
 }
 
-
   return (
     <div
       style={{
@@ -446,9 +439,6 @@ function ClockDisplay({
         alignItems: "center",
       }}
     >
-      <div style={{ marginTop: 5, fontFamily: "monospace" }}>
-        {players.map(formatPlayerLine).join(" vs ")} &nbsp; Room: {roomId}
-      </div>
 
 {/* Horizontal container */}
 <div style={{ display: "flex", alignItems: "flex-start", marginTop: 10, gap: 20 }}>
@@ -469,6 +459,18 @@ function ClockDisplay({
       fontFamily: "monospace",
     }}
   >
+    {/* ROOM CODE - always visible */}
+  <div style={{ textAlign: "center", fontWeight: 600, fontSize: 16 }}>
+    Room: {roomId}
+  </div>
+
+  {/* Waiting message - only if game hasn't started */}
+{(!clock) && (
+  <div style={{ textAlign: "center", fontSize: 14, color: "#ccc" }}>
+    Waiting for opponent…
+  </div>
+)}
+  
     {clock && (() => {
   const now = Date.now();
 

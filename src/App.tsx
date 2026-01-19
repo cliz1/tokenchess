@@ -112,7 +112,7 @@ useEffect(() => {
     }}
   >
     <NavLink
-      to="/game/create"
+      to="/lobby"
       style={({ isActive }) => ({
         color: isActive ? "#fff" : "#aaa",
         textDecoration: "none",
@@ -121,7 +121,7 @@ useEffect(() => {
       })}
       onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
     >
-      Create Game
+      Game Lobby
     </NavLink>
     <NavLink
       to="/game/join"
@@ -133,7 +133,7 @@ useEffect(() => {
       })}
       onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
     >
-      Join Game
+      Join by Code
     </NavLink>
         <NavLink
       to="/puzzles"

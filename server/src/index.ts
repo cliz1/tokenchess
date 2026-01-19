@@ -93,8 +93,11 @@ export type Room = {
   drawVotes?: Set<string>;
   cleanupTimeout?: NodeJS.Timeout | number;
   scores?: Record<string, number>;
-
-
+  
+  timeControl?: {
+    length: number;    // in minutes
+    increment: number; // in seconds
+  };
 
 
 };
@@ -356,11 +359,11 @@ app.get("/api/rooms/:id", (req, res) => {
 // create room (open room visible in lobby)
 app.post("/api/rooms", authMiddleware, async (req: any, res) => {
   try {
-    const { length = 6, fen = START_FEN } = req.body ?? {};
+    const { length = 10, increment = 0, fen = START_FEN } = req.body ?? {};
     let roomId: string;
     let attempts = 0;
     do {
-      roomId = generateRoomCode(length);
+      roomId = generateRoomCode(6);
       attempts++;
       if (attempts > 10) break;
     } while (rooms.has(roomId));
@@ -379,6 +382,7 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       players: [req.user.id],
       usernames: { [req.user.id]: username },
       clients: new Set(),
+      timeControl: { length, increment }
     };
 
     rooms.set(roomId, room);
@@ -590,11 +594,12 @@ wss.on("connection", (ws: WebSocket, req) => {
           // when second player joins, transition to playing
           if (room.players.length === 2 && room.status === "open") {
             room.status = "playing";
+            const { length, increment } = room.timeControl ?? { length: 10, increment: 0 };
             room.clock = {
-            initialMs: 10 * 60 * 1000,
-            incrementMs: 0, // or Fischer increment later
-            whiteMs: 10 * 60 * 1000,
-            blackMs: 10 * 60 * 1000,
+            initialMs: length * 60 * 1000,
+            incrementMs: increment * 1000,
+            whiteMs: length * 60 * 1000,
+            blackMs: length * 60 * 1000,
             running: "white",
             lastStartTs: Date.now(),
           };
