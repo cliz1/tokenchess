@@ -600,8 +600,8 @@ wss.on("connection", (ws: WebSocket, req) => {
             incrementMs: increment * 1000,
             whiteMs: length * 60 * 1000,
             blackMs: length * 60 * 1000,
-            running: "white",
-            lastStartTs: Date.now(),
+            running: null,
+            lastStartTs: null,
           };
 
             // compute start fen from drafts 
@@ -679,6 +679,11 @@ wss.on("connection", (ws: WebSocket, req) => {
     // ---------- MOVE ----------
     if (data.type === "move" && roomId) {
       const room = rooms.get(roomId)!;
+      // Start the clock on first move
+      if (room.clock && room.clock.running === null) {
+        room.clock.running = "white";
+        room.clock.lastStartTs = Date.now();
+      }
       const senderId = (ws as any).playerId;
       if (!senderId || !room.players?.includes(senderId)) return;
 
