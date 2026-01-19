@@ -25,7 +25,7 @@ export default function HomePage() {
 
   return (
     <div style={{ padding: 28, maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
-      <h1 style={{ marginTop: 0, fontSize: "3.5rem" }}>Fairy Chess...</h1>
+      <h1 style={{ marginTop: 0, fontSize: "3.5rem" }}>A game of chess...</h1>
 
       {/* White rows */}
       {renderRow(standardPieces, "white")}

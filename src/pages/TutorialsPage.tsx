@@ -1,26 +1,27 @@
 // src/pages/TutorialsPage.tsx
 import { useMemo, useState } from "react";
 import TutorialLesson from "../components/TutorialLesson";
-import { Link } from "react-router-dom";
 import lessons from '../assets/lessons.json';
+
 
 const LESSONS = lessons as Record<string, { title: string; quote: string; steps: { text: string }[] }>;
 
 type LessonKey = keyof typeof LESSONS;
 
-export default function TutorialsPage() {
+export default function TutorialsPage() { 
   const groups = useMemo(
     () => [
       {
         heading: "Introduction",
         items: [
+          { key: "welcome", label: "Welcome" },
           { key: "standard-rules", label: "Chess" },
-          { key: "fairy-chess", label: "Fairy Chess" },
-          { key: "token-chess", label: "Token Chess" },
+          { key: "fairy-chess", label: "Fairy Pieces" },
+          { key: "token-chess", label: "Token" },
         ],
       },
       {
-        heading: "Pieces",
+        heading: "Token's Fairy Pieces",
         items: [
           { key: "Champion", label: "Champion" },
           { key: "Princess", label: "Princess" },
@@ -33,9 +34,16 @@ export default function TutorialsPage() {
         ],
       },
       {
-        heading: "Setup",
+        heading: "Setup & Playing",
         items: [{ key: "token-values", label: "Tokens" },
-          { key: "draft", label: "Drafting" }
+          { key: "draft", label: "Drafting" },
+          { key: "multiplayer", label: "Playing a Game" }
+        ],
+      },
+         {
+        heading: "Other Features",
+        items: [{ key: "board-editor", label: "Board Editor" },
+          { key: "puzzles", label: "Puzzles" }
         ],
       },
       
@@ -43,7 +51,7 @@ export default function TutorialsPage() {
     []
   );
 
-  const [selected, setSelected] = useState<LessonKey>("standard-rules");
+  const [selected, setSelected] = useState<LessonKey>("welcome");
 
   const lesson = LESSONS[selected];
 
@@ -93,10 +101,6 @@ export default function TutorialsPage() {
           </div>
         </div>
       ))}
-
-      <div style={{ marginTop: 18 }}>
-        <Link to="/">← Back to Home</Link>
-      </div>
     </aside>
 
     {/* Content area */}

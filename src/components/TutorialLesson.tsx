@@ -2,6 +2,8 @@
 import TutorialBoard from "./TutorialBoard";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
+
 
 
 type Step = {
@@ -58,7 +60,21 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
 
         return (
           <div key={`${title}-${i}`} style={{ marginTop: 16 }}>
-            {s.text && <p className="lesson-text">{s.text}</p>}
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkBreaks]}
+            skipHtml
+            components={{
+              a: ({ node, ...props }) => (
+                <a {...props} target="_blank" rel="noopener noreferrer" />
+              ),
+              br: () => <br />,
+              p: ({ node, ...props }) => <p {...props} />,
+              em: ({ children }) => <i>{children}</i>,
+            }}
+          >
+            {s.text}
+          </ReactMarkdown>
+
 
             {s.image && (
               <div style={{ marginTop: 8, textAlign: "center" }}>

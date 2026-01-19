@@ -74,7 +74,7 @@ useEffect(() => {
     if (r.includes("bishop")) return 3;
     if (r.includes("rook")) return 5;
     if (r.includes("queen")) return 9;
-    if (r.includes("champion")) return 9;
+    if (r.includes("champion")) return 8;
     if (r.includes("king")) return 0;
     if (r.includes("princess")) return 8; 
     if (r.includes("amazon")) return 13;
