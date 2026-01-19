@@ -264,7 +264,7 @@ export default function GamePage() {
             if (
               fromPiece?.role === "wizard" &&
               toPiece?.role === "pawn" &&
-              ((fromPiece?.color === 'white' && fromRank === 0) || ( fromPiece?.color === 'black' && fromRank === 7))
+              ((fromPiece?.color === 'white' && fromRank === 7) || ( fromPiece?.color === 'black' && fromRank === 0))
             ) {
               setPendingPromotion({ from, to, color: chess.turn });
               return;
