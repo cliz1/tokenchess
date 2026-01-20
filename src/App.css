@@ -53,3 +53,12 @@
     background-image: url('../public/images/knook/Chess_cdt45.svg');
     background-size: contain;
 }
+
+/* App.css */
+.app-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;      /* or 28? */
+  box-sizing: border-box;
+}
+

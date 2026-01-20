@@ -24,7 +24,7 @@ export default function HomePage() {
   );
 
   return (
-    <div style={{ padding: 28, maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
+    <div className= "app-container" style={{ padding: 28, maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
       <h1 style={{ marginTop: 0, fontSize: "3.5rem" }}>A game of chess...</h1>
 
       {/* White rows */}
@@ -34,7 +34,14 @@ export default function HomePage() {
       {/* Black rows */}
       {renderRow(standardPieces, "black")}
       {renderRow(customPieces, "black")}
-       <h1 style={{ marginTop: 0, fontSize: "3.5rem" }}>...with tokens.</h1>
+       <h1 style={{ marginTop: 0, fontSize: "3.5rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+  ...with tokens.
+  <img
+    src="/images/coin-svgrepo-com.svg"
+    alt="Token"
+    style={{ width: 48, height: 48 }}
+  />
+</h1>
     </div>
   );
 }

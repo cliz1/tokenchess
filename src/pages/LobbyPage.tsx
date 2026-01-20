@@ -32,7 +32,7 @@ export default function LobbyPage() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="app-container" style={{ padding: 20 }}>
       <h2>Lobby</h2>
 
       <div style={{ marginBottom: 10 }}>

@@ -78,9 +78,10 @@ useEffect(() => {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {!hideNav && (
         <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <nav style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div className="app-container" style={{ display: "flex", alignItems: "center" }}>
+          <nav style={{ display: "flex", gap: 12, alignItems: "center", width:"100%" }}>
             <NavLink to="/" end style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
-            <NavLink to="/tutorials" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Tutorial</NavLink>
+            <NavLink to="/tutorials" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>About</NavLink>
             <NavLink to="/editor" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Board</NavLink>
             <div style={{ position: "relative" }} className="play-menu">
   <span
@@ -151,10 +152,11 @@ useEffect(() => {
   </div>
 </div>
 
-            <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
               <AuthNav />
             </div>
           </nav>
+          </div>
         </header>
       )}
 

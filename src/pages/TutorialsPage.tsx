@@ -1,3 +1,4 @@
+//src/pages/TutorialsPage.tsx
 import { useMemo, useState, useEffect, useRef } from "react";
 import TutorialLesson from "../components/TutorialLesson";
 import lessons from '../assets/lessons.json';
@@ -19,7 +20,7 @@ export default function TutorialsPage() {
         ],
       },
       {
-        heading: "Token's Fairy Pieces",
+        heading: "Fairy Pieces in Token",
         items: [
           { key: "Champion", label: "Champion" },
           { key: "Princess", label: "Princess" },
@@ -92,10 +93,8 @@ export default function TutorialsPage() {
     gap: 18,
     padding: 20,
     boxSizing: "border-box",
-    // set height so that header + this container == viewport height.
-    // fallback: if headerHeight is 0, don't set height (keeps existing behavior)
     height: headerHeight ? `calc(100vh - ${headerHeight}px)` : undefined,
-    overflow: "hidden", // hide the page-level scrollbar for this route — side panes will scroll
+    overflow: "hidden",
   };
 
   return (
@@ -115,7 +114,7 @@ export default function TutorialsPage() {
           maxHeight: "100%",
         }}
       >
-        <h3 style={{ marginTop: 4 }}>Table of contents</h3>
+        <h3 style={{ marginTop: 4 }}>Contents</h3>
         {groups.map((g) => (
           <div key={g.heading} style={{ marginTop: 12 }}>
             <div style={{ color: "#bbb", fontSize: 13, marginBottom: 8 }}>{g.heading}</div>
