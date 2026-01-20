@@ -12,8 +12,8 @@
     "title": "Chess",
     "quote": "“The game of chess is a lake in which a mosquito can bathe and an elephant can drown.” – Indian Proverb",
     "steps": [
-      { "text": "Chess is a board game that has been played for roughly half a millenium. \n To learn the basics of the game, [lichess.org](https://lichess.org/learn) is a great comprehensive source.", "image": "/images/chess.svg" },
-       { "text": "In understanding the concept of chess *variants*, it helps to know that chess itself is a European *variation* of a type of board game that has existed for around 1,000 years longer than modern chess. The original game, [Chaturanga](https://en.wikipedia.org/wiki/Chaturanga), spread to other regions and evolved into [Xiangqi](https://en.wikipedia.org/wiki/Xiangqi), [Shogi](https://en.wikipedia.org/wiki/Shogi), and many other variations. These variations have different pieces and rules, but share the concept of a coordinate system and a set of movable figures, one of which is deemed important." }
+      { "text": "Chess is a board game that has been played for roughly half a millenium. \n To learn the basics of the game, [lichess.org](https://lichess.org/learn) is a great comprehensive source.", "image": "/images/chess_in_the_park.JPG" },
+       { "text": "In understanding the concept of chess *variants*, it helps to know that chess itself is a European *variation* of a type of board game that has existed for around 1,000 years longer than modern chess. The original game, [Chaturanga](https://en.wikipedia.org/wiki/Chaturanga), spread to other regions and evolved into [Makruk](https://en.wikipedia.org/wiki/Makruk), [Shogi](https://en.wikipedia.org/wiki/Shogi), and many other variations. These variations have different pieces and rules, but share the concept of a coordinate system and a set of movable figures, one of which is deemed important. Below is a game of [Xiangqi.](https://en.wikipedia.org/wiki/Xiangqi)", "image": "/images/xiangqi.jpg" }
            
     ]
   },
@@ -335,7 +335,7 @@
     "title": "Tokens",
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
-     { "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns.  \n For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ", "image": "/images/Coin_of_Kushan.jpg" },
+     { "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns. For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ", "image": "/images/Coin_of_Kushan.jpg" },
       { "text": "Note that this game is a work in progess, so a piece's evaluation may change in future updates as a measure of balance. As of January 2026, the value in tokens for each piece is as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 8 \n Princess: 8 \n Amazon: 13 \n Mann: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 4 \n Archer: 7" }
     ]
   },
@@ -343,9 +343,48 @@
     "title": "Drafting",
     "quote": "",
     "steps": [
-        { "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games.", "image": "/images/draftpage.png" },
-      { "text": "In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page. \n This will be the draft used for playing games and may be changed between games.", "image": "/images/horde.png" },
-      {"text": "As a balance measure, there are special restrictions on the quantity of each piece type in a draft. For example, one can only place a single Archer, or up to 2 Queens, or 4 Mannen, etc. This is designed to promote diversity in piece choice to keep things fun. In the above example, white's horde of Archers is nearly impossible to face."}
+        { "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games. Simply drag pieces from the pallette onto the first two ranks of the board-- the first rank is for pieces, the second rank is for pawns, painters, and snares.", "image": "/images/draftpage.png" },
+      { "text": "**In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page.** \n This draft, highlighted in green at the top, will be your starting setup when playing a game, and may be changed at any time between games. **Make sure to save any changes made to a draft with the button at the bottom!**", "image": "/images/drafttutorial.png" },
+      {"text": "There are special restrictions on the **quantity** of each piece type in a draft. This is designed to keep things fun and fair by promoting diversity and mitigating 'hordes' of a single piece type. For example, while a single Painter is a formidable foe, eight of them together are...*oppressive.*", "image": "/images/horde.png"},
+       {"text": "Just like token values, these quantity restrictions are a work in progress, meaning they are subject to change in response to community feedback. As of January 2026, the quantity limit for each piece is as follows: \n Up to **1**: Archer, Painter \n Up to **2**: Amazon, Champion, Princess, Queen \n Up to **3**: Rook, Wizard \n Up to **4**: Bishop, Knight, Mann, Snare"}
+    ]
+  },
+      "multiplayer": {
+    "title": "Playing a game of token",
+    "quote": "",
+    "steps": [
+        { "text": "Once you have saved and activated at least one draft, you are ready to play a game of Token! At the top menu, click Play -> Game Lobby. Here you can create a game room with a time control of your liking, or join another player's room by clicking their username.", "image": "/images/gamelobby.png" },
+             { "text": "Each room has a code, so you can alternatively join a friend's game by clicking Play -> Join Game and entering their room code. Once in a room, you can rematch as many times as you like, with the option to switch your active draft in between each game of the match.", "image": "/images/gamepage.png" },
+             {"text": "Multiplayer is currently the **only** supported playing method, as there is no Token Chess AI yet. \n For enjoyers of computer chess - stay tuned!"}
+    ]
+  },
+        "board-editor": {
+    "title": "The Magic Board",
+    "quote": "",
+    "steps": [
+        { "text": "Coming soon!" }
+    ]
+  },
+    "puzzles": {
+    "title": "Puzzles",
+    "quote": "",
+    "steps": [
+        { "text": "Coming soon!" }
+    ]
+  },
+          "source": {
+    "title": "The (public) secret recipe...",
+    "quote": "",
+    "steps": [
+        { "text": "Coming soon!" }
+    ]
+  },
+          "community": {
+    "title": "community",
+    "quote": "",
+    "steps": [
+        { "text": "Coming soon!" }
     ]
   }
+
 }

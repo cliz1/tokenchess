@@ -37,13 +37,19 @@ export default function TutorialsPage() {
         heading: "Setup & Playing",
         items: [{ key: "token-values", label: "Tokens" },
           { key: "draft", label: "Drafting" },
-          { key: "multiplayer", label: "Playing a Game" }
+          { key: "multiplayer", label: "Playing" }
         ],
       },
          {
         heading: "Other Features",
         items: [{ key: "board-editor", label: "Board Editor" },
           { key: "puzzles", label: "Puzzles" }
+        ],
+      },
+        {
+        heading: "More Info",
+        items: [{ key: "source", label: "Source" },
+          { key: "community", label: "Community" }
         ],
       },
       

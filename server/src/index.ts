@@ -167,6 +167,7 @@ function serializeLobby() {
         r.status === "playing"
           ? r.players.map((id) => r.usernames[id] ?? "Unknown")
           : undefined, // only send players if in progress
+      timeControl: r.timeControl ?? { length: 10, increment: 0 },
     }));
 }
 
