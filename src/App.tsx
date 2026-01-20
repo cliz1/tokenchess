@@ -61,7 +61,8 @@ useEffect(() => {
   const isGame = location.pathname.startsWith("/game");
   const isHome = location.pathname === "/";
   const isPuzzle = location.pathname.startsWith("/puzzles");
-  const shouldLock = isGame || isHome || isPuzzle;
+  const isTutorials = location.pathname.startsWith("/tutorials");
+  const shouldLock = isGame || isHome || isPuzzle || isTutorials;
 
   if (shouldLock) {
     document.body.style.overflow = "hidden";  // disable scroll

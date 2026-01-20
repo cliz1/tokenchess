@@ -23,7 +23,7 @@ type Props = {
 
 export default function TutorialLesson({ title, steps, quote }: Props) {
   return (
-    <div style={{ padding: 16, maxWidth: 980 }}>
+    <div style={{ padding: 16, maxWidth: 980, margin: "0 auto" }}>
       <h2 style={{ marginTop: 6, fontSize: 35, marginBottom:0 }}>{title}</h2>
 
       {quote && (

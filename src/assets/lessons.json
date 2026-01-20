@@ -355,7 +355,7 @@
     "steps": [
         { "text": "Once you have saved and activated at least one draft, you are ready to play a game of Token! At the top menu, click Play -> Game Lobby. Here you can create a game room with a time control of your liking, or join another player's room by clicking their username.", "image": "/images/gamelobby.png" },
              { "text": "Each room has a code, so you can alternatively join a friend's game by clicking Play -> Join Game and entering their room code. Once in a room, you can rematch as many times as you like, with the option to switch your active draft in between each game of the match.", "image": "/images/gamepage.png" },
-             {"text": "Multiplayer is currently the **only** supported playing method, as there is no Token Chess AI yet. \n For enjoyers of computer chess - stay tuned!"}
+             {"text": "Multiplayer is currently the **only** supported playing method, as there is no Token Chess AI yet. \n For fans of computer chess - stay tuned!"}
     ]
   },
         "board-editor": {
