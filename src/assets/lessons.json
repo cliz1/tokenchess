@@ -158,7 +158,7 @@
     "quote": "“Every man dies. Not every man really lives.” – William Wallace",
     "steps": [
       {
-        "text": "A Mann is equivalent to the King, but as he was not born into royalty the game does not hinge on its well-being. \n Most valuable in endgames, he can deliver checkmate to a king unlike his minor piece counterparts.",
+        "text": "A Mann is equivalent to the King, but as he was not born into royalty the game does not hinge on his well-being. \n Most valuable in endgames, he can deliver checkmate to a king unlike his minor piece counterparts.",
         "challenge": {
           "initialFen": "4M3/7k/5K2/8/8/8/8/8 w - - 0 1",
           "steps": [
@@ -218,7 +218,7 @@
     "quote": "“It's a trap!” – Admiral Ackbar",
     "steps": [
       {
-        "text": "The Snare is a piece that does not capture, but restricts the movement of opposing pieces directly next to or in front of it. \n In the diagram below, the rooks *cannot* move, but the knights can.", "image": "/images/snarediagram.png"
+        "text": "The Snare is a piece that does not capture, but restricts the movement of opposing pieces **directly next to or in front of it.** \n In the diagram below, the rooks *cannot* move, but the knights can.", "image": "/images/snarediagram.png"
       },
       {
         "text": "The Snare moves forward one square, straight or diagonally. \n This example demonstrates the ability of a snare to assist in capturing a valuable target, such as a queen.",
@@ -288,7 +288,7 @@
         "note": "Escape the pin."
       },
       {
-        "text": "The Wizard may be used to escape the King from dangerous places, including positions which would otherwise be checkmate!",
+        "text": "The Wizard may be used to escape the King from dangerous places, including positions that are otherwise checkmate!",
         "challenge": {
           "initialFen": "rnb1kb1r/ppp1pppp/3p1n2/8/8/2N3Pp/PPPPPPqP/R2QW1KR w - - 0 1",
           "steps": [
@@ -315,7 +315,7 @@
         "note": "Capture the pawns."
       },
       {
-        "text": "The Archer has the unique ability to capture without moving, given that the captured piece is 2 to 3 diagonal squares away.",
+        "text": "The Archer can capture without moving, given that the captured piece is **2 to 3 diagonal squares away.**",
         "challenge": {
           "initialFen": "n3k3/7p/8/8/4X3/8/6r1/1n2K3 w - - 0 1",
           "steps": [
@@ -336,7 +336,7 @@
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
      { "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns. For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ", "image": "/images/Coin_of_Kushan.jpg" },
-      { "text": "Note that this game is a work in progess, so a piece's evaluation may change in future updates as a measure of balance. As of January 2026, the value in tokens for each piece is as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 8 \n Princess: 8 \n Amazon: 13 \n Mann: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 4 \n Archer: 7" }
+      { "text": "Note that this game is a work in progess, so a piece's evaluation may change in future updates as a measure of balance. As of January 2026, the value in tokens for each piece is as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 8 \n Princess: 8 \n Amazon: 13 \n Mann: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 4 \n Archer: 7. NOTE: The limitation categories below are **per-piece**, so for example, you *can* have both a Painter *and* an Archer in the same draft." }
     ]
   },
     "draft": {
@@ -359,24 +359,26 @@
     ]
   },
         "board-editor": {
-    "title": "The Magic Board",
+    "title": "A chess sandbox...",
     "quote": "",
     "steps": [
-        { "text": "Coming soon!" }
+        { "text": "Click the 'Board' option at the top menu to use the Board Editor and Analysis feature. Here you can create custom positions by dragging pieces onto the board. You can also copy/edit/paste FEN in the text bar on the bottom. To enter analysis mode, press **Analyze.**", "image": "/images/boardeditor.png" },
+           { "text": "Once in analysis mode, you can freely play moves from both sides. Forward and rewind through moves using the buttons on the side, or with your arrow keys.", "image": "/images/analysisboard.png" }
     ]
   },
     "puzzles": {
     "title": "Puzzles",
     "quote": "",
     "steps": [
-        { "text": "Coming soon!" }
+        { "text": "Access puzzles by clicking Play -> Puzzles. This feature is a work in progress, as there are only a few haphazard puzzles currently available. In the future, this will host a collection of community-created puzzles of various difficulties.", "image": "/images/puzzlesboard.png" }
     ]
   },
           "source": {
-    "title": "The (public) secret recipe...",
+    "title": "The secret sauce...",
     "quote": "",
     "steps": [
-        { "text": "Coming soon!" }
+        { "text": "Token Chess is created and maintained by Nathaniel Clizbe, an amateur developer and chess enthusiast. \n Source code for the project is available [here.](https://github.com/cliz1/tokenchess)", "image":"/images/coin.png"  },
+        {"text": "This project is developed as an experimental chess platform; bugs and unfinished features may exist. \n Issues and suggestions are welcome via GitHub."}
     ]
   },
           "community": {

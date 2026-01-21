@@ -280,21 +280,21 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
 
   const pieceRoles = [
     "pawn",
-    "knight",
-    "bishop",
-    "rook",
-    "queen",
-    "king",
-    "champion",
-    "princess",
-    "amazon",
-    "mann",
     "painter",
     "snare",
+    "knight",
+    "bishop",
+    "mann",
     "wizard",
     "archer",
+    "rook",
+    "champion",
+    "princess",
+    "queen",
+    "amazon",
     "rollingsnare",
-    "royalpainter"
+    "royalpainter",
+    "king"
   ];
 
   const palette: PalettePiece[] = pieceRoles.map((role) => ({ role, color: paletteColor }));
@@ -657,12 +657,92 @@ function tryApplyFen(rawInput: string) {
   }
 }
 
-
+function EditorButton({
+  children,
+  onClick,
+  primary = false,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  primary?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: "14px 12px",
+        borderRadius: 10,
+        fontSize: 15,
+        fontWeight: 500,
+        cursor: "pointer",
+        color: primary ? "#fff" : "#eee",
+        background: primary
+          ? "linear-gradient(135deg, #5b5be0, #3f3fc0)"
+          : "rgba(255,255,255,0.06)",
+        border: primary
+          ? "none"
+          : "1px solid rgba(255,255,255,0.12)",
+        boxShadow: primary
+          ? "0 4px 10px rgba(0,0,0,0.35)"
+          : "none",
+        transition: "transform 0.05s ease, background 0.15s ease",
+      }}
+      onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.97)")}
+      onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+    >
+      {children}
+    </button>
+  );
+}
 
   return (
-    <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: 24 }}>
-      <div style={{ display: "flex", gap: 28, alignItems: "flex-start" }}>
+    <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", padding: 24 }}>
+      <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
+        <div
+  style={{
+    width: 200,
+    padding: 16,
+    background: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+    boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  }}
+>
+
+  <EditorButton onClick={handleSetStartPosition}>
+    Start Position
+  </EditorButton>
+
+  <EditorButton onClick={handleSetEmptyPosition}>
+    Only Kings
+  </EditorButton>
+
+  <EditorButton
+    onClick={() => {
+      const next = sideToMove === "white" ? "black" : "white";
+      const pieces = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
+      const newFen = buildFenFromPiecesWithSide(pieces, next);
+      groundRef.current?.set?.({ fen: newFen });
+      setSideToMove(next);
+      setFen(newFen);
+    }}
+  >
+    Make {sideToMove === "white" ? "Black" : "White"} to Move
+  </EditorButton>
+
+  <EditorButton
+    onClick={handleOpenInAnalysis}
+    primary
+  >
+    Analyze
+  </EditorButton>
+</div>
+
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          
           <div
             ref={boardRef}
             className="cg-wrap"
@@ -696,91 +776,6 @@ function tryApplyFen(rawInput: string) {
                 }}
               />
           </div>
-          <div>
-                  <button
-              onClick={handleSetStartPosition}
-              style={{
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#ddd",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              Start Position
-            </button>
-            <button
-              onClick={handleSetEmptyPosition}
-              style={{
-                flex: 1,
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#ddd",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              Empty Board
-            </button>
-              <button
-              onClick={handleOpenInAnalysis}
-              aria-label="Open in analysis"
-              style={{
-                background: "#3d3b3bff",
-                border: "none",
-                padding: "6px 10px",
-                borderRadius: 6,
-                color: "#fff",
-                fontSize: 13,
-                cursor: "pointer",
-                minWidth: 80,
-              }}
-            >
-              Analyze
-            </button>
-            <button
-onClick={() => {
-  // compute next side
-  const next = sideToMove === "white" ? "black" : "white";
-
-  // read pieces from the existing board (most accurate)
-  const pieces = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
-
-  // build the new fen with the flipped turn
-  const newFen = buildFenFromPiecesWithSide(pieces, next);
-
-  // update the chessground board in-place (no re-init)
-  try {
-    groundRef.current?.set({ fen: newFen });
-  } catch (err) {
-    // fallback: if set fails for any reason, still update state so UI shows the new FEN
-  }
-
-  // update React state for UI
-  setSideToMove(next);
-  setFen(newFen);
-}}
-
-              aria-pressed={sideToMove === "black"}
-              style={{
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#fff",
-                cursor: "pointer",
-                fontSize: 13,
-                minWidth: 160,
-              }}
-            >
-              Make {sideToMove === "white" ? "Black" : "White"} to move
-            </button>
-
-            </div>
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
             Tip: Alt+click or right-click a square to remove a piece.
           </div>
@@ -791,7 +786,7 @@ onClick={() => {
             className="palette"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2,1fr)",
+              gridTemplateColumns: "repeat(3,1fr)",
               gap: 12,
               alignContent: "start",
               padding: 8,

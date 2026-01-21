@@ -551,7 +551,7 @@ function renderMoveList() {
       style={{ width: 600, height: 600 }}
     />
     <div style={{ marginTop: 10, fontFamily: "monospace" }}>
-      Current FEN: {fen}
+      FEN: {fen}
     </div>
     {chess && (
       <div style={{ marginTop: 5, fontFamily: "monospace" }}>
