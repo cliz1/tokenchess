@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@badrap/result": "^0.2.13",
-    "chessground": "git+https://github.com/cliz1/chessground.git",
     "chessops": "git+https://github.com/cliz1/chessops.git",
+    "chessground": "git+https://github.com/cliz1/chessground.git",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",

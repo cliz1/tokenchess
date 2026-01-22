@@ -11,3 +11,4 @@ postgres.fly.toml
 # deployment stuff
 Dockerfile
 fly.toml
+netlify.toml
