@@ -14,6 +14,7 @@ import { defaultGame, extend } from 'chessops/pgn';
 import type { PgnNodeData, Game, Node as PNode, ChildNode as CNode } from 'chessops/pgn';
 import { makeSan } from 'chessops/san';
 import '../App.css';
+import { useNavigate } from "react-router-dom";
  
 type MyNodeData = PgnNodeData & { move: any; color: "white" | "black";};
 
@@ -39,6 +40,9 @@ export default function AnalysisBoard({
   const [pendingPromotion, setPendingPromotion] = useState<{from: string;to: string;color: "white" | "black";} | null>(null);
   const lastMoveRef = useRef<[string, string] | undefined>(undefined);
   const chessRef = useRef<Chess | null>(null); // for quick access without re-renders
+
+  const navigate = useNavigate();
+
 
   // Handle move
   const handleMove = (from: string, to: string) => {
@@ -542,13 +546,28 @@ function renderMoveList() {
 }
 
   return (
-<div style={{ position: "relative", display: "flex", gap: "20px" }}>
+<div
+    style={{
+      minHeight: "100%",
+      display: "flex",
+      justifyContent: "center",
+      padding: 24,
+    }}
+  >
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        gap: 32,
+        alignItems: "flex-start",
+      }}
+    >
   {/* Board Section */}
   <div>
     <div
       ref={containerRef}
       className="cg-wrap"
-      style={{ width: 600, height: 600 }}
+      style={{ width: 600, height: 600, boxShadow: "0 6px 18px rgba(0,0,0,0.35)", borderRadius: 8, overflow: "hidden",}}
     />
     <div style={{ marginTop: 10, fontFamily: "monospace" }}>
       FEN: {fen}
@@ -595,6 +614,13 @@ function renderMoveList() {
       <button onClick={flipBoard} style={{ marginRight: 10 }}>
         Flip
       </button>
+      <button
+    onClick={() =>
+      navigate("/editor", { state: { initialFen: fen } })
+    }
+  >
+    Edit Board
+  </button>
     </div>
     </div>
 
@@ -674,6 +700,6 @@ function renderMoveList() {
     </div>
   )}
 </div>
-
+</div>
   );
 }

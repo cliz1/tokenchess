@@ -25,6 +25,16 @@ function AnalysisRouteWrapper() {
   return <AnalysisBoard initialFen={initialFen} />;
 }
 
+function EditorRouteWrapper() {
+  const location = useLocation();
+  const initialFen =
+    (location.state && (location.state as any).initialFen) ??
+    "8/8/8/8/8/8/8/8 w - - 0 1";
+
+  return <BoardEditor initialFen={initialFen} />;
+}
+
+
 function AuthNav() {
   const { user, logout } = useAuth();
   if (!user) {
@@ -164,7 +174,7 @@ useEffect(() => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/analysis" element={<AnalysisRouteWrapper />} />
-          <Route path="/editor" element={<BoardEditor />} />
+          <Route path="/editor" element={<EditorRouteWrapper />} />
           <Route path="/draft" element={<DraftBuilder />} />
           <Route path="/tutorials/*" element={<TutorialsPage />} />
           <Route path="/login" element={<LoginPage />} />

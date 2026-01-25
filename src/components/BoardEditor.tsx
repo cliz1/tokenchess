@@ -16,10 +16,15 @@ import { SquareSet } from "chessops";
 const FILES = "abcdefgh";
 type PalettePiece = { role: string; color: "white" | "black" };
 
-export default function BoardEditor() {
+type BoardEditorProps = {
+  initialFen: string;
+};
+
+
+export default function BoardEditor({ initialFen }: BoardEditorProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
-  const [fen, setFen] = useState<string>("8/8/8/8/8/8/8/8 w - - 0 1");
+  const [fen, setFen] = useState<string>(initialFen);
   const [orientation] = useState<"white" | "black">("white");
   const [sideToMove, setSideToMove] = useState<"white" | "black">("white");
   const navigate = useNavigate();
