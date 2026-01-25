@@ -93,13 +93,13 @@ export type Room = {
   drawVotes?: Set<string>;
   cleanupTimeout?: NodeJS.Timeout | number;
   scores?: Record<string, number>;
-  
+
   timeControl?: {
     length: number;    // in minutes
     increment: number; // in seconds
   };
 
-
+  private?: boolean;
 
 };
 
@@ -158,7 +158,7 @@ const lobbyClients = new Set<WebSocket>();
 
 function serializeLobby() {
   return [...rooms.values()]
-    .filter((r) => r.status === "open" || r.status === "playing")
+    .filter((r) => (r.status === "open" || r.status === "playing") && !r.private)
     .map((r) => ({
       roomId: r.id,
       owner: r.usernames[r.players[0]] ?? "Unknown",
@@ -392,6 +392,7 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       timeControl: { length, increment },
       rematchVotes: new Set(),
       drawVotes: new Set(),
+      private: req.body.isPrivate ?? false,
     };
 
     rooms.set(roomId, room);
