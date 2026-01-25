@@ -96,8 +96,11 @@ export function playMoveSound(
   const fromIdx = parseSquare(from)!;
   const toIdx = parseSquare(to)!;
 
+  const fromPiece = chess.board.get(fromIdx)
+  const toPiece = chess.board.get(fromIdx)
+
   // moving piece: prefer fromIdx, fall back to toIdx
-  const movingPiece = chess.board.get(fromIdx) ?? chess.board.get(toIdx);
+  const movingPiece = fromPiece ?? toPiece;
   if (!movingPiece) return;
 
   const isPreMoveState = chess.board.get(fromIdx) !== undefined;
@@ -161,7 +164,7 @@ export function playMoveSound(
   }
   else if (capturedPiece) {
     if (movingPiece.role === "painter" || movingPiece.role === "royalpainter") playSound("paint");
-    else if (movingPiece.role === "wizard" && capturedPiece.color === movingPiece.color)
+    else if ((fromPiece?.role === 'wizard' || toPiece?.role === 'wizard') && (fromPiece != null && toPiece))
       playSound("wizard");
     else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
       playSound("archer");
