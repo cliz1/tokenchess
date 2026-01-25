@@ -7,6 +7,7 @@ export default function LobbyPage() {
   const [rooms, setRooms] = useState<any[]>([]);
   const [minutes, setMinutes] = useState(10); // default 10 min
   const [increment, setIncrement] = useState(0); // default 0 sec increment
+  const [isPrivate, setIsPrivate] = useState(false); // default to public
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function LobbyPage() {
       body: JSON.stringify({
         length: minutes,
         increment, // seconds
+        isPrivate
       }),
     });
     navigate(`/game?room=${res.roomId}`);
@@ -54,6 +56,15 @@ export default function LobbyPage() {
             value={increment}
             onChange={(e) => setIncrement(Number(e.target.value))}
             style={{ width: 60, marginLeft: 5 }}
+          />
+        </label>
+           <label style={{ marginLeft: 10 }}>
+          Private:
+          <input
+            type="checkbox"
+            checked={isPrivate}
+            onChange={(e) => setIsPrivate(e.target.checked)}
+            style={{ marginLeft: 5 }}
           />
         </label>
       </div>
