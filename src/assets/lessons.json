@@ -77,7 +77,7 @@
         "challenge": {
           "initialFen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPP2PPP/RN1QK2C w kKQq - 0 1",
           "steps": [
-            { "white": { "from": "e1", "to": "h1" } }
+            { "white": { "from": "e1", "to": "g1" } }
           ]
         },
         "note": "Castle with the Champion."

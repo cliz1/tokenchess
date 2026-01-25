@@ -5,7 +5,6 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 
 
-
 type Step = {
   text?: string;
   fen?: string;
@@ -22,9 +21,27 @@ type Props = {
 };
 
 export default function TutorialLesson({ title, steps, quote }: Props) {
+  const availablePieces = ["champion", "princess", "amazon", "mann", "painter", "snare", "wizard", "archer"];
+  const lessonPiece = title.toLowerCase();
+  const showPiece = availablePieces.includes(lessonPiece);
+
   return (
-    <div style={{ padding: 16, maxWidth: 980, margin: "0 auto" }}>
-      <h2 style={{ marginTop: 6, fontSize: 35, marginBottom:0 }}>{title}</h2>
+    <div style={{ padding: 16, maxWidth: 980, margin: "0 auto", marginBottom: 32}}>
+      <h2 style={{ marginTop: 6, fontSize: 35, marginBottom:0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        {title}
+          {showPiece && (
+          <div
+            className={`cg-piece ${lessonPiece} white`}
+            style={{
+              width: 48,
+              height: 48,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center center",
+              backgroundSize: "48px 48px",
+            }}
+          />
+        )}
+      </h2>
 
       {quote && (
         <div
@@ -96,7 +113,7 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
                 <TutorialBoard
                   key={boardKey}
                   fen={boardFen}
-                  size={s.boardSize ?? 420}
+                  size={s.boardSize ?? 460}
                   challenge={s.challenge ?? null}
                   showControls={false}
                   challengeLabel={isChallenge ? "Exercise" : "Demo"}
