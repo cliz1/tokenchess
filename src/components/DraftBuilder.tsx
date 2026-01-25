@@ -664,6 +664,7 @@ useEffect(() => {
   }
 
   const getTokenIcon = (tokens: number) => {
+  if (tokens == 0) return null;
   if (tokens >= 26) return "/images/coin-stack.svg";
   if (tokens >= 13) return "/images/coin-svgrepo-com.svg";
   return "/images/single-coin.svg";
@@ -749,8 +750,8 @@ useEffect(() => {
           >
             {tokens}
           <img
-            src={getTokenIcon(tokens)}
-            alt="Tokens"
+            src={getTokenIcon(tokens)!}
+            alt=" "
             style={{ width: 32, height: 32 }}
           />
           </div>

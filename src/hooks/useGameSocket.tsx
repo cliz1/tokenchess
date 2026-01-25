@@ -17,6 +17,8 @@ export type GameUpdate = {
     initialMs: number;
     incrementMs: number;
   };
+  rematchOffers?: string[];
+  drawOffers?: string[];
 };
 
 export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => void) {
@@ -63,6 +65,8 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
           players: data.players,
           scores: data.scores,
           clock: data.clock,
+          rematchOffers: data.rematchOffers,
+          drawOffers: data.drawOffers,
         });
       }
     };
@@ -106,3 +110,4 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
 
   return { sendMove, sendRematch, sendLeave, sendResign, sendDraw };
 }
+ 

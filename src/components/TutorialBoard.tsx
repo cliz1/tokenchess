@@ -44,7 +44,7 @@ export default function TutorialBoard({
   fen: controlledFen,
   initialFen = "start",
   orientation = "white",
-  size = 600,
+  size = 420,
   onMove,
   showControls = false,
   challenge = null,

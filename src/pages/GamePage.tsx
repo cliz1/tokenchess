@@ -40,6 +40,10 @@ export default function GamePage() {
   const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
 
+  const [opponentDrawOffered, setOpponentDrawOffered] = useState(false);
+  const [opponentRematchOffered, setOpponentRematchOffered] = useState(false);
+
+
  type ClockState = {
   whiteMs: number;
   blackMs: number;
@@ -127,6 +131,21 @@ export default function GamePage() {
       console.log("[ONGAMEUPDATE]: received update.clock.running: ", update.clock.running)
       setClock(update.clock);
     }
+
+    // Draw/Rematch Offer handling
+    let opponentId: string | undefined;
+    if (update.players && user?.id) {
+      opponentId = update.players.find((p) => p.id !== user.id)?.id;
+    }
+
+    const drawOffers = update.drawOffers ?? [];
+    const rematchOffers = update.rematchOffers ?? [];
+
+    const oppHasOfferedDraw = !!(opponentId && drawOffers.includes(opponentId) && !(user?.id && drawOffers.includes(user.id)));
+    const oppHasOfferedRematch = !!(opponentId && rematchOffers.includes(opponentId) && !(user?.id && rematchOffers.includes(user.id)));
+
+    setOpponentDrawOffered(oppHasOfferedDraw);
+    setOpponentRematchOffered(oppHasOfferedRematch);
 
     if (sameFen && sameLastMove && update.result === undefined) return;
 
@@ -431,235 +450,217 @@ function ClockDisplay({
 }
 
   return (
-    <div
-      style={{
-        padding: 20,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-
-{/* Horizontal container */}
-<div style={{ display: "flex", alignItems: "flex-start", marginTop: 10, gap: 20 }}>
-  {/* Chess board */}
-  <div ref={containerRef} className="cg-wrap" style={{ width: 625, height: 625 }} />
-
-  {/* Side info panel */}
   <div
     style={{
+      padding: 20,
       display: "flex",
       flexDirection: "column",
-      gap: 20,
-      minWidth: 200,
-      padding: 16,
-      backgroundColor: "#1e1e1e",
-      borderRadius: 8,
-      color: "#fff",
-      fontFamily: "monospace",
+      alignItems: "center",
     }}
   >
-    {/* ROOM CODE - always visible */}
-  <div style={{ textAlign: "center", fontWeight: 600, fontSize: 16 }}>
-    Room: {roomId}
-  </div>
+    {/* Horizontal container */}
+    <div style={{ display: "flex", alignItems: "flex-start", marginTop: 10, gap: 20 }}>
+      {/* Chess board */}
+      <div ref={containerRef} className="cg-wrap" style={{ width: 625, height: 625 }} />
 
-  {/* Waiting message - only if game hasn't started */}
-{(!clock) && (
-  <div style={{ textAlign: "center", fontSize: 14, color: "#ccc" }}>
-    Waiting for opponent…
-  </div>
-)}
-  
-    {clock && (() => {
-  const now = Date.now();
-
-  const whiteMs =
-    clock.running === "white" && clock.lastStartTs
-      ? Math.max(0, clock.whiteMs - (now - clock.lastStartTs))
-      : clock.whiteMs;
-
-  const blackMs =
-    clock.running === "black" && clock.lastStartTs
-      ? Math.max(0, clock.blackMs - (now - clock.lastStartTs))
-      : clock.blackMs;
-
-  const white = players[0];
-  const black = players[1];
-
-  return (
-    <>
-      {/* TOP CLOCK */}
-      <ClockDisplay
-        ms={whiteMs}
-        active={clock.running === "white"}
-      />
-
-      {/* Player 1 */}
-      {white && (
-        <div style={{ textAlign: "center", fontSize: 14 }}>
-          {white.username} · {scores[white.id] ?? 0}
+      {/* Side info panel */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+          minWidth: 200,
+          padding: 16,
+          backgroundColor: "#1e1e1e",
+          borderRadius: 8,
+          color: "#fff",
+          fontFamily: "monospace",
+        }}
+      >
+        {/* ROOM CODE */}
+        <div style={{ textAlign: "center", fontWeight: 600, fontSize: 16 }}>
+          Room: {roomId}
         </div>
-      )}
 
-      {/* Action buttons */}
-      {role === "player" && !gameResult && (
-        <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
-          <button onClick={sendResign} title="Resign">⚐</button>
-          <button onClick={sendDraw} title="Offer draw">½</button>
-        </div>
-      )}
+        {/* Waiting message */}
+        {!clock && (
+          <div style={{ textAlign: "center", fontSize: 14, color: "#ccc" }}>
+            Waiting for opponent…
+          </div>
+        )}
 
-      {/* Player 2 */}
-      {black && (
-        <div style={{ textAlign: "center", fontSize: 14 }}>
-          {black.username} · {scores[black.id] ?? 0}
-        </div>
-      )}
+        {/* Clocks and player info */}
+        {clock && (
+          <>
+            {/* compute white/black ms inline so we don't need an IIFE or outer variables */}
+            <ClockDisplay
+              ms={
+                clock.running === "white" && clock.lastStartTs
+                  ? Math.max(0, clock.whiteMs - (Date.now() - clock.lastStartTs))
+                  : clock.whiteMs
+              }
+              active={clock.running === "white"}
+            />
 
-      {/* BOTTOM CLOCK */}
-      <ClockDisplay
-        ms={blackMs}
-        active={clock.running === "black"}
-      />
+            {/* Player 1 */}
+            {players[0] && (
+              <div style={{ textAlign: "center", fontSize: 14 }}>
+                {players[0].username} · {scores[players[0].id] ?? 0}
+              </div>
+            )}
 
-      {/* Game over controls */}
-      {gameResult && role === "player" && (
-        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ textAlign: "center" }}>{gameResult}</div>
-          <button onClick={sendRematch}>Rematch</button>
-          <button onClick={handleLeave}>Leave</button>
-          <ChangeDraftDropdown />
-        </div>
-      )}
-    </>
-  );
-})()}
-  </div>
-</div>
+            {/* Opponent offers */}
+            {role === "player" && (
+              <div style={{ textAlign: "center", fontSize: 12, color: "#ffeb3b", marginBottom: 4 }}>
+                {opponentDrawOffered && <div>Your opponent offers a draw</div>}
+                {opponentRematchOffered && <div>Your opponent offers a rematch</div>}
+              </div>
+            )}
+
+            {/* Action buttons */}
+            {role === "player" && !gameResult && (
+              <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+                <button onClick={sendResign} title="Resign">⚐</button>
+                <button onClick={sendDraw} title="Offer draw">½</button>
+              </div>
+            )}
+
+            {/* Player 2 */}
+            {players[1] && (
+              <div style={{ textAlign: "center", fontSize: 14 }}>
+                {players[1].username} · {scores[players[1].id] ?? 0}
+              </div>
+            )}
+            {/* BOTTOM CLOCK */}
+            <ClockDisplay
+              ms={
+                clock.running === "black" && clock.lastStartTs
+                  ? Math.max(0, clock.blackMs - (Date.now() - clock.lastStartTs))
+                  : clock.blackMs
+              }
+              active={clock.running === "black"}
+            />
+
+            {/* Game over controls */}
+            {gameResult && role === "player" && (
+              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ textAlign: "center" }}>{gameResult}</div>
+                <button onClick={sendRematch}>Rematch</button>
+                <button onClick={handleLeave}>Leave</button>
+                <ChangeDraftDropdown />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+
     {/* Promotion Modal */}
-      {pendingPromotion && (
-        <div
-          onClick={() => {
-            // === CANCEL PROMOTION ===
-            if (chessRef.current && groundRef.current) {
-              // Stop any animations
-              groundRef.current.stop?.();
+    {pendingPromotion && (
+      <div
+        onClick={() => {
+          if (chessRef.current && groundRef.current) {
+            groundRef.current.stop?.();
+            const chess = chessRef.current;
+            const newFen = makeFen(chess.toSetup());
+            const dests = calculateDests(chess);
 
-              const chess = chessRef.current;
-              const newFen = makeFen(chess.toSetup());
-              const dests = calculateDests(chess);
+            groundRef.current.set({
+              fen: newFen,
+              turnColor: chess.turn,
+              lastMove: undefined,
+              movable: {
+                color: playerColor ?? chess.turn,
+                free: false,
+                showDests: true,
+                dests,
+                events: {
+                  after: (from: string, to: string) => {
+                    if (role !== "player") return;
+                    const chess = chessRef.current;
+                    const fromSq = parseSquare(from);
+                    const toSq = parseSquare(to);
+                    if (fromSq == null || toSq == null) return;
 
-              groundRef.current.set({
-                fen: newFen,
-                turnColor: chess.turn,
-                lastMove: undefined,
-                movable: {
-                  color: playerColor ?? chess.turn,
-                  free: false,
-                  showDests: true,
-                  dests,
-                  events: {
-                    after: (from: string, to: string) => {
-                      if (role !== "player") return;
-                      const chess = chessRef.current;
-                      const fromSq = parseSquare(from);
-                      const toSq = parseSquare(to);
-                      if (fromSq == null || toSq == null) return;
+                    const fromPiece = chess.board.get(fromSq);
+                    const toPiece = chess.board.get(toSq);
+                    const toRank = Math.floor(toSq / 8);
+                    const fromRank = Math.floor(fromSq / 8);
 
-                      const fromPiece = chess.board.get(fromSq);
-                      const toPiece = chess.board.get(toSq);
-                      const toRank = Math.floor(toSq / 8);
-                      const fromRank = Math.floor(fromSq / 8);
+                    if (
+                      (fromPiece?.role === "pawn" || fromPiece?.role === "painter") &&
+                      (toRank === 0 || toRank === 7)
+                    ) {
+                      setPendingPromotion({ from, to, color: chess.turn });
+                      return;
+                    }
 
-                      // Detect promotion again
-                      if (
-                        (fromPiece?.role === "pawn" || fromPiece?.role === "painter") &&
-                        (toRank === 0 || toRank === 7)
-                      ) {
-                        setPendingPromotion({ from, to, color: chess.turn });
-                        return;
-                      }
+                    if (
+                      fromPiece?.role === "wizard" &&
+                      toPiece?.role === "pawn" &&
+                      (fromRank === 0 || fromRank === 7)
+                    ) {
+                      setPendingPromotion({ from, to, color: chess.turn });
+                      return;
+                    }
 
-                      if (
-                        fromPiece?.role === "wizard" &&
-                        toPiece?.role === "pawn" &&
-                        (fromRank === 0 || fromRank === 7)
-                      ) {
-                        setPendingPromotion({ from, to, color: chess.turn });
-                        return;
-                      }
-
-                      // Normal move logic
-                      const move = { from: fromSq, to: toSq };
-                      if (!chess.isLegal(move)) return;
-                      const preCaptured = chess.board.get(toSq) ?? null;
-                      playMoveSound(chess, move, from, to, preCaptured);
-                      chess.play(move);
-                      const newFen = makeFen(chess.toSetup());
-                      setFen(newFen);
-                      fenRef.current = newFen;
-                      setLastMove([from, to]);
-                      lastMoveRef.current = [from, to];
-                      const mover: "white" | "black" = chess.turn === "white" ? "black" : "white";
-                      console.log("[SECOND AFTER]: SWITCHING... mover: ", mover)
-                      sendMove([from, to]);
-                    },
+                    const move = { from: fromSq, to: toSq };
+                    if (!chess.isLegal(move)) return;
+                    const preCaptured = chess.board.get(toSq) ?? null;
+                    playMoveSound(chess, move, from, to, preCaptured);
+                    chess.play(move);
+                    const newFen = makeFen(chess.toSetup());
+                    setFen(newFen);
+                    fenRef.current = newFen;
+                    setLastMove([from, to]);
+                    lastMoveRef.current = [from, to];
+                    sendMove([from, to]);
                   },
                 },
-                highlight: { check: true, custom: getCheckHighlights(chess) },
-              });
-            }
-
-            setPendingPromotion(null);
-          }}
+              },
+              highlight: { check: true, custom: getCheckHighlights(chess) },
+            });
+          }
+          setPendingPromotion(null);
+        }}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 900,
+          backgroundColor: "rgba(0,0,0,0.3)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 900,
-            backgroundColor: "rgba(0,0,0,0.3)",
+            backgroundColor: "white",
+            border: "2px solid black",
+            borderRadius: "8px",
+            padding: 10,
+            zIndex: 1000,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            gap: 10,
+            boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
           }}
         >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: "white",
-              border: "2px solid black",
-              borderRadius: "8px",
-              padding: 10,
-              zIndex: 1000,
-              display: "flex",
-              gap: 10,
-              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-            }}
-          >
-            {["queen", "rook", "bishop", "knight", "champion", "princess"].map((role) => (
-              <button
-                key={role}
-                onClick={() => promotePawn(role)}
-                style={{
-                  padding: 0,
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <div
-                  className={`cg-piece ${role} ${pendingPromotion.color}`}
-                  style={{ width: 45, height: 45 }}
-                />
-              </button>
-            ))}
-          </div>
+          {["queen", "rook", "bishop", "knight", "champion", "princess"].map((role) => (
+            <button
+              key={role}
+              onClick={() => promotePawn(role)}
+              style={{ padding: 0, border: "none", background: "none", cursor: "pointer" }}
+            >
+              <div className={`cg-piece ${role} ${pendingPromotion.color}`} style={{ width: 45, height: 45 }} />
+            </button>
+          ))}
         </div>
-      )}
-
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }

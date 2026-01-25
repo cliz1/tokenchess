@@ -10,7 +10,7 @@ import { parseFen, makeFen } from "chessops/fen";
 import { Chess } from "chessops";
 import path from "path";
 import { fileURLToPath } from "url";
-
+ 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -98,6 +98,7 @@ export type Room = {
     length: number;    // in minutes
     increment: number; // in seconds
   };
+
 
 
 };
@@ -388,7 +389,9 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       players: [req.user.id],
       usernames: { [req.user.id]: username },
       clients: new Set(),
-      timeControl: { length, increment }
+      timeControl: { length, increment },
+      rematchVotes: new Set(),
+      drawVotes: new Set(),
     };
 
     rooms.set(roomId, room);
@@ -497,6 +500,8 @@ function sendRoomUpdate(
         incrementMs: room.clock.incrementMs
       }
     : undefined,
+      rematchOffers: room.rematchVotes ? Array.from(room.rematchVotes) : [],
+      drawOffers: room.drawVotes ? Array.from(room.drawVotes) : [],
     } as any;
 
     try {
@@ -675,6 +680,8 @@ wss.on("connection", (ws: WebSocket, req) => {
                 incrementMs: room.clock.incrementMs,
               }
             : undefined,
+            rematchOffers: room.rematchVotes ? Array.from(room.rematchVotes) : [],
+            drawOffers: room.drawVotes ? Array.from(room.drawVotes) : [],
           }),
         );
       }
@@ -715,6 +722,9 @@ wss.on("connection", (ws: WebSocket, req) => {
       if (typeof promotion === "string") moveObj.promotion = promotion;
       if (!chess.isLegal(moveObj)) return;
 
+      // clear draw votes every move
+      room.drawVotes = new Set();
+
       chess.play(moveObj);
       // ----- CLOCK UPDATE -----
       const sideToMove = room.clock?.running;
@@ -729,6 +739,9 @@ wss.on("connection", (ws: WebSocket, req) => {
           sideToMove === "white"
             ? "White flagged: 0-1"
             : "Black flagged: 1-0";
+          
+        room.drawVotes = new Set();
+        room.rematchVotes = new Set();
 
         applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
         broadcastLobby();
@@ -754,6 +767,8 @@ wss.on("connection", (ws: WebSocket, req) => {
         freezeClock(room);
         room.concluded = true;
         room.result = result;
+        room.drawVotes = new Set();
+        room.rematchVotes = new Set();
         applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
         // when a game finishes, mark finished and update lobby
         room.status = "finished";
@@ -777,7 +792,10 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.rematchVotes = room.rematchVotes ?? new Set();
       room.rematchVotes.add(uid);
 
-      if (room.rematchVotes.size !== 2) return;
+      if (room.rematchVotes.size !== 2) {
+        sendRoomUpdate(room, {}, "update");
+        return;
+      }
 
       const [p1, p2] = room.players!;
 
@@ -801,8 +819,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.concluded = false;
       room.result = undefined;
 
-
       room.rematchVotes.clear();
+      room.drawVotes = new Set();
 
       // set status back to playing
       room.status = "playing";
@@ -840,6 +858,9 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.result = winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
       room.concluded = true;
 
+      room.drawVotes = new Set();
+      room.rematchVotes = new Set();
+
       // Apply result to scores
       applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
 
@@ -860,6 +881,12 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       room.drawVotes = room.drawVotes ?? new Set();
       room.drawVotes.add(uid);
+
+      if (room.drawVotes.size !== 2) {
+        sendRoomUpdate(room, {}, "update");
+        return;
+      }
+
       if (room.drawVotes.size === 2) {
         room.concluded = true;
         freezeClock(room);
@@ -867,6 +894,9 @@ wss.on("connection", (ws: WebSocket, req) => {
 
         // Apply draw points using stable ids
         applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+
+        room.drawVotes = new Set();
+        room.rematchVotes = new Set();
 
         // mark finished
         room.status = "finished";
