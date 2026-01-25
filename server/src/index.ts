@@ -824,7 +824,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       // set status back to playing
       room.status = "playing";
-      const INITIAL_MS = 10 * 60 * 1000;
+      const INITIAL_MS = room.timeControl.length * 60 * 1000;
       const INCREMENT_MS = 0;
 
       room.clock = {

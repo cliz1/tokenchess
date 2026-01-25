@@ -525,6 +525,11 @@ function ClockDisplay({
               </div>
             )}
 
+            {/* Spacer to match the space taken by draw/rematch offers */}
+            {role === "player" && (
+              <div style={{ height: 10 }} />
+            )}
+
             {/* Player 2 */}
             {players[1] && (
               <div style={{ textAlign: "center", fontSize: 14 }}>

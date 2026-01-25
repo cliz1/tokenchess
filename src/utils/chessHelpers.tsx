@@ -162,9 +162,10 @@ export function playMoveSound(
     const r = Math.floor(Math.random() * 3) + 1; // 1–3
     playSound(`capture${r}` as "capture1" | "capture2" | "capture3");
   }
+
   else if (capturedPiece) {
     if (movingPiece.role === "painter" || movingPiece.role === "royalpainter") playSound("paint");
-    else if ((fromPiece?.role === 'wizard' || toPiece?.role === 'wizard') && (fromPiece != null && toPiece))
+    else if ((chess.board.get(fromIdx)?.role === 'wizard' || chess.board.get(toIdx)?.role === 'wizard') && (chess.board.get(toIdx) != null && chess.board.get(fromIdx) != null))
       playSound("wizard");
     else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
       playSound("archer");
