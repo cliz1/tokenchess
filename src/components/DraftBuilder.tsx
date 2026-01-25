@@ -6,6 +6,7 @@ import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css"; 
+//import "images/coin-svg-repo.svg";
 
 const FILES = "abcdefgh";
 type PalettePiece = { role: string; color: "white" | "black" };
@@ -14,7 +15,7 @@ export default function DraftBuilder({ onSave, initialFen }: { onSave?: (fen: st
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
 
-  const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  const START_FEN = "8/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const PAWNS_FEN = "4k3/8/8/8/8/8/PPPPPPPP/4K3 w - - 0 1"
   const INITIAL_TOKENS = 39;
@@ -355,11 +356,11 @@ useEffect(() => {
 
       // **ENFORCE placement into allowed ranks for current perspective and piece type**
       if (!isSquareAllowedInPerspective(sq, perspective)) {
-        flashWarning(`You can only place pieces on ranks ${allowedRanksForPerspective(perspective).join(" & ")} for the ${perspective} perspective.`);
+        flashWarning(`You can only place pieces on ranks ${allowedRanksForPerspective(perspective).join(" & ")}.`);
         return;
       }
       if (!isSquareAllowedForPiece(sq, perspective, piece)) {
-        flashWarning(`You can only place ${piece.role}s on rank ${allowedRankForPiece(piece)} for the ${perspective} perspective.`);
+        flashWarning(`You can only place ${piece.role}s on rank ${allowedRankForPiece(piece)}.`);
         return;
       }
 
@@ -662,7 +663,11 @@ useEffect(() => {
     try { groundRef.current?.set?.({ fen: PAWNS_FEN }); } catch {}
   }
 
-
+  const getTokenIcon = (tokens: number) => {
+  if (tokens >= 26) return "/images/coin-stack.svg";
+  if (tokens >= 13) return "/images/coin-svgrepo-com.svg";
+  return "/images/single-coin.svg";
+};
 
   return (
     <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: 24 }}>
@@ -730,10 +735,29 @@ useEffect(() => {
           </div>
 
           <div style={{ fontSize: 13, color: "#bbb" }}>Tokens</div>
-          <div style={{ fontSize: 40, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{tokens}</div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 14,
+              fontSize: 40,
+              fontWeight: 700,
+              color: "#fff",
+              lineHeight: 1,
+            }}
+          >
+            {tokens}
+          <img
+            src={getTokenIcon(tokens)}
+            alt="Tokens"
+            style={{ width: 32, height: 32 }}
+          />
+          </div>
+
 
           <div style={{ fontSize: 12, color: "#aaa" }}>
-            Placing <strong style={{ color: "#fff" }}>{perspective}</strong> pieces consumes tokens. If a placement would make tokens go below 0 it will be blocked.
+            Placing pieces consumes tokens. If a placement would make tokens go below 0 it will be blocked.
           </div>
 
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: 8 }}>

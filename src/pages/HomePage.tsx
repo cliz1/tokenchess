@@ -35,13 +35,18 @@ export default function HomePage() {
       {renderRow(standardPieces, "black")}
       {renderRow(customPieces, "black")}
        <h1 style={{ marginTop: 0, fontSize: "3.5rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-  ...with tokens.
+  ...with tokens
   <img
-    src="/images/coin-svgrepo-com.svg"
+    src="/images/coin-stack.svg"
     alt="Token"
     style={{ width: 48, height: 48 }}
   />
-</h1>
+    <img
+    src="/images/coin-stack.svg"
+    alt="Token"
+    style={{ width: 48, height: 48 }}
+  />
+.</h1>
     </div>
   );
 }
