@@ -698,6 +698,7 @@ wss.on("connection", (ws: WebSocket, req) => {
     // ---------- MOVE ----------
     if (data.type === "move" && roomId) {
       const room = rooms.get(roomId)!;
+      if (room.concluded) return;
       // Start the clock on first move
       if (room.clock && room.clock.running === null) {
         room.clock.running = "white";

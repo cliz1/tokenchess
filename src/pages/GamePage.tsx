@@ -246,6 +246,7 @@ export default function GamePage() {
     const setup = parseFen(fen).unwrap();
     const newChess = Chess.fromSetup(setup).unwrap();
     chessRef.current = newChess;
+    const isGameOver = gameResult !== null && gameResult !== "ongoing";
 
     groundRef.current.set({
       fen,
@@ -253,13 +254,16 @@ export default function GamePage() {
       animation: { enabled: true, duration: 300 },
       orientation: playerColor ?? "white",
       highlight: { check: true, custom: getCheckHighlights(newChess) },
-      movable: {
+      movable: isGameOver? {color:undefined, free: false, showDests: false, dests: {}, events: {}} : {
         color: playerColor ?? newChess.turn,
         dests: calculateDests(newChess),
         showDests: true,
         events: {
           after: (from: string, to: string) => {
-            console.trace('[AFTER]')
+            if (gameResult && gameResult !== "ongoing") {
+            console.warn("Move attempted after game over");
+            return;
+            }
             if (role !== "player") return;
             const chess = chessRef.current;
             const fromSq = parseSquare(from);
@@ -314,9 +318,6 @@ export default function GamePage() {
             fenRef.current = newFen;
             setLastMove([from, to]);
             lastMoveRef.current = [from, to];
-            const mover: "white" | "black" = chess.turn === "white" ? "black" : "white";
-            console.log("[AFTER]: mover: ", mover)
-            console.log("[AFTER]: move (from, to)", from, to)
             if (promotionRole) {
               sendMove([from, to, promotionRole]);
             } else {
@@ -335,6 +336,7 @@ export default function GamePage() {
   };
 
 const promotePawn = (role: string) => {
+  if (gameResult && gameResult !== "ongoing") { console.warn("Move attempted after game over"); return; }
   if (!pendingPromotion || !chessRef.current) return;
   const { from, to } = pendingPromotion;
 
@@ -627,6 +629,10 @@ function ClockDisplay({
                 dests,
                 events: {
                   after: (from: string, to: string) => {
+                    if (gameResult && gameResult !== "ongoing") {
+                    console.warn("Move attempted after game over");
+                    return;
+                    }
                     if (role !== "player") return;
                     const chess = chessRef.current;
                     const fromSq = parseSquare(from);

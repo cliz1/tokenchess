@@ -78,7 +78,7 @@ export default function LobbyPage() {
         listStyle: "none",
         display: "flex",
         flexDirection: "column",
-        gap: 10, // space between game cards
+        gap: 10, 
         maxWidth: 700,
         margin: "20px auto",
       }}
