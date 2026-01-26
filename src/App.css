@@ -62,3 +62,19 @@
   box-sizing: border-box;
 }
 
+.lobby-card {
+  cursor: pointer;
+  padding: 12px 16px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.15s ease;
+}
+
+.lobby-card:hover {
+  background: #2a2a2a;
+}
+
+

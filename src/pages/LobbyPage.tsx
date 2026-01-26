@@ -71,24 +71,57 @@ export default function LobbyPage() {
 
       <button onClick={createGame}>Create Game</button>
 
-    <ul style={{ marginTop: 20 }}>
+    <ul
+      style={{
+        marginTop: 20,
+        padding: 0,
+        listStyle: "none",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10, // space between game cards
+        maxWidth: 700,
+        margin: "20px auto",
+      }}
+    >
       {rooms.map((r) => {
         const tc = r.timeControl
           ? `${r.timeControl.length}+${r.timeControl.increment}`
           : "—";
 
         return (
-          <li
-            key={r.roomId}
-            onClick={() => navigate(`/game?room=${r.roomId}`)}
-            style={{ cursor: "pointer" }}
-          >
+        <li
+          key={r.roomId}
+          onClick={() => navigate(`/game?room=${r.roomId}`)}
+          className="lobby-card"
+        >
+          {/* LEFT: players / owner */}
+          <div style={{ fontWeight: 600 }}>
             {r.status === "open"
-              ? `${r.owner} — ${tc} — waiting for opponent`
+              ? r.owner
               : r.players?.length === 2
-              ? `${r.players[0]} vs ${r.players[1]} (${tc})`
+              ? `${r.players[0]} vs ${r.players[1]}`
               : "In progress"}
-          </li>
+          </div>
+
+          {/* RIGHT: meta info */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              fontSize: 18,
+              color: "#aaa",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <span>{tc}</span>
+            <span>·</span>
+            <span>
+              {r.status === "open" ? "Waiting for opponent" : "In progress"}
+            </span>
+          </div>
+        </li>
+
         );
       })}
     </ul>
