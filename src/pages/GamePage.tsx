@@ -475,6 +475,9 @@ function ClockDisplay({
           borderRadius: 8,
           color: "#fff",
           fontFamily: "monospace",
+          maxHeight: "90vh",
+          overflowY: "auto",
+          boxSizing: "border-box", 
         }}
       >
         {/* ROOM CODE */}
