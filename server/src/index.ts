@@ -101,6 +101,10 @@ export type Room = {
 
   private?: boolean;
 
+  whitePlayerId?: string;
+  blackPlayerId?: string;
+
+
 };
 
 export const rooms = new Map<string, Room>();
@@ -141,7 +145,7 @@ setInterval(() => {
         : "Black flagged: 1-0";
 
 
-    applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+    applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
     broadcastLobby();
 
     sendRoomUpdate(
@@ -476,11 +480,7 @@ function sendRoomUpdate(
   for (const client of room.clients) {
     const pid = (client as any).playerId as string | undefined;
     const isPlayer = !!(pid && room.players?.includes(pid));
-    let cliColor: "white" | "black" | undefined;
-    if (isPlayer) {
-      if (room.players?.[0] === pid) cliColor = "white";
-      else if (room.players?.[1] === pid) cliColor = "black";
-    }
+    const cliColor = isPlayer ? pid === room.whitePlayerId ? "white" : pid === room.blackPlayerId? "black": undefined: undefined;
 
     const out = {
       type: msgType,
@@ -619,8 +619,11 @@ wss.on("connection", (ws: WebSocket, req) => {
             // compute start fen from drafts 
             try {
               const [p1, p2] = room.players;
-              const { normalFen } = await getCombinedStartFens(p1, p2);
-              room.fen = normalFen;
+              const bit = Math.floor(Math.random() * 2);
+              room.whitePlayerId = bit === 0 ? p1 : p2;
+              room.blackPlayerId = bit === 0 ? p2 : p1;
+              const { normalFen } = await getCombinedStartFens(room.whitePlayerId, room.blackPlayerId);
+              room.fen = normalFen
             } catch (err) {
               // keep existing fen (usually START_FEN)
               console.warn("Failed to compute combined start fen for rematch/start:", err);
@@ -660,7 +663,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       {
         const pid = (ws as any).playerId as string | undefined;
         const isPlayer = !!(pid && room.players?.includes(pid));
-        const cliColor = isPlayer ? (room.players?.[0] === pid ? "white" : room.players?.[1] === pid ? "black" : undefined) : undefined;
+        const cliColor = isPlayer ? pid === room.whitePlayerId ? "white" : pid === room.blackPlayerId? "black": undefined: undefined;
         ws.send(
           JSON.stringify({
             type: "sync",
@@ -709,8 +712,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       if (parsed.isErr) return;
       const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
 
-      const whiteId = room.players?.[0];
-      const blackId = room.players?.[1];
+      const whiteId = room.whitePlayerId;
+      const blackId = room.blackPlayerId;
       const expected = chess.turn === "white" ? whiteId : blackId;
       if (senderId !== expected) return;
 
@@ -744,7 +747,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         room.drawVotes = new Set();
         room.rematchVotes = new Set();
 
-        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+        applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
         broadcastLobby();
         sendRoomUpdate(room, { result: room.result, reason: "time" }, "gameOver");
         return;
@@ -770,7 +773,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         room.result = result;
         room.drawVotes = new Set();
         room.rematchVotes = new Set();
-        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+        applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
         // when a game finishes, mark finished and update lobby
         room.status = "finished";
         broadcastLobby();
@@ -798,16 +801,18 @@ wss.on("connection", (ws: WebSocket, req) => {
         return;
       }
 
-      const [p1, p2] = room.players!;
+      const prevWhite = room.whitePlayerId!;
+      const prevBlack = room.blackPlayerId!;
 
-      // alternate colors by swapping players
-      room.players = [p2, p1];
+      // swap colors
+      room.whitePlayerId = prevBlack;
+      room.blackPlayerId = prevWhite;
+      
 
       // RECOMPUTE FEN FROM ACTIVE DRAFTS
       let startFen: string;
       try {
-        const { normalFen } = await getCombinedStartFens(room.players[0], room.players[1]);
-
+        const { normalFen } = await getCombinedStartFens(room.whitePlayerId, room.blackPlayerId);
         // alternate orientation implicitly via player order
         startFen = normalFen;
       } catch (err) {
@@ -854,7 +859,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       const winnerId = uid === p1 ? p2 : p1;
       if (!winnerId) return;
 
-      const winnerColor: "white" | "black" = room.players?.[0] === winnerId ? "white" : "black";
+      const winnerColor: "white" | "black" = room.whitePlayerId === winnerId ? "white" : "black";
       freezeClock(room);
       room.result = winnerColor === "white" ? "Black Resigns: 1-0" : "White Resigns: 0-1";
       room.concluded = true;
@@ -863,7 +868,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.rematchVotes = new Set();
 
       // Apply result to scores
-      applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+      applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
 
       // mark finished in lobby
       room.status = "finished";
@@ -894,7 +899,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         room.result = "Agreement: 1/2-1/2";
 
         // Apply draw points using stable ids
-        applyResultToScores(room, room.result, room.players?.[0], room.players?.[1]);
+        applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
 
         room.drawVotes = new Set();
         room.rematchVotes = new Set();
