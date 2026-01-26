@@ -505,6 +505,10 @@ function sendRoomUpdate(
     : undefined,
       rematchOffers: room.rematchVotes ? Array.from(room.rematchVotes) : [],
       drawOffers: room.drawVotes ? Array.from(room.drawVotes) : [],
+      colors: {
+        white: room.whitePlayerId,
+        black: room.blackPlayerId,
+      },
     } as any;
 
     try {
@@ -688,6 +692,10 @@ wss.on("connection", (ws: WebSocket, req) => {
             : undefined,
             rematchOffers: room.rematchVotes ? Array.from(room.rematchVotes) : [],
             drawOffers: room.drawVotes ? Array.from(room.drawVotes) : [],
+            colors: {
+              white: room.whitePlayerId,
+              black: room.blackPlayerId,
+            },
           }),
         );
       }

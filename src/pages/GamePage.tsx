@@ -37,6 +37,7 @@ export default function GamePage() {
   const [gameResult, setGameResult] = useState<null | "1-0" | "0-1" | "1/2-1/2" | "ongoing">(null);
   const [role, setRole] = useState<"player" | "spectator">("spectator");
   const [playerColor, setPlayerColor] = useState<"white" | "black" | null>(null);
+  const [colors, setColors] = useState<{ white: string; black: string } | null>(null);
   const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
   const [scores, setScores] = useState<Record<string, number>>({});
 
@@ -116,6 +117,7 @@ export default function GamePage() {
     if (update.players) setPlayers(update.players);
     if (update.role) setRole(update.role);
     if (update.color) setPlayerColor(update.color);
+    if (update.colors) setColors(update.colors);
     if (update.scores) setScores(update.scores);
 
     const prevFen = fenRef.current;
@@ -129,7 +131,15 @@ export default function GamePage() {
 
     if (update.clock) {
       console.log("[ONGAMEUPDATE]: received update.clock.running: ", update.clock.running)
-      setClock(update.clock);
+      // coerce to numbers to avoid strings/undefined
+      setClock({
+        whiteMs: Number(update.clock.whiteMs ?? 0),
+        blackMs: Number(update.clock.blackMs ?? 0),
+        running: update.clock.running ?? null,
+        lastStartTs: update.clock.lastStartTs != null ? Number(update.clock.lastStartTs) : null,
+        initialMs: Number(update.clock.initialMs ?? 0),
+        incrementMs: Number(update.clock.incrementMs ?? 0),
+      });
     }
 
     // Draw/Rematch Offer handling
@@ -247,6 +257,7 @@ export default function GamePage() {
     const newChess = Chess.fromSetup(setup).unwrap();
     chessRef.current = newChess;
     const isGameOver = gameResult !== null && gameResult !== "ongoing";
+    const cantMove = isGameOver || role !== "player" || !clock;
 
     groundRef.current.set({
       fen,
@@ -254,7 +265,7 @@ export default function GamePage() {
       animation: { enabled: true, duration: 300 },
       orientation: playerColor ?? "white",
       highlight: { check: true, custom: getCheckHighlights(newChess) },
-      movable: isGameOver? {color:undefined, free: false, showDests: false, dests: {}, events: {}} : {
+      movable: cantMove? {color:undefined, free: false, showDests: false, dests: {}, events: {}} : {
         color: playerColor ?? newChess.turn,
         dests: calculateDests(newChess),
         showDests: true,
@@ -450,6 +461,50 @@ function ClockDisplay({
     </div>
   );
 }
+// --- compute top/bottom ms & running color with an explicit mapping ---
+let topBaseMs = 0;
+let bottomBaseMs = 0;
+let topRunning: "white" | "black" | null = null;
+let bottomRunning: "white" | "black" | null = null;
+
+// Debug: show server payload + players/colors so we can confirm mapping
+// (leave this in temporarily, remove when happy)
+useEffect(() => {
+  if (clock || colors || players.length) {
+    console.log("DBG clock/colors/players:", {
+      clock,
+      colors,
+      players,
+    });
+  }
+}, [clock, colors, players]);
+
+if (clock) {
+  // Try to identify whether players[0] is white or black (explicit checks).
+  const topId = players[0]?.id ?? null;
+  const bottomId = players[1]?.id ?? null;
+
+  let topIsWhite: boolean;
+  if (colors && topId) {
+    if (colors.white === topId) topIsWhite = true;
+    else if (colors.black === topId) topIsWhite = false;
+    else topIsWhite = true; // fallback
+  } else if (user?.id && playerColor) {
+    if (topId === user.id) topIsWhite = playerColor === "white";
+    else if (bottomId === user.id) topIsWhite = playerColor === "black";
+    else topIsWhite = true; // fallback for spectators
+  } else {
+    topIsWhite = true; // fallback
+  }
+
+  // **use it here**
+  topBaseMs = topIsWhite ? clock.whiteMs : clock.blackMs;
+  bottomBaseMs = topIsWhite ? clock.blackMs : clock.whiteMs;
+
+  topRunning = topIsWhite ? "white" : "black";
+  bottomRunning = topRunning === "white" ? "black" : "white";
+}
+
 
   return (
   <div
@@ -540,14 +595,14 @@ function ClockDisplay({
         {/* Clocks and player info */}
         {clock && (
           <>
-            {/* compute white/black ms inline so we don't need an IIFE or outer variables */}
+            {/* Display player 1's clock */}
             <ClockDisplay
               ms={
-                clock.running === "white" && clock.lastStartTs
-                  ? Math.max(0, clock.whiteMs - (Date.now() - clock.lastStartTs))
-                  : clock.whiteMs
+                clock && topRunning && clock.lastStartTs && clock.running === topRunning
+                  ? Math.max(0, topBaseMs - (Date.now() - (clock.lastStartTs ?? 0)))
+                  : topBaseMs
               }
-              active={clock.running === "white"}
+              active={!!(clock && topRunning && clock.running === topRunning)}
             />
 
             {/* Player 1 */}
@@ -584,14 +639,14 @@ function ClockDisplay({
                 {players[1].username} · {scores[players[1].id] ?? 0}
               </div>
             )}
-            {/* BOTTOM CLOCK */}
+            {/* Display Player 2's clock */}
             <ClockDisplay
               ms={
-                clock.running === "black" && clock.lastStartTs
-                  ? Math.max(0, clock.blackMs - (Date.now() - clock.lastStartTs))
-                  : clock.blackMs
+                clock && bottomRunning && clock.lastStartTs && clock.running === bottomRunning
+                  ? Math.max(0, bottomBaseMs - (Date.now() - (clock.lastStartTs ?? 0)))
+                  : bottomBaseMs
               }
-              active={clock.running === "black"}
+              active={!!(clock && bottomRunning && clock.running === bottomRunning)}
             />
 
             {/* Game over controls */}

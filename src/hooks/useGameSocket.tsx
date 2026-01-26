@@ -19,6 +19,7 @@ export type GameUpdate = {
   };
   rematchOffers?: string[];
   drawOffers?: string[];
+  colors?: {white: string ; black: string};
 };
 
 export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => void) {
