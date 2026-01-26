@@ -406,7 +406,7 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
     }
   }
   if (!opponentKingSqAlg) {
-    console.debug("validateFenForAnalysis: opponent king not found", { piecesState, moverColor });
+    //console.debug("validateFenForAnalysis: opponent king not found", { piecesState, moverColor });
     return { ok: false, reason: `Couldn't find opponent king on the board.` };
   }
   const opponentKingIndex = algebraicToIndex(opponentKingSqAlg);

@@ -97,10 +97,18 @@ export function playMoveSound(
   const toIdx = parseSquare(to)!;
 
   const fromPiece = chess.board.get(fromIdx)
-  const toPiece = chess.board.get(fromIdx)
+  const toPiece = chess.board.get(toIdx)
 
-  // moving piece: prefer fromIdx, fall back to toIdx
-  const movingPiece = fromPiece ?? toPiece;
+  // Determine moving piece robustly for both pre-move (local) and post-move (remote) states.
+  let movingPiece: any | null = null;
+  // If fromPiece exists and its color matches chess.turn, we are probably in pre-move (mover still at "from").
+  if (fromPiece && fromPiece.color === chess.turn) {
+    movingPiece = fromPiece;
+  }
+  // Otherwise, if toPiece exists and its color is NOT chess.turn, we are likely in post-move (mover now at "to").
+  else if (toPiece && toPiece.color !== chess.turn) {
+    movingPiece = toPiece;
+  }
   if (!movingPiece) return;
 
   const isPreMoveState = chess.board.get(fromIdx) !== undefined;
@@ -139,6 +147,11 @@ export function playMoveSound(
     movingPiece.color === "white"
       ? [leftIdx, rightIdx, frontIdx]
       : [leftIdx, rightIdx, behindIdx];
+  
+  const relIdxsRS = [leftIdx, rightIdx, frontIdx, behindIdx] // rolling snares snare in all 4 directions orthogonally
+  const RSneighbors = relIdxsRS.map((idx) => 
+    idx !== undefined ? afterChess.board.get(idx) ?? null : null 
+  );
 
   const neighbors = relIdxs.map((idx) =>
     idx !== undefined ? afterChess.board.get(idx) ?? null : null
@@ -146,11 +159,15 @@ export function playMoveSound(
 
   const hasEnemyAdjacent = neighbors.some((n) => n !== null && n.color !== movingPiece.color);
   const hasEnemySnareAdjacent = neighbors.some(
-    (n) => n !== null && n.color !== movingPiece.color && (n.role === "snare" || n.role === "rollingsnare")
+    (n) => n !== null && n.color !== movingPiece.color && (n.role === "snare")
   );
 
+  const RShasEnemyAdjacent = RSneighbors.some((n) => n !== null && n.color !== movingPiece.color);
+  const hasEnemyRSAdjacent = RSneighbors.some(
+    (n) => n !== null && n.color !== movingPiece.color && (n.role === "rollingsnare")
+  );
   const isSnaredMove =
-    ((movingPiece.role === "snare" || movingPiece.role === "rollingsnare") && hasEnemyAdjacent) || hasEnemySnareAdjacent;
+    (((movingPiece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent) || ((movingPiece.role === "rollingsnare" && RShasEnemyAdjacent) || hasEnemyRSAdjacent));
 
   const isCastleMove = 
     ((capturedPiece) && (capturedPiece.color === movingPiece.color && movingPiece.role !== "wizard"));
@@ -165,7 +182,7 @@ export function playMoveSound(
 
   else if (capturedPiece) {
     if (movingPiece.role === "painter" || movingPiece.role === "royalpainter") playSound("paint");
-    else if ((chess.board.get(fromIdx)?.role === 'wizard' || chess.board.get(toIdx)?.role === 'wizard') && (chess.board.get(toIdx) != null && chess.board.get(fromIdx) != null))
+    else if ((movingPiece.role === 'wizard') && (capturedPiece.color===movingPiece.color))
       playSound("wizard");
     else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
       playSound("archer");
