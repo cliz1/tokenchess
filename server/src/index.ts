@@ -428,6 +428,7 @@ type RoomResult =
   | "ongoing"
   | "White Resigns: 0-1"
   | "Black Resigns: 1-0"
+  | "Insufficient Material: 1/2-1/2"
   | "Agreement: 1/2-1/2";
 
 // helper: safely award points
@@ -448,6 +449,7 @@ function applyResultToScores(room: Room, result: RoomResult | string, whiteId?: 
       room.scores[blackId] = (room.scores[blackId] ?? 0) + 1;
       break;
     case "Agreement: 1/2-1/2":
+    case "Insufficient Material: 1/2-1/2":
     case "Stalemate: 1/2-1/2":
       room.scores[whiteId] = (room.scores[whiteId] ?? 0) + 0.5;
       room.scores[blackId] = (room.scores[blackId] ?? 0) + 0.5;
@@ -763,6 +765,10 @@ wss.on("connection", (ws: WebSocket, req) => {
         gameOver = true;
         result = "Stalemate: 1/2-1/2";
       }
+      else if (chess.isInsufficientMaterial()){
+        gameOver = true;
+        result = "Insufficient Material: 1/2-1/2";
+      }
 
       room.fen = makeFen(chess.toSetup());
       room.lastMove = [fromStr, toStr];
@@ -908,7 +914,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         room.status = "finished";
         broadcastLobby();
 
-        sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: "1/2-1/2", reason: "draw-agreement" }, "gameOver");
+        sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: room.result, reason: "draw-agreement" }, "gameOver");
       }
       return;
     }

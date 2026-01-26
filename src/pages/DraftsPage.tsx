@@ -153,7 +153,7 @@ export default function DraftsPage() {
                 }}
                 style={{ marginLeft: 8 }}
               >
-                {current.isActive ? "Active" : "Set Active"}
+                {current.isActive ? "Active" : "Activate"}
               </button>
             </div>
           )}
