@@ -176,8 +176,8 @@ export function playMoveSound(
     ((movingPiece.role === "pawn") && ((fromIdx % 8) !== (toIdx % 8)))
   // --- play sounds ---
   if (isPawnCapture){
-    const r = Math.floor(Math.random() * 3) + 1; // 1–3
-    playSound(`capture${r}` as "capture1" | "capture2" | "capture3");
+    const r = Math.floor(Math.random() * 2) + 1; // 1–2
+    playSound(`capture${r}` as "capture1" | "capture2");
   }
 
   else if (capturedPiece) {
@@ -192,8 +192,8 @@ export function playMoveSound(
       playSound("castle");
     }
     else {
-      const r = Math.floor(Math.random() * 3) + 1; // 1–3
-      playSound(`capture${r}` as "capture1" | "capture2" | "capture3");
+      const r = Math.floor(Math.random() * 2) + 1; // 1–2
+      playSound(`capture${r}` as "capture1" | "capture2");
     }
 
     //if (afterChess.isCheck()) playSound("check");
