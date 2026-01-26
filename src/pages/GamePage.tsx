@@ -489,6 +489,49 @@ function ClockDisplay({
           </div>
         )}
 
+
+        {/* Spectator notice */}
+        {role === "spectator" && (
+          <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+            minWidth: 200, // keep this fixed
+            maxWidth: 200, // optional
+            padding: 16,
+            backgroundColor: "#1e1e1e",
+            borderRadius: 8,
+            color: "#fff",
+            fontFamily: "monospace",
+            boxSizing: "border-box", // important
+          }}
+        >
+
+            You have joined as a spectator.
+            {players.length < 2 && (
+              <div style={{ fontSize: 12, color: "#aaa" }}>
+                To join the game as a player, please sign in.
+              </div>
+            )}
+            <button
+            onClick={() => navigate("/login")}
+            style={{
+              marginTop: 8,
+              padding: "6px 12px",
+              fontSize: 12,
+              cursor: "pointer",
+              borderRadius: 4,
+              border: "1px solid #888",
+              backgroundColor: "#333",
+              color: "#fff"
+            }}
+            
+            >Sign In</button>
+          </div>
+        )}
+        
+
         {/* Clocks and player info */}
         {clock && (
           <>
