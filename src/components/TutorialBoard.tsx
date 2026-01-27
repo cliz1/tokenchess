@@ -12,6 +12,8 @@ import "../assets/custom-pieces.css";
 import type { Dests } from "chessground/types";
 import { calculateDests, getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
 
+const DEBUG = false;
+
 type PromotionRole = "queen" | "rook" | "bishop" | "knight" | "champion" | "princess";
 type UciMove = { from: string; to: string; promotion?: PromotionRole };
 type Challenge = {
@@ -34,11 +36,14 @@ type Props = {
 }
 
 const now = () => new Date().toISOString().slice(11, 23);
-const debug = (...args: any[]) => console.log(`[TB ${now()}]`, ...args);
-const group = (label: string, body: () => void) => {
+const debug = DEBUG? (...args: any[]) => console.log(`[TB ${now()}]`, ...args) : () => {};
+const group = DEBUG? (label: string, body: () => void) => {
   console.groupCollapsed(`[TB ${now()}] ${label}`);
   try { body(); } finally { console.groupEnd(); }
-};
+} : (_label: string, body: () => void) => {
+      body();
+    };
+
 
 export default function TutorialBoard({
   fen: controlledFen,
