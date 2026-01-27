@@ -445,12 +445,12 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
       }
 
       const pieceObj = { role: roleName, color: p.color };
-      console.debug("validateFenForAnalysis: testing piece", { sq: sqAlg, originalRole: p.role, normalizedRole: roleName, color: p.color, idx });
+      //console.debug("validateFenForAnalysis: testing piece", { sq: sqAlg, originalRole: p.role, normalizedRole: roleName, color: p.color, idx });
 
       const attacked = attacks(pieceObj as any, idx as any, occupied as any);
       const hitsKing = attacked.has(opponentKingIndex);
 
-      console.debug("validateFenForAnalysis: attacked contains king?", { sq: sqAlg, normalizedRole: roleName, hitsKing });
+      //console.debug("validateFenForAnalysis: attacked contains king?", { sq: sqAlg, normalizedRole: roleName, hitsKing });
 
       if (hitsKing) {
         const mover = moverColor === "white" ? "White" : "Black";
