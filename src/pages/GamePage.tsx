@@ -368,7 +368,11 @@ const promotePawn = (role: string) => {
   function ChangeDraftDropdown() {
   return (
     <div style={{ position: "relative" }}>
-      <button onClick={() => setDraftOpen(o => !o)}>
+      <button onClick={() => setDraftOpen(o => !o)}
+      style = {{
+        width: "100%",
+      }}
+        >
         Switch Draft
       </button>
 
