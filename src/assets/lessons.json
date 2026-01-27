@@ -1,9 +1,9 @@
 {
     "welcome": {
-    "title": "Welcome, stranger.",
+    "title": "Greetings, wanderer.",
     "quote": "",
     "steps": [
-      { "text": "This site is home to the original variant of chess called ”Token.” \n  \n Here you can learn the game, analyze custom positions, or play with a friend.", "image": "/images/tokenchess.png" },
+      { "text": "This site is home to the original variant of chess called ”Token.” \n  \n Here you can learn the game, analyze custom positions, or play with a friend or a stranger.", "image": "/images/tokenchess.png" },
       { "text": "This tutorial explains the concept of the game, and contains instructions for using available features." }
            
     ]
@@ -13,12 +13,12 @@
     "quote": "“The game of chess is a lake in which a mosquito can bathe and an elephant can drown.” – Indian Proverb",
     "steps": [
       { "text": "Chess is a board game that has been played for roughly half a millenium. \n To learn the basics of the game, [lichess.org](https://lichess.org/learn) is a great comprehensive source.", "image": "/images/chess_in_the_park.JPG" },
-       { "text": "In understanding the concept of chess *variants*, it helps to know that chess itself is a European *variation* of a type of board game that has existed for around 1,000 years longer than modern chess. The original game, [Chaturanga](https://en.wikipedia.org/wiki/Chaturanga), spread to other regions and evolved into [Makruk](https://en.wikipedia.org/wiki/Makruk), [Shogi](https://en.wikipedia.org/wiki/Shogi), and many other variations. These variations have different pieces and rules, but share the concept of a coordinate system and a set of movable figures, one of which is deemed important. Below is a game of [Xiangqi.](https://en.wikipedia.org/wiki/Xiangqi)", "image": "/images/xiangqi.jpg" }
+       { "text": "In understanding the concept of chess *variants*, it helps to know that chess itself is a European *variation* of a type of board game that has existed for around 1,000 years longer than modern chess. The original game, [Chaturanga](https://en.wikipedia.org/wiki/Chaturanga), spread to other regions and evolved into [Makruk](https://en.wikipedia.org/wiki/Makruk), [Shogi](https://en.wikipedia.org/wiki/Shogi), and many other variations. These variations have different pieces and rules, but share the concept of a coordinate system and a set of movable figures, one of which must be protected. \n Below is a game of [Xiangqi.](https://en.wikipedia.org/wiki/Xiangqi)", "image": "/images/xiangqi.jpg" }
            
     ]
   },
   "fairy-chess": {
-    "title": "Fairy tales...",
+    "title": "Strange characters...",
  "quote": "“We do these things for ourselves alone.” – Thomas Rayner Dawson, fairy chess composer",
     "steps": [
             {
@@ -45,14 +45,8 @@
     "quote":  "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
       {
-        "text": "Token adds a unique collection of fairy pieces and a draft system to the standard game of chess. \n Each piece has a set value measured in ”tokens,” and players draft their starting piece setup with a budget of 39 tokens.",
-        "challenge": {
-          "initialFen": "xrmak2r/pspppppp/8/8/8/8/PPYPPPPP/R1CIKBW1 w KQkq - 0 1",
-          "steps": [
-            { "white": { "from": "d4", "to": "e5" } }
-          ]
-        },
-        "note": "An example Token Chess starting position. There is no correct move here, the possibilities are endless!"
+        "text": "Token adds a unique collection of fairy pieces and a **draft system** to the standard game of chess. \n Each piece has a set value measured in ”tokens,” and players select their own setup with a budget of 39 tokens.",
+        "image": "/images/startexample.png"
       },
       {"text": "\n More information on drafting is detailed in the ”setup” section of this tutorial."}
     ]
@@ -129,7 +123,7 @@
         "note": "White to move, mate in one. (Bonus: find both solutions!)"
       },
         {
-        "text": "It is nearly impossible to survive more than a few moves against an Amazon in endgame play. \n In a more advanced example below, the Amazon easily overcomes a Champion with a beautiful *zugzwang*.",
+        "text": "It is nearly impossible to survive more than a few moves against an Amazon in endgame play. \n In a more advanced example below, the Amazon swiftly overcomes a Champion with a beautiful *zugzwang*.",
         "challenge": {
           "initialFen": "8/8/8/3kc3/8/1p6/p7/K3A3 w - - 0 1",
           "steps": [
@@ -218,7 +212,7 @@
     "quote": "“It's a trap!” – Admiral Ackbar",
     "steps": [
       {
-        "text": "The Snare is a piece that does not capture, but restricts the movement of opposing pieces **directly next to or in front of it.** \n In the diagram below, the rooks *cannot* move, but the knights can.", "image": "/images/snarediagram.png"
+        "text": "The Snare does not capture, but instead restricts the movement of opposing pieces **directly next to or in front of it.** \n In the diagram below, the rooks *cannot* move, but the knights can.", "image": "/images/snarediagram.png"
       },
       {
         "text": "The Snare moves forward one square, straight or diagonally. \n This example demonstrates the ability of a snare to assist in capturing a valuable target, such as a queen.",
@@ -278,7 +272,7 @@
         "note": "Jump over the pawn, then capture the queen."
       },
       {
-        "text": "The Wizard has the ability to swap places with a friendly piece within its movement range. This ability disregards pins, contrary to standard chess rules which disallow moving “through“ check.",
+        "text": "The Wizard has the ability to swap places with a friendly piece within its movement range. \n This ability even disregards pins, contrary to standard chess rules which disallow moving “through“ check.",
         "challenge": {
           "initialFen": "7k/6b1/8/8/3W4/2K5/3P4/8 w - - 0 1",
           "steps": [
@@ -327,26 +321,30 @@
         "note": "Capture the pieces in the following order: Knight, Rook, Pawn"
       },
         {
-        "text": "For clarity, the diagram below illustrates the Archer's attack range.", "image": "/images/archer.png"
+        "text": "For clarity, the diagram below illustrates which squares the Archer can shoot.", "image": "/images/archer.png"
       }
     ]
   },
   "token-values": {
-    "title": "Tokens",
+    "title": "Precious little coins...",
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
      { "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns. For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ", "image": "/images/Coin_of_Kushan.jpg" },
-      { "text": "Note that this game is a work in progess, so a piece's evaluation may change in future updates as a measure of balance. As of January 2026, the value in tokens for each piece is as follows: \n \n Pawn: 1 \n Knight: 3 \n Bishop: 3 \n Rook : 5 \n Queen: 9 \n Champion: 8 \n Princess: 8 \n Amazon: 13 \n Mann: 3 \n Painter: 2 \n Snare: 2 \n Wizard: 4 \n Archer: 7." }
+      { 
+  "text": "Note that this game is a work in progress, so a piece's evaluation may change in future updates as a measure of balance.\n\nAs of **January 2026**, the value in tokens for each piece is as follows:\n\n| Piece | Tokens |\n|------|--------|\n| Pawn | 1 |\n| Knight | 3 |\n| Bishop | 3 |\n| Rook | 5 |\n| Queen | 9 |\n| Champion | 8 |\n| Princess | 8 |\n| Amazon | 13 |\n| Mann | 3 |\n| Painter | 2 |\n| Snare | 2 |\n| Wizard | 4 |\n| Archer | 7 |"
+ }
     ]
   },
     "draft": {
-    "title": "Drafting",
+    "title": "...you and what army?",
     "quote": "",
     "steps": [
         { "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games. Simply drag pieces from the pallette onto the first two ranks of the board-- the first rank is for pieces, the second rank is for pawns, painters, and snares.", "image": "/images/draftpage.png" },
       { "text": "**In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page.** \n This draft, highlighted in green at the top, will be your starting setup when playing a game, and may be changed at any time between games. **Make sure to save any changes made to a draft with the button at the bottom!**", "image": "/images/drafttutorial.png" },
       {"text": "There are special restrictions on the **quantity** of each piece type in a draft. This is designed to keep things fun and fair by promoting diversity and mitigating 'hordes' of a single piece type. For example, while a single Painter is a formidable foe, eight of them together are...*oppressive.*", "image": "/images/horde.png"},
-       {"text": "Just like token values, these quantity restrictions are a work in progress, meaning they are subject to change in response to community feedback. As of January 2026, the quantity limit for each piece is as follows: \n Up to **1**: Archer, Painter \n Up to **2**: Amazon, Champion, Princess, Queen \n Up to **3**: Rook, Wizard \n Up to **4**: Bishop, Knight, Mann, Snare. \n \n PLEASE NOTE: The limitation categories below are **per-piece**, so for example, you can have *both* a Painter *and* an Archer in the same draft."}
+      {
+        "text": "Just like token values, these quantity restrictions are a work in progress and may change in response to community feedback.\n\nAs of **January 2026**, the quantity limit for each piece is as follows:\n\n| Max Allowed | Pieces |\n|-------------|--------|\n| **1** | Archer, Painter |\n| **2** | Amazon, Champion, Princess, Queen |\n| **3** | Rook, Wizard |\n| **4** | Bishop, Knight, Mann, Snare |\n\n**Please note:** These limits are **per-piece**. For example, you may include *both* a Painter *and* an Archer in the same draft."
+      }
     ]
   },
       "multiplayer": {
@@ -377,15 +375,16 @@
     "title": "The secret sauce...",
     "quote": "",
     "steps": [
-        { "text": "Token Chess is created and maintained by Nathaniel Clizbe, an amateur developer and chess enthusiast. \n Source code for the project is available [here.](https://github.com/cliz1/tokenchess)", "image":"/images/coin.png"  },
+        { "text": "Token Chess is created and maintained by Nathaniel Clizbe, a software developer and chess enthusiast. \n Source code for the project is available [here.](https://github.com/cliz1/tokenchess)", "image":"/images/coin.png"  },
         {"text": "This project is developed as an experimental chess platform; bugs and unfinished features may exist. \n Issues and suggestions are welcome via GitHub."}
     ]
   },
           "community": {
-    "title": "community",
+    "title": "A token marketplace...",
     "quote": "",
     "steps": [
-        { "text": "Coming soon!" }
+        { "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-chess-club)", "image": "/images/team.png" },
+        { "text": "As this game has some novel aspects, it is strongly encouraged to share your experience or suggest ideas!"}
     ]
   }
 

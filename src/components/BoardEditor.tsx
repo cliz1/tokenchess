@@ -122,6 +122,10 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
   setFen(piecesToFen(pieces));
 }, [sideToMove]);
 
+  useEffect(() => {
+    setAnalysisError(null);
+  }, [fen]);
+
 
   useEffect(() => {
     if (!boardRef.current) return;

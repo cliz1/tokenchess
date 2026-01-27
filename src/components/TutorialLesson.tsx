@@ -87,11 +87,43 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
               br: () => <br />,
               p: ({ node, ...props }) => <p {...props} />,
               em: ({ children }) => <i>{children}</i>,
+
+              table: ({ children }) => (
+                <table
+                  style={{
+                    margin: "16px auto",
+                    borderCollapse: "collapse",
+                  }}
+                >
+                  {children}
+                </table>
+              ),
+              th: ({ children }) => (
+                <th
+                  style={{
+                    padding: "6px 12px",
+                    borderBottom: "1px solid #555",
+                    textAlign: "center",
+                    color: "#ddd",
+                  }}
+                >
+                  {children}
+                </th>
+              ),
+              td: ({ children }) => (
+                <td
+                  style={{
+                    padding: "6px 12px",
+                    textAlign: "center",
+                  }}
+                >
+                  {children}
+                </td>
+              ),
             }}
           >
             {s.text}
           </ReactMarkdown>
-
 
             {s.image && (
               <div style={{ marginTop: 8, textAlign: "center" }}>

@@ -112,6 +112,7 @@ export default function TutorialsPage() {
           // independent scrolling
           overflowY: "auto",
           maxHeight: "100%",
+          marginBottom: 20
         }}
       >
         <h3 style={{ marginTop: 4 }}>Contents</h3>
