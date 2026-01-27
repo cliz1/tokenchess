@@ -28,6 +28,7 @@ export default function BoardEditor({ initialFen }: BoardEditorProps) {
   const [orientation] = useState<"white" | "black">("white");
   const [sideToMove, setSideToMove] = useState<"white" | "black">("white");
   const navigate = useNavigate();
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
@@ -533,7 +534,7 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
 function handleOpenInAnalysis() {
   const res = validateFenForAnalysis();
   if (!res.ok) {
-    alert(res.reason ?? "FEN is not valid for analysis");
+    setAnalysisError(res.reason ?? "FEN is not valid for analysis");
     return;
   }
 
@@ -744,6 +745,22 @@ function EditorButton({
   >
     Analyze
   </EditorButton>
+    {analysisError && (
+    <div
+      style={{
+        marginTop: 8,
+        padding: "8px 10px",
+        borderRadius: 8,
+        background: "rgba(255, 80, 80, 0.12)",
+        border: "1px solid rgba(255, 80, 80, 0.35)",
+        color: "#ffb3b3",
+        fontSize: 13,
+        lineHeight: 1.35,
+      }}
+    >
+      {analysisError}
+    </div>
+  )}
 </div>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
