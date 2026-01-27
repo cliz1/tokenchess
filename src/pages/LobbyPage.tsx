@@ -35,9 +35,22 @@ export default function LobbyPage() {
 
   return (
     <div className="app-container" style={{ padding: 20 }}>
-      <h2>Lobby</h2>
+      <h1 style={{ marginTop: 0, fontSize: "3rem", marginBottom: 5 }}>
+        <img
+        src="/images/greek-column.svg"
+        alt="Token"
+        style={{ width: 48, height: 48, marginRight: 20 }}
 
-      <div style={{ marginBottom: 10 }}>
+      />
+        Arena
+        <img
+        src="/images/greek-column.svg"
+        alt="Token"
+        style={{ width: 48, height: 48, marginLeft: 20,  transform: "scaleX(-1)" }}
+
+      />
+      </h1>
+      <div style={{ marginBottom: 20 }}>
         <label>
           Minutes:
           <input

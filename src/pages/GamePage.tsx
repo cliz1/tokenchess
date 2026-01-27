@@ -480,7 +480,6 @@ useEffect(() => {
 }, [clock, colors, players]);
 
 if (clock) {
-  // Try to identify whether players[0] is white or black (explicit checks).
   const topId = players[0]?.id ?? null;
   const bottomId = players[1]?.id ?? null;
 
