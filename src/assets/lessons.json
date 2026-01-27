@@ -193,7 +193,7 @@
         "note": "Push the Painter, then paint the rook."
       },
             {
-        "text": "Even when [promoting](https://en.wikipedia.org/wiki/Promotion_(chess)), the Painter refuses to pick up a sword. \n Instead, it becomes the *Royal Painter*, which moves like a Queen but *paints* instead of capturing.",
+        "text": "Even when [promoting](https://en.wikipedia.org/wiki/Promotion_(chess)), the Painter refuses to pick up a sword. \n Instead, they become the *Royal Painter*, which moves like a Queen but *paints* instead of capturing.",
         "challenge": {
           "initialFen": "8/8/YK6/8/8/8/6kp/8 w - - 0 1",
           "steps": [

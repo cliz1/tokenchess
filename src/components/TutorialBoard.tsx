@@ -121,16 +121,16 @@ export default function TutorialBoard({
   const resetChallengeAndBoard = (feedbackText: string | null = null, reason: string = "explicit") => {
     group(`resetChallengeAndBoard (reason: ${reason})`, () => {
       if (blackMoveTimeoutRef.current !== null) {
-        debug("clearing pending blackMoveTimeout", blackMoveTimeoutRef.current);
+        //debug("clearing pending blackMoveTimeout", blackMoveTimeoutRef.current);
         clearTimeout(blackMoveTimeoutRef.current);
         blackMoveTimeoutRef.current = null;
       }
 
       const targetFen = (challenge && challenge.initialFen) ?? controlledFen ?? initialFen ?? "start";
-      debug("targetFen:", targetFen);
+      //debug("targetFen:", targetFen);
 
       const newChess = createChessFrom(targetFen);
-      debug("newChess.turn:", newChess.turn);
+      //debug("newChess.turn:", newChess.turn);
 
       setChess(newChess);
       chessRef.current = newChess;
@@ -150,7 +150,7 @@ export default function TutorialBoard({
           lastMove: undefined,
           highlight: { check: true, custom: getCheckHighlights(newChess) },
         });
-        debug("ground set on reset (movable.color):", newChess.turn);
+        //debug("ground set on reset (movable.color):", newChess.turn);
       }
     });
   };
@@ -159,18 +159,18 @@ export default function TutorialBoard({
   useEffect(() => {
     const prev = prevPropsRef.current;
     if (prev.controlledFen !== controlledFen) {
-      debug("prop change: controlledFen", { prev: prev.controlledFen, next: controlledFen });
+      //debug("prop change: controlledFen", { prev: prev.controlledFen, next: controlledFen });
     }
     if (prev.initialFen !== initialFen) {
-      debug("prop change: initialFen", { prev: prev.initialFen, next: initialFen });
+      //debug("prop change: initialFen", { prev: prev.initialFen, next: initialFen });
     }
     if (prev.challenge !== challenge) {
       group("prop change: challenge identity changed", () => {
-        debug("prev === next ?", prev.challenge === challenge);
-        debug("prev steps len:", prev.challenge?.steps.length, "next steps len:", challenge?.steps.length);
+        //debug("prev === next ?", prev.challenge === challenge);
+        //debug("prev steps len:", prev.challenge?.steps.length, "next steps len:", challenge?.steps.length);
         try {
-          debug("prev JSON:", JSON.stringify(prev.challenge));
-          debug("next JSON:", JSON.stringify(challenge));
+          //debug("prev JSON:", JSON.stringify(prev.challenge));
+          //debug("next JSON:", JSON.stringify(challenge));
         } catch {}
       });
     }
@@ -184,14 +184,14 @@ export default function TutorialBoard({
         // nothing to do
         return;
       }
-      debug("prop orientation changed ->", newOri);
+      //debug("prop orientation changed ->", newOri);
       setCurrentOrientation(newOri);
       if (groundRef.current) {
         try {
           groundRef.current.set({ orientation: newOri });
-          debug("applied orientation to ground ->", newOri);
+          //debug("applied orientation to ground ->", newOri);
         } catch (e) {
-          debug("failed to set orientation on ground", e);
+          //debug("failed to set orientation on ground", e);
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -209,7 +209,7 @@ export default function TutorialBoard({
   useEffect(() => {
     const prev = prevChallengeIndexRef.current;
     if (prev !== challengeIndex) {
-      debug("challengeIndex change:", { prev, next: challengeIndex });
+      //debug("challengeIndex change:", { prev, next: challengeIndex });
     }
     prevChallengeIndexRef.current = challengeIndex;
   }, [challengeIndex]);
@@ -228,11 +228,11 @@ const playMove = (move: any, fromAlg?: string, toAlg?: string, isAutomated = fal
 
   group(`playMove ${from}→${to} (isAutomated=${isAutomated})`, () => {
     const beforeFen = makeFen(ch.toSetup());
-    const beforeTurn = ch.turn;
-    debug("before", { fen: beforeFen, turn: beforeTurn });
+    //const beforeTurn = ch.turn;
+    //debug("before", { fen: beforeFen, turn: beforeTurn });
 
     if (!ch.isLegal(move)) {
-      debug("ILLEGAL move; restoring fen");
+      //debug("ILLEGAL move; restoring fen");
       groundRef.current.set({ fen: beforeFen });
       return;
     }
@@ -259,43 +259,19 @@ const playMove = (move: any, fromAlg?: string, toAlg?: string, isAutomated = fal
       lastMove: lastMoveRef.current,
       highlight: { check: true, custom: getCheckHighlights(ch) },
     });
-
-    debug("after", {
-      fen: newFen,
-      turn: ch.turn,
-      lastMove: lastMoveRef.current,
-      waitingForBlack: waitingForBlackRef.current,
-    });
-
-    if (isAutomated) {
-      debug("playMove done (automated)");
-      return;
-    }
   });
 };
 
 
 const handleMove = (from: string, to: string) => {
   group(`handleMove ${from}→${to}`, () => {
-    debug("state snapshot", {
-      waitingForBlack: waitingForBlackRef.current,
-      challengeIndex,
-      feedback,
-      chessTurn: chessRef.current?.turn,
-    });
-
-    if (waitingForBlackRef.current) {
-      debug("IGNORED: waitingForBlackRef is true");
-      return;
-    }
-
     const ch = chessRef.current;
     if (!ch) { debug("no chessRef.current"); return; }
 
     const fromSq = parseSquare(from);
     const toSq = parseSquare(to);
     if (fromSq === undefined || toSq === undefined) {
-      debug("parseSquare undefined", { from, to, fromSq, toSq });
+      //debug("parseSquare undefined", { from, to, fromSq, toSq });
       return;
     }
 
@@ -307,7 +283,7 @@ const handleMove = (from: string, to: string) => {
       ((piece.color === "white" && Math.floor(toSq / 8) === 7) ||
        (piece.color === "black" && Math.floor(toSq / 8) === 0))
     ) {
-      debug("pawn reached promotion rank, setting pendingPromotion", { from, to, color: piece.color });
+      //debug("pawn reached promotion rank, setting pendingPromotion", { from, to, color: piece.color });
       setPendingPromotion({ from, to, color: piece.color });
       return; // stop here until user picks promotion
     }
@@ -326,14 +302,14 @@ const handleMove = (from: string, to: string) => {
 
     // ---------- Challenge-specific handling ----------
     if (!challenge) {
-      debug("no challenge → normal play");
+      //debug("no challenge → normal play");
       playMove(move, from, to, false);
       return;
     }
 
     const step = challenge.steps[challengeIndexRef.current];
     if (!step) {
-      debug("no step at index", challengeIndex, "→ normal play");
+      //debug("no step at index", challengeIndex, "→ normal play");
       playMove(move, from, to, false);
       return;
     }
@@ -347,14 +323,14 @@ const handleMove = (from: string, to: string) => {
       const expectedMove = (step as any)[expectedColor] as UciMove | undefined;
       const altExpected = (altstep as any)?.[expectedColor] as UciMove | undefined;
 
-      debug("expected move @index", challengeIndexRef.current, { expectedColor, expectedMove, turn: ch.turn });
+      //debug("expected move @index", challengeIndexRef.current, { expectedColor, expectedMove, turn: ch.turn });
 
 
-    debug("expected move @index", challengeIndexRef.current, { expectedColor, expectedMove });
+    //debug("expected move @index", challengeIndexRef.current, { expectedColor, expectedMove });
 
     const matches = uciEqual(expectedMove, from, to, undefined) || (altExpected ? uciEqual(altExpected, from, to, undefined) : false);
 
-    debug("uciEqual =", matches);
+    //debug("uciEqual =", matches);
 
     if (matches) {
       if (expectedMove?.promotion) move.promotion = expectedMove.promotion;
@@ -377,7 +353,7 @@ const handleMove = (from: string, to: string) => {
             const b = opponentReply;
             const fromS = parseSquare(b.from);
             const toS = parseSquare(b.to);
-            debug("opponent reply step", b, { fromS, toS, replyColor });
+            //debug("opponent reply step", b, { fromS, toS, replyColor });
 
             if (fromS !== undefined && toS !== undefined) {
               const bm: any = { from: fromS, to: toS };
@@ -391,19 +367,19 @@ const handleMove = (from: string, to: string) => {
             waitingForBlackRef.current = false;
             setChallengeIndex((prev) => {
               const next = prev + 1;
-              debug("advance challengeIndex AFTER opponent reply", { prev, next });
+              //debug("advance challengeIndex AFTER opponent reply", { prev, next });
               if (next >= challenge.steps.length) setFeedback("Completed!");
               else setFeedback(null);
               return next;
             });
           });
         }, delay);
-        debug("scheduled auto opponent reply in", delay, "ms");
+        //debug("scheduled auto opponent reply in", delay, "ms");
       } else {
         // No opponent reply: safe to increment immediately
         setChallengeIndex((prev) => {
           const next = prev + 1;
-          debug("advance challengeIndex (player-only step)", { prev, next });
+          //debug("advance challengeIndex (player-only step)", { prev, next });
           if (next >= challenge.steps.length) setFeedback("Completed!");
           else setFeedback(null);
           return next;
@@ -414,7 +390,7 @@ const handleMove = (from: string, to: string) => {
 
     // Incorrect
     setFeedback("Incorrect — try again");
-    debug("INCORRECT move", { from, to, expected: expectedMove, index: challengeIndex });
+    //debug("INCORRECT move", { from, to, expected: expectedMove, index: challengeIndex });
     window.setTimeout(() => resetChallengeAndBoard(null, "incorrect"), 700);
   });
 };
@@ -423,12 +399,12 @@ const handleMove = (from: string, to: string) => {
 
   const promotePawn = (role: PromotionRole) => {
     group(`promotePawn -> ${role}`, () => {
-      if (!pendingPromotion) { debug("no pendingPromotion"); return; }
+      if (!pendingPromotion) { return; }
       const ch = chessRef.current;
-      if (!ch) { debug("no chess"); return; }
+      if (!ch) { return; }
 
       if (ch.turn !== "white" && ch.turn !== "black") {
-        debug("unexpected turn on promotion", ch.turn);
+        //debug("unexpected turn on promotion", ch.turn);
         return;
       }
 
@@ -436,7 +412,7 @@ const handleMove = (from: string, to: string) => {
       const fromSq = parseSquare(from);
       const toSq = parseSquare(to);
       if (fromSq === undefined || toSq === undefined) {
-        debug("promotion parseSquare undefined", { from, to });
+        //debug("promotion parseSquare undefined", { from, to });
         setPendingPromotion(null);
         return;
       }
@@ -446,12 +422,12 @@ const handleMove = (from: string, to: string) => {
       if (challenge) {
         const step = challenge.steps[challengeIndex];
         const expected = step?.white;
-        debug("promotion expected @index", challengeIndex, expected);
+        //debug("promotion expected @index", challengeIndex, expected);
 
       if (expected && expected.promotion) {
         // match against the expected move for whoever the promotion color is
         const expectedForColor = (step as any)[pendingPromotion.color] as UciMove | undefined;
-        debug("promotion expected @index", challengeIndex, expectedForColor);
+        //debug("promotion expected @index", challengeIndex, expectedForColor);
 
         if (expectedForColor && uciEqual(expectedForColor, from, to, role)) {
           playMove(move, from, to, false);
@@ -460,7 +436,7 @@ const handleMove = (from: string, to: string) => {
 
           setChallengeIndex((prev) => {
             const next = prev + 1;
-            debug("advance challengeIndex (promotion)", { prev, next });
+            //debug("advance challengeIndex (promotion)", { prev, next });
             if (next >= challenge!.steps.length) setFeedback("Completed!");
             else setFeedback(null);
             return next;
@@ -524,15 +500,15 @@ useEffect(() => {
   group("mount Chessground", () => {
     // use the non-null mountEl captured above
     groundRef.current = Chessground(mountEl, cfg);
-    debug("initial ground movable.color", chess?.turn ?? "white");
+    //debug("initial ground movable.color", chess?.turn ?? "white");
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         try {
           groundRef.current?.set({ fen: internalFen });
-          debug("post-mount fen applied", internalFen);
+          //debug("post-mount fen applied", internalFen);
         } catch (e) {
-          debug("failed to set fen post-mount", e);
+          //debug("failed to set fen post-mount", e);
         }
       });
     });
@@ -541,7 +517,7 @@ useEffect(() => {
   return () => {
     group("unmount Chessground", () => {
       if (blackMoveTimeoutRef.current !== null) {
-        debug("clearing pending blackMoveTimeout on unmount", blackMoveTimeoutRef.current);
+        //debug("clearing pending blackMoveTimeout on unmount", blackMoveTimeoutRef.current);
         clearTimeout(blackMoveTimeoutRef.current);
         blackMoveTimeoutRef.current = null;
       }
@@ -570,7 +546,7 @@ useEffect(() => {
         highlight: { check: true, custom: getCheckHighlights(chess) },
       });
       setInternalFen(fen);
-      debug("synced", { fen, turn: chess.turn, lastMove: lastMoveRef.current });
+      //debug("synced", { fen, turn: chess.turn, lastMove: lastMoveRef.current });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chess, currentOrientation]);
@@ -580,9 +556,9 @@ useEffect(() => {
     if (!groundRef.current) return;
     try {
       groundRef.current.set({ fen: internalFen });
-      debug("applied internalFen to ground", internalFen);
+      //debug("applied internalFen to ground", internalFen);
     } catch (e) {
-      debug("failed to apply internalFen", e);
+      //debug("failed to apply internalFen", e);
     }
   }, [internalFen, size]);
 
@@ -648,7 +624,7 @@ useEffect(() => {
                 const newOrientation = currentOrientation === "white" ? "black" : "white";
                 setCurrentOrientation(newOrientation);
                 groundRef.current?.set({ orientation: newOrientation });
-                debug("flip orientation ->", newOrientation);
+                //debug("flip orientation ->", newOrientation);
               }}
             >
               Flip
@@ -684,7 +660,7 @@ useEffect(() => {
                 highlight: { check: true, custom: getCheckHighlights(ch) },
               });
             }
-            debug("dismiss promotion modal");
+            //debug("dismiss promotion modal");
             setPendingPromotion(null);
           }}
           style={{
