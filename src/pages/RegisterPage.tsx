@@ -22,7 +22,14 @@ export default function RegisterPage() {
       setError("That username is already taken.");
     } else if (err.message === "EMAIL_TAKEN") {
       setError("That email is already registered.");
-    } else {
+    } 
+    else if (err.message === "USERNAME_CHARS") {
+      setError("Usernames can only contain letters, numbers, and underscores.");
+    }
+    else if (err.message === "USERNAME_PROFANITY") {
+      setError("That username isn’t allowed.");
+    }
+    else {
       setError("Something went wrong. Please try again.");
     }
   }

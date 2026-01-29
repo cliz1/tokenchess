@@ -10,6 +10,7 @@ import { parseFen, makeFen } from "chessops/fen";
 import { Chess } from "chessops";
 import path from "path";
 import { fileURLToPath } from "url";
+import Filter from "leo-profanity";
  
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -106,6 +107,26 @@ export type Room = {
 
 
 };
+
+const PIECE_TOKEN_COST: Record<string, number> = {
+  p: 1,
+  n: 3,
+  b: 3,
+  r: 5,
+  q: 9,
+  k: 0,
+  c: 8, 
+  i: 8,
+  a: 13,
+  m: 3, 
+  y: 2,
+  s: 2,
+  w: 4, 
+  x: 7 
+};
+
+const MAX_TOKENS = 39;
+
 
 export const rooms = new Map<string, Room>();
 
@@ -205,10 +226,54 @@ app.get("/api/health", (_req, res) => {
 // ---------- routes: auth ----------
 import { Prisma } from "@prisma/client";
 
+const USERNAME_MIN = 3;
+const USERNAME_MAX = 16;
+
+Filter.loadDictionary();
+
+Filter.add(["admin", "moderator", "tokenchess", "token", "lichess", "hitler", "kkk", "nazi"]);
+
+function validateUsername(raw: string): string {
+  if (typeof raw !== "string") {
+    throw new Error("INVALID_USERNAME");
+  }
+
+  // Normalize Unicode to kill fancy fonts & tricks
+  const username = raw.normalize("NFKC");
+
+  // Length
+  if (username.length < USERNAME_MIN || username.length > USERNAME_MAX) {
+    throw new Error("USERNAME_LENGTH");
+  }
+
+  // ASCII only: letters, numbers
+  
+  if (!/^[A-Za-z0-9]+$/.test(username)) {
+    throw new Error("USERNAME_CHARS");
+  }
+
+  const lower = username.toLowerCase();
+
+  // Profanity check
+  if (Filter.check(lower)) {
+    throw new Error("USERNAME_PROFANITY");
+  }
+
+  return username;
+}
+
 app.post("/api/auth/register", async (req, res) => {
   const { email, password, username } = req.body;
   if (!email || !password || !username)
     return res.status(400).json({ error: "Missing email, password, or username" });
+
+  let cleanUsername: string;
+
+  try {
+  cleanUsername = validateUsername(username);
+} catch (err: any) {
+  return res.status(400).json({ error: err.message });
+}
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -218,7 +283,7 @@ app.post("/api/auth/register", async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { email, password: hash, username },
+      data: { email, password: hash, username: cleanUsername },
     });
 
     const token = signToken({ id: user.id, email: user.email });
@@ -972,6 +1037,57 @@ server.listen(port, "0.0.0.0", () => {
 });
 
 // ---------- helpers continued: combine drafts into a start FEN ----------
+function validateDraftFen(fen: string) {
+  const placement = fen.split(" ")[0];
+  const ranks = placement.split("/");
+
+  if (ranks.length !== 8) {
+    throw new Error("Invalid FEN: expected 8 ranks");
+  }
+
+  let tokenSum = 0;
+
+  for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
+    const rank = ranks[rankIndex];
+    const isAllowedRank = rankIndex >= 6; // ranks 7–8 (0-based)
+
+    let fileCount = 0;
+
+    for (const ch of rank) {
+      if (/\d/.test(ch)) {
+        fileCount += Number(ch);
+        continue;
+      }
+
+      // piece character
+      fileCount += 1;
+
+      if (!isAllowedRank) {
+        throw new Error("Invalid draft FEN: pieces outside first two ranks");
+      }
+
+      const piece = ch.toLowerCase();
+      const cost = PIECE_TOKEN_COST[piece];
+
+      if (cost === undefined) {
+        throw new Error(`Invalid draft piece: ${ch}`);
+      }
+
+      tokenSum += cost;
+    }
+
+    if (fileCount !== 8) {
+      throw new Error("Invalid FEN: rank does not sum to 8 files");
+    }
+  }
+
+  if (tokenSum > MAX_TOKENS) {
+    throw new Error(`Draft exceeds token budget (${tokenSum} > ${MAX_TOKENS})`);
+  }
+
+  return tokenSum;
+}
+
 async function getCombinedStartFens(player1Id: string, player2Id: string) {
   const drafts = await prisma.draft.findMany({
     where: { userId: { in: [player1Id, player2Id] }, isActive: true },
@@ -993,6 +1109,9 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
 
   const fenA = fens[player1Id];
   const fenB = fens[player2Id];
+
+  validateDraftFen(fenA);
+  validateDraftFen(fenB);
 
   // helper to extract last 2 rows from a player's fen
   function extractWhiteRows(fen: string) {
