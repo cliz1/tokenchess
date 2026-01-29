@@ -42,7 +42,7 @@ const START_FEN =
 
 // ---------- helpers ----------
 function signToken(payload: object) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
 }
 
 function verifyToken(token: string) {
@@ -714,6 +714,10 @@ wss.on("connection", (ws: WebSocket, req) => {
       }
       const senderId = (ws as any).playerId;
       if (!senderId || !room.players?.includes(senderId)) return;
+
+      (ws as any).lastMoveTs ??= 0;
+      if (Date.now() - (ws as any).lastMoveTs < 200) return;
+      (ws as any).lastMoveTs = Date.now();
 
       // Support promotion: [from, to, promotion?]
       const lastMove = data.lastMove as [string, string, string?];
