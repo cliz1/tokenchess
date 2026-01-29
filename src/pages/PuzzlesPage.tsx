@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import TutorialBoard from "../components/TutorialBoard";
 import puzzlesData from '../assets/puzzles.json';
 
@@ -52,6 +51,7 @@ export default function PuzzlesPage() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          marginBottom: 100
         }}
       >
         <TutorialBoard
@@ -63,23 +63,11 @@ export default function PuzzlesPage() {
           debugName="PuzzleBoard"
           orientation={puzzle.orientation}
         />
+        <div style={{ marginTop: 20, display: "flex", gap: 10, marginLeft: 10 }}>
+        <button onClick={prevPuzzle}>&lt;&lt;</button>
+        <button onClick={nextPuzzle}>&gt;&gt;</button>
       </div>
-
-      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
-        <button onClick={prevPuzzle}>Previous</button>
-        <button onClick={nextPuzzle}>Next</button>
       </div>
-
-      <Link
-        to="/"
-        style={{
-          marginTop: 30,
-          color: "#7e7bd8ff",
-          fontSize: 16,
-        }}
-      >
-        Back to Home
-      </Link>
     </div>
   );
 }

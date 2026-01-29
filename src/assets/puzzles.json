@@ -1,18 +1,14 @@
 [
   {
-    "initialFen": "r4bk1/5ppp/aip5/1b3N2/7W/1YB5/1K2B3/6R1 w - - 0 1",
+    "initialFen": "r4b1k/6pp/aip4N/8/5W2/1YB5/1K2B3/6R1 w - - 0 1",
     "steps": [
-      { "white": { "from": "f5", "to": "h6" }, "black": { "from": "g8", "to": "h8" } },
-      { "white": { "from": "h6", "to": "f7" }, "black": { "from": "h8", "to": "g8" } },
-      { "white": { "from": "f7", "to": "h6" }, "black": { "from": "g8", "to": "h8" } },
-      { "white": { "from": "h4", "to": "h6" }, "black": { "from": "h8", "to": "g8" } },
-      { "white": { "from": "e2", "to": "c4" }, "black": { "from": "b5", "to": "c4" } },
-      { "white": { "from": "b3", "to": "c4" }, "black": { "from": "b6", "to": "c4" } },
+      { "white": { "from": "f4", "to": "h6" }, "black": { "from": "h8", "to": "g8" } },
+      { "white": { "from": "e2", "to": "c4" }, "black": { "from": "b6", "to": "c4" } },
       { "white": { "from": "b3", "to": "c4" }, "black": { "from": "a6", "to": "c4" } },
       { "white": { "from": "b3", "to": "c4" } }
     ],
     "alt_steps": [],
-    "label": "Painter's Paradise (2025)"
+    "label": ""
   },
   {
     "initialFen": "2R5/r2A4/k7/1b6/q7/p7/K7/8 w - - 0 1",
@@ -25,14 +21,25 @@
     "label": "by Thomas Johannes Werndly (1859)"
   },
     {
-    "initialFen": "2k3r1/1pp5/p1p5/4R2p/7n/2NP1w1P/PPP4K/6R1 b - - 0 1",
+    "initialFen": "2k3r1/1pp5/p1p5/7p/7n/2NP1w1P/PPP4K/4R1R1 b - - 0 1",
     "orientation": "black",
     "steps": [
       { "black": { "from": "f3", "to": "f2" }, "white": { "from": "h2", "to": "h1" } },
       { "black": { "from": "f2", "to": "h4" }}
     ],
     "alt_steps": [],
-    "label": "Black Magic (2025)"
+    "label": ""
+  },
+      {
+    "initialFen": "1kb1rr2/p1p3p1/Yp5p/1P1WN3/5P1B/7B/6PK/a4R2 w - - 0 1",
+    "orientation": "white",
+    "steps": [
+      { "white": { "from": "e5", "to": "d7" }, "black": { "from": "b8", "to": "a8" } },
+      { "white": { "from": "d5", "to": "b7" }, "black": { "from": "c8", "to": "b7" } },
+      { "white": { "from": "a6", "to": "b7" } }
+    ],
+    "alt_steps": [
+    ],
+    "label": ""
   }
 ]
-

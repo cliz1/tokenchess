@@ -66,7 +66,7 @@ export default function App() {
 function AppContent() {
   const location = useLocation();
   // Hide nav + footer on any `/game` route
-  const hideNav = location.pathname.startsWith("/game") || location.pathname.startsWith("/puzzles");;
+  const hideNav = location.pathname.startsWith("/game");
 useEffect(() => {
   const isGame = location.pathname.startsWith("/game");
   const isHome = location.pathname === "/";

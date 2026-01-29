@@ -1,6 +1,6 @@
 {
     "welcome": {
-    "title": "Greetings, wanderer.",
+    "title": "Greetings.",
     "quote": "",
     "steps": [
       { "text": "This site is home to the original variant of chess called ”Token.” \n  \n Here you can learn the game, analyze custom positions, or play with a friend or a stranger.", "image": "/images/tokenchess.png" },
@@ -380,7 +380,7 @@
     ]
   },
           "community": {
-    "title": "A token marketplace...",
+    "title": "Community",
     "quote": "",
     "steps": [
         { "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-chess-club)", "image": "/images/team.png" },
