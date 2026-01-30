@@ -48,7 +48,8 @@ export default function TutorialsPage() {
       {
         heading: "More Info",
         items: [{ key: "source", label: "Source" },
-          { key: "community", label: "Community" }
+          { key: "community", label: "Community" },
+          { key: "balance", label: "Balance" }
         ],
       },
     ],

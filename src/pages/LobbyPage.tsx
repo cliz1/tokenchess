@@ -53,25 +53,39 @@ export default function LobbyPage() {
       <div style={{ marginBottom: 20 }}>
         <label>
           Minutes:
-          <input
-            type="number"
-            min={1}
+          <select
             value={minutes}
-            onChange={(e) => setMinutes(Number(e.target.value))}
-            style={{ width: 60, marginLeft: 5 }}
-          />
+            onChange={(e) => setMinutes(parseInt(e.target.value))}
+            style={{ width: 70, marginLeft: 5 }}
+          >
+            {[1, 2, 3, 5, 10, 15, 30, 60].map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
         </label>
+
         <label style={{ marginLeft: 10 }}>
           Increment (sec):
           <input
             type="number"
             min={0}
+            max={10}
+            step={1}
             value={increment}
-            onChange={(e) => setIncrement(Number(e.target.value))}
+            onChange={(e) => setIncrement(parseInt(e.target.value) || 0)}
             style={{ width: 60, marginLeft: 5 }}
+            placeholder="e.g. 5"
           />
         </label>
-           <label style={{ marginLeft: 10 }}>
+        {increment < 0 || increment > 10 ? (
+          <div style={{ color: "red", fontSize: 12, marginTop: 2 }}>
+            Please enter a value between 0 and 10.
+          </div>
+        ) : null}
+
+        <label style={{ marginLeft: 10 }}>
           Private:
           <input
             type="checkbox"
@@ -81,6 +95,8 @@ export default function LobbyPage() {
           />
         </label>
       </div>
+
+
 
       <button onClick={createGame}>Create Game</button>
 

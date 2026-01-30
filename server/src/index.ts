@@ -432,6 +432,28 @@ app.get("/api/rooms/:id", (req, res) => {
   res.json({ roomId: id, players: room.players, createdAt: room.createdAt, result: room.result ?? null });
 });
 
+// time control validator
+
+function validateTimeControl(length: any, increment: any) {
+  const l = Number(length);
+  const i = Number(increment);
+
+  if (!Number.isFinite(l) || !Number.isFinite(i)) {
+    throw new Error("INVALID_TIME_CONTROL");
+  }
+
+  if (l < 1 || l > 60) {
+    throw new Error("INVALID_TIME_LENGTH");
+  }
+
+  if (i < 0 || i > 10) {
+    throw new Error("INVALID_INCREMENT");
+  }
+
+  return { length: l, increment: i };
+}
+
+
 // create room (open room visible in lobby)
 app.post("/api/rooms", authMiddleware, async (req: any, res) => {
   try {
@@ -449,6 +471,13 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
     const dbUser = await prisma.user.findUnique({ where: { id: req.user.id } });
     const username = dbUser?.username ?? "Unknown";
 
+    let timeControl;
+    try {
+      timeControl = validateTimeControl(req.body.length, req.body.increment);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+
     // create and register the room
     const room: Room = {
       id: roomId,
@@ -458,7 +487,7 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       players: [req.user.id],
       usernames: { [req.user.id]: username },
       clients: new Set(),
-      timeControl: { length, increment },
+      timeControl,
       rematchVotes: new Set(),
       drawVotes: new Set(),
       private: req.body.isPrivate ?? false,
@@ -1049,8 +1078,6 @@ function validateDraftFen(fen: string) {
 
   for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
     const rank = ranks[rankIndex];
-    const isAllowedRank = rankIndex >= 6; // ranks 7–8 (0-based)
-
     let fileCount = 0;
 
     for (const ch of rank) {
@@ -1059,25 +1086,31 @@ function validateDraftFen(fen: string) {
         continue;
       }
 
-      // piece character
       fileCount += 1;
 
-      if (!isAllowedRank) {
-        throw new Error("Invalid draft FEN: pieces outside first two ranks");
+      // Only the last two ranks (6 and 7) are allowed to have draft pieces
+      if (rankIndex < 6) {
+        // Allow black king on e8 (first rank, index 0)
+        if (!(rankIndex === 0 && ch.toLowerCase() === "k")) {
+          throw new Error(
+            `Invalid draft FEN: unexpected piece "${ch}" outside draft ranks`
+          );
+        }
+      } else {
+        // validate draft piece
+        const piece = ch.toLowerCase();
+        const cost = PIECE_TOKEN_COST[piece];
+
+        if (cost === undefined) {
+          throw new Error(`Invalid draft piece: ${ch}`);
+        }
+
+        tokenSum += cost;
       }
-
-      const piece = ch.toLowerCase();
-      const cost = PIECE_TOKEN_COST[piece];
-
-      if (cost === undefined) {
-        throw new Error(`Invalid draft piece: ${ch}`);
-      }
-
-      tokenSum += cost;
     }
 
     if (fileCount !== 8) {
-      throw new Error("Invalid FEN: rank does not sum to 8 files");
+      throw new Error(`Invalid FEN: rank ${rankIndex + 1} does not sum to 8 files`);
     }
   }
 

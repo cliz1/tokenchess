@@ -353,7 +353,9 @@
     "steps": [
         { "text": "Once you have saved and activated at least one draft, you are ready to play a game of Token! At the top menu, click Play -> Game Lobby. Here you can create a game room with a time control of your liking, or join another player's room by clicking their username.", "image": "/images/gamelobby.png" },
              { "text": "Each room has a code, so you can alternatively join a friend's game by clicking Play -> Join Game and entering their room code. Once in a room, you can rematch as many times as you like, with the option to switch your active draft in between each game of the match.", "image": "/images/gamepage.png" },
-             {"text": "Multiplayer is currently the **only** supported playing method, as there is no Token Chess AI yet. \n For fans of computer chess - stay tuned!"}
+             {"text": "Multiplayer is currently the **only** supported playing method, as there is no Token Chess AI yet. \n For fans of computer chess - stay tuned!"},
+             {"text": "**If you or your opponent employs a draft that becomes illegal after balance changes**, the game will start from the default chess position. If this happens, check the balance notes at the bottom of this page, then remove and re-add any pieces in your draft that have increased in value.", "image": "/images/defaultgame.png"}
+             
     ]
   },
         "board-editor": {
@@ -386,6 +388,14 @@
         { "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-chess-club)", "image": "/images/team.png" },
         { "text": "As this game has some novel aspects, it is strongly encouraged to share your experience or suggest ideas!"}
     ]
+  },
+            "balance": {
+    "title": "Balance",
+    "quote": "",
+    "steps": [
+        { "text": "Token has not received any balance changes since release. When changes occur, details will be posted here." }
+    ]
   }
+
 
 }
