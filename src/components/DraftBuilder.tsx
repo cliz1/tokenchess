@@ -15,7 +15,7 @@ export default function DraftBuilder({ onSave, initialFen }: { onSave?: (fen: st
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
 
-  const START_FEN = "8/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  const START_FEN = "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const PAWNS_FEN = "4k3/8/8/8/8/8/PPPPPPPP/4K3 w - - 0 1"
   const INITIAL_TOKENS = 39;

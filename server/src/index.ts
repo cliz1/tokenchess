@@ -231,7 +231,7 @@ const USERNAME_MAX = 16;
 
 Filter.loadDictionary();
 
-Filter.add(["admin", "moderator", "tokenchess", "token", "lichess", "hitler", "kkk", "nazi"]);
+Filter.add(["admin", "moderator", "tokenchess", "lichess", "hitler", "kkk", "nazi"]);
 
 function validateUsername(raw: string): string {
   if (typeof raw !== "string") {
