@@ -282,9 +282,27 @@ app.post("/api/auth/register", async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
+    const STANDARD_FEN =
+      "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
     const user = await prisma.user.create({
-      data: { email, password: hash, username: cleanUsername },
+      data: {
+        email,
+        password: hash,
+        username: cleanUsername,
+
+        drafts: {
+          create: {
+            name: "Standard",
+            data: { fen: STANDARD_FEN },
+            isActive: true,
+            isPublic: false,
+            slot: 1,
+          },
+        },
+      },
     });
+
 
     const token = signToken({ id: user.id, email: user.email });
 

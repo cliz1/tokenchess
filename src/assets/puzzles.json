@@ -1,6 +1,6 @@
 [
   {
-    "initialFen": "r4b1k/6pp/aip4N/8/5W2/1YB5/1K2B3/6R1 w - - 0 1",
+    "initialFen": "r4b1k/6pp/aip4N/8/5W2/1YB5/1K2B3/8 w - - 0 1",
     "steps": [
       { "white": { "from": "f4", "to": "h6" }, "black": { "from": "h8", "to": "g8" } },
       { "white": { "from": "e2", "to": "c4" }, "black": { "from": "b6", "to": "c4" } },
