@@ -385,7 +385,7 @@
     "title": "Community",
     "quote": "",
     "steps": [
-        { "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-chess-club)", "image": "/images/tokenclub.png" },
+        { "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-club)", "image": "/images/tokenclub.png" },
         { "text": "As this game has some novel aspects, it is strongly encouraged to share your experience or suggest ideas!"}
     ]
   },
