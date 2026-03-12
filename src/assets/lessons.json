@@ -210,7 +210,7 @@
         "image": "/images/wetpaint.png"
       },
       {
-        "text": "In the above diagram. White has just painted a queen on the previous move. \n Now black's turn, black **cannot paint the queen** since the paint has yet to dry."
+        "text": "In the above diagram, White has just painted a queen on the previous move. \n Now black's turn, black **cannot paint the queen** since the paint has yet to dry."
       }
     ]
   },
