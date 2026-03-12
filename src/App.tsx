@@ -14,15 +14,24 @@ import CreateRoomPage from "./pages/CreateRoomPage";
 import JoinRoomPage from "./pages/JoinRoomPage";
 import PuzzlesPage from "./pages/PuzzlesPage";
 import LobbyPage from "./pages/LobbyPage";
+import GamesPage from "./pages/GamesPage";
 
 import "./App.css";
 
 function AnalysisRouteWrapper() {
   const location = useLocation();
-  const initialFen =
-    (location.state && (location.state as any).initialFen) ??
-    "4k3/8/2b3l1/8/8/2S3N1/8/4K3";
-  return <AnalysisBoard initialFen={initialFen} />;
+  const state = location.state as any;
+  const initialFen = state?.initialFen ?? "4k3/8/2b3l1/8/8/2S3N1/8/4K3";
+  const initialMoves = state?.initialMoves ?? [];
+  const orientation = state?.orientation ?? "white";
+
+  return (
+    <AnalysisBoard
+      initialFen={initialFen}
+      initialMoves={initialMoves}
+      orientation={orientation}
+    />
+  );
 }
 
 function EditorRouteWrapper() {
@@ -47,6 +56,7 @@ function AuthNav() {
   }
   return (
     <>
+    <NavLink to="/games" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Games</NavLink>
       <NavLink to="/drafts" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Drafts</NavLink>
       <button onClick={logout} style={{ background: "transparent", border: "none", color: "#aaa", cursor: "pointer" }}>Logout</button>
     </>
@@ -66,9 +76,9 @@ export default function App() {
 function AppContent() {
   const location = useLocation();
   // Hide nav + footer on any `/game` route
-  const hideNav = location.pathname.startsWith("/game");
+  const hideNav = location.pathname === "/game";
 useEffect(() => {
-  const isGame = location.pathname.startsWith("/game");
+  const isGame = location.pathname === ("/game");
   const isHome = location.pathname === "/";
   const isPuzzle = location.pathname.startsWith("/puzzles");
   const isTutorials = location.pathname.startsWith("/tutorials");
@@ -185,6 +195,7 @@ useEffect(() => {
           <Route path="/game/join" element={<JoinRoomPage />} />
           <Route path="/puzzles" element={<PuzzlesPage />} />
           <Route path="/lobby" element={<LobbyPage />} />
+          <Route path="/games" element={<GamesPage />} />
         </Routes>
       </main>
     </div>

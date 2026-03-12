@@ -22,12 +22,14 @@ type AnalysisBoardProps = {
   initialFen?: string;
   orientation?: "white" | "black";
   onMove?: (from: string, to: string) => void;
+  initialMoves?: string[]; // SAN strings e.g. ["e4", "e5", "Nf3"]
 };
 
 export default function AnalysisBoard({
   initialFen = "start",
   orientation = "white",
   onMove,
+  initialMoves = [],
 }: AnalysisBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<any>(null);
@@ -42,6 +44,8 @@ export default function AnalysisBoard({
   const chessRef = useRef<Chess | null>(null); // for quick access without re-renders
 
   const navigate = useNavigate();
+
+  const [, forceUpdate] = useState(0);
 
 
   // Handle move
@@ -237,6 +241,74 @@ export default function AnalysisBoard({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [goToNext, goToPrev]);
+
+  useEffect(() => {
+  if (initialMoves.length === 0) return;
+
+  // replay each SAN move into the pgn tree
+  const replayChess = initialFen === "start"
+    ? Chess.default()
+    : Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
+
+  // reset pgn tree
+  pgnRef.current = defaultGame<MyNodeData>();
+  currentNodeRef.current = pgnRef.current.moves;
+  pathRef.current = [pgnRef.current.moves];
+
+  for (const san of initialMoves) {
+    // find the move object from SAN
+    const ctx = replayChess.ctx();
+    let matched: any = null;
+    for (const [from, targets] of replayChess.allDests(ctx)) {
+      for (const to of targets) {
+        const candidate: any = { from, to };
+        try {
+          if (makeSan(replayChess, candidate) === san) {
+            matched = candidate;
+            break;
+          }
+        } catch {}
+        // try promotions
+        for (const role of ["queen", "rook", "bishop", "knight"] as const) {
+          const withPromo = { from, to, promotion: role };
+          try {
+            if (makeSan(replayChess, withPromo) === san) {
+              matched = withPromo;
+              break;
+            }
+          } catch {}
+        }
+        if (matched) break;
+      }
+      if (matched) break;
+    }
+
+    if (!matched) break; // unrecognized SAN, stop replaying
+
+    const color = replayChess.turn;
+    extend(currentNodeRef.current, [{ san, move: matched, color } as any]);
+    const nextNode = currentNodeRef.current.children.find(
+      (c) => c.data.san === san
+    )!;
+    currentNodeRef.current = nextNode;
+    pathRef.current = [...pathRef.current, nextNode];
+    replayChess.play(matched);
+  }
+
+  // after replaying, go back to the start position for analysis
+  // (user can navigate forward with arrow keys / move list)
+  pgnRef.current.moves; // tree is built
+  // reset view to start
+  const startChess = initialFen === "start"
+    ? Chess.default()
+    : Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
+  currentNodeRef.current = pgnRef.current.moves;
+  pathRef.current = [pgnRef.current.moves];
+  lastMoveRef.current = undefined;
+  forceUpdate(n => n + 1); // trigger move list re-render
+  setChess(startChess);
+
+}, [initialMoves]);
 
 
   const resetBoard = () => {

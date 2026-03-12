@@ -530,6 +530,37 @@ app.get("/api/lobby", (_req, res) => {
   res.json(serializeLobby());
 });
 
+// game history
+app.get("/api/games", authMiddleware, async (req: any, res) => {
+  const userId = req.user.id;
+
+  const games = await prisma.game.findMany({
+    where: { OR: [{ whiteId: userId }, { blackId: userId }] },
+    include: {
+      white: { select: { username: true } },
+      black: { select: { username: true } },
+    },
+    orderBy: { playedAt: "desc" },
+    take: 50,
+  });
+
+  const shaped = games.map((g) => ({
+    id: g.id,
+    whiteId: g.whiteId,
+    blackId: g.blackId,
+    whiteUsername: g.white.username,
+    blackUsername: g.black.username,
+    result: g.result,
+    pgn: g.pgn,
+    startFen: g.startFen,
+    timeControl: g.timeControl,
+    playedAt: g.playedAt.toISOString(),
+    moveCount: g.pgn.split("\n\n")[1]?.split(/\s+/).filter((t) => t && !/^\d+\./.test(t) && !["1-0","0-1","1/2-1/2","*"].includes(t)).length ?? 0,
+  }));
+
+  res.json(shaped);
+});
+
 // ---------- start server & websocket ----------
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
@@ -971,6 +1002,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.lastMove = undefined;
       room.concluded = false;
       room.result = undefined;
+      room.moves = [];
 
       room.rematchVotes.clear();
       room.drawVotes = new Set();
@@ -1282,7 +1314,7 @@ async function saveGame(room: Room) {
         timeControl: timeControlStr,
       },
     });
-    console.log(`Game saved for room ${room.id}`);
+    //console.log(`Game saved for room ${room.id}`);
   } catch (err) {
     console.error("Failed to save game:", err);
   }
