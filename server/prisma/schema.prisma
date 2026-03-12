@@ -16,6 +16,8 @@ model User {
   drafts     Draft[]   @relation("owner_drafts")
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  gamesAsWhite  Game[]  @relation("white_games")
+  gamesAsBlack  Game[]  @relation("black_games")
 }
 
 model Draft {
@@ -32,3 +34,21 @@ model Draft {
 
   @@index([userId])
 }
+
+model Game {
+  id          String   @id @default(uuid())
+  whiteId     String
+  blackId     String
+  white       User     @relation("white_games", fields: [whiteId], references: [id])
+  black       User     @relation("black_games", fields: [blackId], references: [id])
+  result      String   // e.g. "Checkmate: 1-0"
+  pgn         String
+  startFen    String
+  timeControl String   // e.g. "10+0"
+  playedAt    DateTime @default(now())
+
+  @@index([whiteId])
+  @@index([blackId])
+}
+
+

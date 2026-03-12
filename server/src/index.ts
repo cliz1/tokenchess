@@ -11,6 +11,7 @@ import { Chess } from "chessops";
 import path from "path";
 import { fileURLToPath } from "url";
 import Filter from "leo-profanity";
+import { makeSan } from 'chessops/san';
  
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -85,7 +86,6 @@ export type Room = {
 
   clock?: ClockState;
 
-  // legacy fields
   lastMove?: [string, string];
   ownerId?: string;
   concluded?: boolean;
@@ -105,7 +105,8 @@ export type Room = {
   whitePlayerId?: string;
   blackPlayerId?: string;
 
-
+  moves?: string[];   // SAN strings e.g. ["e4", "e5", "Nf3"]
+  startFen?: string;  // snapshot the FEN when the game begins
 };
 
 const PIECE_TOKEN_COST: Record<string, number> = {
@@ -159,6 +160,7 @@ setInterval(() => {
 
     room.concluded = true;
     room.status = "finished";
+    saveGame(room).catch(console.error) // safer PGN save attempt
 
     room.result =
       flaggedSide === "white"
@@ -741,10 +743,15 @@ wss.on("connection", (ws: WebSocket, req) => {
               room.whitePlayerId = bit === 0 ? p1 : p2;
               room.blackPlayerId = bit === 0 ? p2 : p1;
               const { normalFen } = await getCombinedStartFens(room.whitePlayerId, room.blackPlayerId);
-              room.fen = normalFen
+              console.log("normalFen: ", room.fen)
+              room.fen = normalFen;
+              room.startFen = normalFen;
+              room.moves = [];
+
             } catch (err) {
               // keep existing fen (usually START_FEN)
               console.warn("Failed to compute combined start fen for rematch/start:", err);
+              room.startFen = START_FEN;
             }
             broadcastLobby();
           }
@@ -856,6 +863,9 @@ wss.on("connection", (ws: WebSocket, req) => {
       // clear draw votes every move
       room.drawVotes = new Set();
 
+      // capture SAN before making the move
+      const san = makeSan(chess, moveObj);
+
       chess.play(moveObj);
       // ----- CLOCK UPDATE -----
       const sideToMove = room.clock?.running;
@@ -875,6 +885,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         room.rematchVotes = new Set();
 
         applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
+        await saveGame(room); // attempt to save PGN
         broadcastLobby();
         sendRoomUpdate(room, { result: room.result, reason: "time" }, "gameOver");
         return;
@@ -897,6 +908,9 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       room.fen = makeFen(chess.toSetup());
       room.lastMove = [fromStr, toStr];
+      // update pgn
+      room.moves = room.moves ?? [];
+      room.moves.push(san);
 
       if (gameOver) {
         freezeClock(room);
@@ -907,6 +921,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
         // when a game finishes, mark finished and update lobby
         room.status = "finished";
+        await saveGame(room); // attempt to save PGN
         broadcastLobby();
         sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result }, "gameOver");
         return;
@@ -952,6 +967,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       }
 
       room.fen = startFen;
+      room.startFen = startFen; // re define start fen on rematch
       room.lastMove = undefined;
       room.concluded = false;
       room.result = undefined;
@@ -1003,6 +1019,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       // mark finished in lobby
       room.status = "finished";
+      await saveGame(room); // attempt to save PGN
       broadcastLobby();
 
       sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: room.result, reason: "resignation" }, "gameOver");
@@ -1037,6 +1054,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
         // mark finished
         room.status = "finished";
+        await saveGame(room); // attempt to save PGN
         broadcastLobby();
 
         sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: room.result, reason: "draw-agreement" }, "gameOver");
@@ -1225,6 +1243,49 @@ function freezeClock(room: Room) {
   if (!room.clock) return;
   room.clock.running = null;
   room.clock.lastStartTs = null;
+}
+
+async function saveGame(room: Room) {
+  if (!room.whitePlayerId || !room.blackPlayerId || !room.result) return;
+  if (!room.moves || room.moves.length === 0) return;
+
+  const tc = room.timeControl;
+  const timeControlStr = tc ? `${tc.length}+${tc.increment}` : "?";
+  const whiteUsername = room.usernames[room.whitePlayerId] ?? "?";
+  const blackUsername = room.usernames[room.blackPlayerId] ?? "?";
+
+  const header = [
+    `[White "${whiteUsername}"]`,
+    `[Black "${blackUsername}"]`,
+    `[Result "${room.result}"]`,
+    `[TimeControl "${timeControlStr}"]`,
+    `[FEN "${room.startFen ?? ""}"]`,
+  ].join("\n");
+
+  const moveText = room.moves
+    .reduce((acc, san, i) => {
+      if (i % 2 === 0) acc += `${Math.floor(i / 2) + 1}. `;
+      return acc + san + " ";
+    }, "")
+    .trim();
+
+  const pgn = `${header}\n\n${moveText}`;
+
+  try {
+    await prisma.game.create({
+      data: {
+        whiteId: room.whitePlayerId,
+        blackId: room.blackPlayerId,
+        result: room.result,
+        pgn,
+        startFen: room.startFen ?? "",
+        timeControl: timeControlStr,
+      },
+    });
+    console.log(`Game saved for room ${room.id}`);
+  } catch (err) {
+    console.error("Failed to save game:", err);
+  }
 }
 
 
