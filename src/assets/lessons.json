@@ -206,7 +206,7 @@
         "note": "White to move and win."
       },
       {
-        "text": "To prevent standoffs between two painters controlling the same square. Painters follow the *wet paint rule*: \n **Once a piece is painted, it cannot be painted again on the opponent's next move.** The piece may only be painted again once the paint dries after one turn.",
+        "text": "To prevent standoffs between two painters controlling the same square, Painters follow the *wet paint rule*: \n **Once a piece is painted, it cannot be painted again on the opponent's next move.** The piece may only be painted again once the paint dries one turn later.",
         "image": "/images/wetpaint.png"
       },
       {
