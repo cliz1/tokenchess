@@ -357,17 +357,29 @@ export default function AnalysisBoard({
     groundRef.current.set({ orientation: newOrientation });
 };
 
-  function goToPath(path: Array<PNode<MyNodeData> | CNode<MyNodeData>>) {
+  function goToPath(path: Array<PNode<MyNodeData> | CNode<MyNodeData>>, playSound = false) {
     // rebuild from start position
     const newChess =
       initialFen === "start"
         ? Chess.default()
         : Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
 
-    for (const n of path.slice(1)) {
-      const mv = (n as CNode<MyNodeData>).data.move;
-      newChess.play(mv);
-    }
+      let lastPreCapture: any = null;
+      let lastMv: any = null;
+
+      for (const n of path.slice(1)) {
+        const mv = (n as CNode<MyNodeData>).data.move;
+        lastPreCapture = newChess.board.get(mv.to) ?? null;
+        lastMv = mv;
+        newChess.play(mv);
+      }
+
+      // only play sound for forward navigation (caller's responsibility — see goToNext)
+      if (playSound && lastMv && path.length > 1) {
+        const fromStr = makeSquare(lastMv.from);
+        const toStr = makeSquare(lastMv.to);
+        playMoveSound(newChess, lastMv, fromStr, toStr, lastPreCapture);
+      }
 
     let lastMove: [string, string] | undefined = undefined;
     if (path.length > 1) {
@@ -399,16 +411,16 @@ export default function AnalysisBoard({
     });
   }
 
-  function goToNode(node: CNode<MyNodeData>, path: Array<PNode<MyNodeData> | CNode<MyNodeData>>) {
-    node; // quick fix for ts warning
-    goToPath(path);
+  function goToNode(node: CNode<MyNodeData>, path: Array<PNode<MyNodeData> | CNode<MyNodeData>>, playSound = false) {
+    node;
+    goToPath(path, playSound);
   }
 
   function goToNext() {
     const curr = currentNodeRef.current;
     const child = curr.children[0];
     if (child) {
-      goToNode(child, [...pathRef.current, child]);
+      goToNode(child, [...pathRef.current, child], true); // <-- pass true
     }
   }
 
