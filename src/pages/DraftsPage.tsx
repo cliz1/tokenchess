@@ -36,23 +36,6 @@ export default function DraftsPage() {
       for (const d of res) {
         slots[d.slot - 1] = d;
       }
-
-      // Create placeholders for empty slots
-      for (let i = 0; i < 5; i++) {
-        if (!slots[i]) {
-          const slotNum = i + 1;
-          const newDraft = await apiFetch("/drafts", {
-            method: "POST",
-            body: JSON.stringify({
-              slot: slotNum,
-              name: `Draft ${slotNum}`,
-              data: { fen: "4k3/8/8/8/8/8/8/4K3 w - - 0 1" }
-            }),
-          });
-          slots[i] = newDraft;
-        }
-      }
-
       setDrafts(slots);
     } catch (err: any) {
       alert(err.message);

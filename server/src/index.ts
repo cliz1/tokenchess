@@ -287,20 +287,62 @@ app.post("/api/auth/register", async (req, res) => {
     const STANDARD_FEN =
       "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+    
+    const CAPABLANCA_FEN = 
+      "4k3/8/8/8/8/8/PPPPPPPP/1IQNKB1C w KQkq - 0 1";
+
+    const GAMBITEER_FEN = 
+      "4k3/8/8/8/8/8/3PYPPP/BRRAKNW1 w KQkq - 0 1";
+
+    const CONTROL_FEN =
+      "4k3/8/8/8/8/8/PSSYPPSP/1MXQKB1R w KQkq - 0 1";
+
+    const HARMONY_FEN = 
+      "4k3/8/8/8/8/8/SPPPYPPS/RMWRKBNR w KQkq - 0 1";
+
     const user = await prisma.user.create({
       data: {
         email,
         password: hash,
         username: cleanUsername,
-
         drafts: {
-          create: {
-            name: "Standard",
-            data: { fen: STANDARD_FEN },
-            isActive: true,
-            isPublic: false,
-            slot: 1,
-          },
+          create: [
+            {
+              name: "Standard",
+              data: { fen: STANDARD_FEN },
+              isActive: true,
+              isPublic: false,
+              slot: 1,
+            },
+            {
+              name: "Capablanca",
+              data: { fen: CAPABLANCA_FEN },
+              isActive: false,
+              isPublic: false,
+              slot: 2,
+            },
+            {
+              name: "Gambiteer",
+              data: { fen: GAMBITEER_FEN },
+              isActive: false,
+              isPublic: false,
+              slot: 3,
+            },
+            {
+              name: "Control",
+              data: { fen: CONTROL_FEN },
+              isActive: false,
+              isPublic: false,
+              slot: 4,
+            },
+            {
+              name: "Harmony",
+              data: { fen: HARMONY_FEN },
+              isActive: false,
+              isPublic: false,
+              slot: 5,
+            },
+          ],
         },
       },
     });
