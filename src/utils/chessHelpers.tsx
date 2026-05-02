@@ -56,7 +56,7 @@ export function getCheckHighlights(chess: Chess): Map<Key, string> {
   const highlights = new Map<Key, string>();
   if (chess.isCheck()) {
     const king = chess.board.kingOf(chess.turn);
-    if (king) highlights.set(makeSquare(king), "check");
+    if (king !== undefined) highlights.set(makeSquare(king), "check");
   }
   return highlights;
 }
