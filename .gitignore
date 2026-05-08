@@ -36,6 +36,7 @@ sounds_unused
 
 # large binary assets (served from CDN)
 public/stockfish.wasm
+stockfish.wasm
 
 # other
 

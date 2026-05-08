@@ -18,7 +18,7 @@ import "../assets/custom-pieces.css";
 const DEFAULT_START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // Default back rows for each side when no draft is selected
-const COMPUTER_WHITE_ROWS = ["8", "3XK3"];
+const COMPUTER_WHITE_ROWS = ["PPPPPPPP", "RNBQKBNR"];
 const STANDARD_WHITE_ROWS = ["PPPPPPPP", "RNBQKBNR"];
 
 type Draft = { id: string; name: string; data: { fen?: string }; isActive: boolean; slot: number };

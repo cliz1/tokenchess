@@ -14,7 +14,6 @@ importScripts("/stockfish.js");
 fetch("/variants.ini")
   .then((r) => r.text())
   .then((ini) => {
-    console.log("variants.ini content:", ini.slice(0, 300));
     return Stockfish({
   mainScriptUrlOrBlob: "/stockfish.js",
   locateFile: (file) => file.endsWith(".wasm")
