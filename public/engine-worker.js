@@ -27,9 +27,10 @@ fetch("/variants.ini")
   sf.addMessageListener((line) => {
     self.postMessage(line);
   });
-  // send VariantPath FIRST before queued commands
   sf.postMessage("setoption name VariantPath value /variants.ini");
   queue.forEach((cmd) => sf.postMessage(cmd));
   queue = [];
+}).catch((err) => {
+  throw new Error("Stockfish init failed: " + err);
 });
   });
