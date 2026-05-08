@@ -34,6 +34,9 @@ db/
 
 sounds_unused
 
+# large binary assets (served from CDN)
+public/stockfish.wasm
+
 # other
 
 index_with_WIP.ts
