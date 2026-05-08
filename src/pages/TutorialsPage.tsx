@@ -1,5 +1,6 @@
 //src/pages/TutorialsPage.tsx
 import { useMemo, useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import TutorialLesson from "../components/TutorialLesson";
 import lessons from '../assets/lessons.json';
 
@@ -56,7 +57,10 @@ export default function TutorialsPage() {
     []
   );
 
-  const [selected, setSelected] = useState<LessonKey>("welcome");
+  const { "*": lessonSlug } = useParams();
+  const [selected, setSelected] = useState<LessonKey>(
+    lessonSlug && lessonSlug in LESSONS ? lessonSlug as LessonKey : "welcome"
+  );
   const lesson = LESSONS[selected];
 
   // measure header height so we can size the tutorials container to exactly the viewport leftover
@@ -78,13 +82,19 @@ export default function TutorialsPage() {
   // when selected changes, scroll the content pane to top
   useEffect(() => {
     if (contentRef.current) {
-      // instant jump as requested; change to behavior: "smooth" if you prefer smooth scroll
       contentRef.current.scrollTo({ top: 0, behavior: "auto" });
-      // also reset sidebar scroll to show the selected item (optional)
-      const selBtn = sidebarRef.current?.querySelector<HTMLButtonElement>('button[aria-current="true"]');
+    }
+    if (sidebarRef.current) {
+      const sidebar = sidebarRef.current;
+      const selBtn = sidebar.querySelector<HTMLButtonElement>('button[aria-current="true"]');
       if (selBtn) {
-        // ensure selected button is visible in sidebar
-        selBtn.scrollIntoView({ block: "nearest" });
+        const btnTop = selBtn.offsetTop;
+        const btnBottom = btnTop + selBtn.offsetHeight;
+        if (btnTop < sidebar.scrollTop) {
+          sidebar.scrollTop = btnTop;
+        } else if (btnBottom > sidebar.scrollTop + sidebar.clientHeight) {
+          sidebar.scrollTop = btnBottom - sidebar.clientHeight;
+        }
       }
     }
   }, [selected]);

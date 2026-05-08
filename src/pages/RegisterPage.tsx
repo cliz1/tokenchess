@@ -24,7 +24,7 @@ export default function RegisterPage() {
       setError("That email is already registered.");
     } 
     else if (err.message === "USERNAME_CHARS") {
-      setError("Usernames can only contain letters, numbers, and underscores.");
+      setError("Usernames can only contain letters and numbers.");
     }
     else if (err.message === "USERNAME_PROFANITY") {
       setError("That username isn’t allowed.");

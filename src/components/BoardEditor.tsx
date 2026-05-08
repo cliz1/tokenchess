@@ -565,6 +565,24 @@ function handleOpenInAnalysis() {
   navigate("/analysis", { state: { initialFen: fenToSend } });
 }
 
+function handlePlayVsComputer() {
+  const res = validateFenForAnalysis();
+  if (!res.ok) {
+    setAnalysisError(res.reason ?? "FEN is not valid");
+    return;
+  }
+
+  const piecesState = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
+  const baseFen = piecesToFen(piecesState);
+  const currentParts = fen.split(" ");
+  const fenParts = baseFen.split(" ");
+  fenParts[2] = currentParts[2] ?? "-";
+  fenParts[3] = currentParts[3] ?? "-";
+  fenParts[4] = currentParts[4] ?? "0";
+  fenParts[5] = currentParts[5] ?? "1";
+
+  navigate("/play/computer", { state: { initialFen: fenParts.join(" ") } });
+}
 
 
     function handleSetStartPosition() {
@@ -735,9 +753,14 @@ function EditorButton({
       const next = sideToMove === "white" ? "black" : "white";
       const pieces = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
       const newFen = buildFenFromPiecesWithSide(pieces, next);
-      groundRef.current?.set?.({ fen: newFen });
+      // Preserve castling rights from the current FEN
+      const newParts = newFen.split(" ");
+      const currentParts = fen.split(" ");
+      newParts[2] = currentParts[2] ?? "-";
+      const finalFen = newParts.join(" ");
+      groundRef.current?.set?.({ fen: finalFen });
       setSideToMove(next);
-      setFen(newFen);
+      setFen(finalFen);
     }}
   >
     Make {sideToMove === "white" ? "Black" : "White"} to Move
@@ -748,6 +771,13 @@ function EditorButton({
     primary
   >
     Analyze
+  </EditorButton>
+
+  <EditorButton
+    onClick={handlePlayVsComputer}
+    primary
+  >
+    Play vs Computer
   </EditorButton>
     {analysisError && (
     <div

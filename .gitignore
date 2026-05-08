@@ -41,3 +41,9 @@ GamePage_WIP.tsx
 gamesocket_WIP.tsx
 
 db_urls.txt
+
+EngineTestPage.tsx
+public/engine-worker.js
+public/stockfish.js
+public/stockfish.wasm
+public/stockfish.worker.js

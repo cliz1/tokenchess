@@ -70,6 +70,7 @@ export default function GamePage() {
 
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [draftOpen, setDraftOpen] = useState(false);
+  const [draftWarning, setDraftWarning] = useState<string | null>(null);
 
 
   // keep color ref for game termination update
@@ -119,6 +120,7 @@ export default function GamePage() {
     if (update.color) setPlayerColor(update.color);
     if (update.colors) setColors(update.colors);
     if (update.scores) setScores(update.scores);
+    if (update.draftWarning) setDraftWarning(update.draftWarning);
 
     const prevFen = fenRef.current;
     const prevLast = lastMoveRef.current;
@@ -518,6 +520,48 @@ if (clock) {
       alignItems: "center",
     }}
   >
+    {/* Draft over-budget warning toast — fixed so it never affects layout */}
+    {draftWarning && (
+      <div
+        style={{
+          position: "fixed",
+          bottom: 24,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "12px 16px",
+          borderRadius: 8,
+          background: "#2a1f00",
+          border: "1px solid rgba(255, 160, 0, 0.5)",
+          color: "#ffd080",
+          fontSize: 13,
+          lineHeight: 1.4,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
+          maxWidth: 480,
+        }}
+      >
+        <span>⚠ {draftWarning}</span>
+        <button
+          onClick={() => setDraftWarning(null)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#ffd080",
+            cursor: "pointer",
+            fontSize: 18,
+            lineHeight: 1,
+            padding: 0,
+            flexShrink: 0,
+          }}
+        >
+          ×
+        </button>
+      </div>
+    )}
+
     {/* Horizontal container */}
     <div style={{ display: "flex", alignItems: "flex-start", marginTop: 10, gap: 20 }}>
       {/* Chess board */}
@@ -551,6 +595,7 @@ if (clock) {
             Waiting for opponent…
           </div>
         )}
+
 
 
         {/* Spectator notice */}

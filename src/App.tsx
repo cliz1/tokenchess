@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
@@ -15,6 +15,7 @@ import JoinRoomPage from "./pages/JoinRoomPage";
 import PuzzlesPage from "./pages/PuzzlesPage";
 import LobbyPage from "./pages/LobbyPage";
 import GamesPage from "./pages/GamesPage";
+import ComputerGamePage from "./pages/ComputerGamePage";
 
 import "./App.css";
 
@@ -41,6 +42,12 @@ function EditorRouteWrapper() {
     "8/8/8/8/8/8/8/8 w - - 0 1";
 
   return <BoardEditor initialFen={initialFen} />;
+}
+
+function ComputerGameRouteWrapper() {
+  const location = useLocation();
+  const state = location.state as any;
+  return <ComputerGamePage initialFen={state?.initialFen} />;
 }
 
 
@@ -77,21 +84,29 @@ function AppContent() {
   const location = useLocation();
   // Hide nav + footer on any `/game` route
   const hideNav = location.pathname === "/game";
-useEffect(() => {
-  const isGame = location.pathname === ("/game");
-  const isHome = location.pathname === "/";
-  const isPuzzle = location.pathname.startsWith("/puzzles");
-  const isTutorials = location.pathname.startsWith("/tutorials");
-  const shouldLock = isGame || isHome || isPuzzle || isTutorials;
 
-  if (shouldLock) {
-    document.body.style.overflow = "hidden";  // disable scroll
-  } else {
-    document.body.style.overflow = "auto";    // restore
-  }
+  useEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  }, []);
 
-  return () => { document.body.style.overflow = "auto"; };
-}, [location.pathname]);
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+
+    const isGame = location.pathname === ("/game");
+    const isComputerGame = location.pathname === "/play/computer";
+    const isHome = location.pathname === "/";
+    const isPuzzle = location.pathname.startsWith("/puzzles");
+    const isTutorials = location.pathname.startsWith("/tutorials");
+    const shouldLock = isGame || isComputerGame || isHome || isPuzzle || isTutorials;
+
+    if (shouldLock) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => { document.body.style.overflow = "auto"; };
+  }, [location.pathname]);
 
 
   return (
@@ -158,6 +173,18 @@ useEffect(() => {
       Join by Code
     </NavLink>
         <NavLink
+      to="/play/computer"
+      style={({ isActive }) => ({
+        color: isActive ? "#fff" : "#aaa",
+        textDecoration: "none",
+        padding: "6px 10px",
+        display: "block",
+      })}
+      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
+    >
+      vs Computer
+    </NavLink>
+    <NavLink
       to="/puzzles"
       style={({ isActive }) => ({
         color: isActive ? "#fff" : "#aaa",
@@ -196,6 +223,7 @@ useEffect(() => {
           <Route path="/puzzles" element={<PuzzlesPage />} />
           <Route path="/lobby" element={<LobbyPage />} />
           <Route path="/games" element={<GamesPage />} />
+          <Route path="/play/computer" element={<ComputerGameRouteWrapper />} />
         </Routes>
       </main>
     </div>

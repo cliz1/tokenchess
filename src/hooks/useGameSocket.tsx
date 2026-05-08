@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 export type GameUpdate = {
   type: "sync" | "update" | "gameOver" | "newGame";
   fen: string;
+  draftWarning?: string;
   lastMove?: [string, string];
   role?: "player" | "spectator";
   color?: "white" | "black";
@@ -68,6 +69,7 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
           clock: data.clock,
           rematchOffers: data.rematchOffers,
           drawOffers: data.drawOffers,
+          draftWarning: data.draftWarning,
         });
       }
     };

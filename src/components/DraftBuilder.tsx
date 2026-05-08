@@ -81,9 +81,9 @@ useEffect(() => {
     if (r.includes("amazon")) return 13;
     if (r.includes("mann")) return 3;
     if (r.includes("painter")) return 2;
-    if (r.includes("snare")) return 2;
-    if (r.includes("wizard")) return 4;
-    if (r.includes("archer")) return 7; 
+    if (r.includes("snare")) return 1;
+    if (r.includes("wizard")) return 7;
+    if (r.includes("archer")) return 4; 
     return 2;
   }
 

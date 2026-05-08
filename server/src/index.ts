@@ -107,6 +107,7 @@ export type Room = {
 
   moves?: string[];   // SAN strings e.g. ["e4", "e5", "Nf3"]
   startFen?: string;  // snapshot the FEN when the game begins
+  draftWarning?: string; // set when a draft fails budget validation
 };
 
 const PIECE_TOKEN_COST: Record<string, number> = {
@@ -121,9 +122,9 @@ const PIECE_TOKEN_COST: Record<string, number> = {
   a: 13,
   m: 3, 
   y: 2,
-  s: 2,
-  w: 4, 
-  x: 7 
+  s: 1,
+  w: 7, 
+  x: 4 
 };
 
 const MAX_TOKENS = 39;
@@ -696,6 +697,7 @@ function sendRoomUpdate(
         white: room.whitePlayerId,
         black: room.blackPlayerId,
       },
+      draftWarning: room.draftWarning,
     } as any;
 
     try {
@@ -823,8 +825,13 @@ wss.on("connection", (ws: WebSocket, req) => {
 
             } catch (err) {
               // keep existing fen (usually START_FEN)
-              console.warn("Failed to compute combined start fen for rematch/start:", err);
+              const errMsg = err instanceof Error ? err.message : String(err);
+              console.warn("Failed to compute combined start fen for rematch/start:", errMsg);
               room.startFen = START_FEN;
+              room.fen = START_FEN;
+              room.draftWarning = errMsg.includes("token budget")
+                ? "One or more drafts exceed the token budget due to recent balance changes. Playing with the standard setup."
+                : "Could not load one or more drafts. Playing with the standard setup.";
             }
             broadcastLobby();
           }
@@ -888,6 +895,7 @@ wss.on("connection", (ws: WebSocket, req) => {
               white: room.whitePlayerId,
               black: room.blackPlayerId,
             },
+            draftWarning: room.draftWarning,
           }),
         );
       }
