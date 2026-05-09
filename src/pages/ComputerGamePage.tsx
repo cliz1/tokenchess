@@ -50,7 +50,7 @@ function buildStartFen(
 
 type Phase = "setup" | "playing" | "gameover";
 
-export default function ComputerGamePage({ initialFen }: { initialFen?: string } = {}) {
+export default function ComputerGamePage({ initialFen, watchMode }: { initialFen?: string; watchMode?: boolean } = {}) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -78,6 +78,7 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
 
   const [playerColor, setPlayerColor] = useState<"white" | "black">("white");
   const playerColorRef = useRef<"white" | "black">("white");
+  const watchModeRef = useRef(!!watchMode);
 
   const [phase, setPhase] = useState<Phase>("setup");
   const phaseRef = useRef<Phase>("setup");
@@ -247,14 +248,17 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
     setEngineThinking(false);
 
     checkGameOver(chess);
+    if (watchModeRef.current && phaseRef.current !== "gameover") {
+      askEngine();
+    }
   }
 
   function checkGameOver(chess: Chess) {
     if (chess.isCheckmate()) {
-      // chess.turn is now the side that just got mated (has no legal moves)
       const mated = chess.turn;
       const result = mated === "white" ? "0-1" : "1-0";
-      finishGame(result, mated === playerColorRef.current ? "lose" : "win");
+      const sound = watchModeRef.current ? "draw" : (mated === playerColorRef.current ? "lose" : "win");
+      finishGame(result, sound);
     } else if (chess.isStalemate() || chess.isInsufficientMaterial()) {
       finishGame("1/2-1/2", "draw");
     }
@@ -316,12 +320,12 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
     if (!groundRef.current) return;
     const chess = chessRef.current;
     const isPlayerTurn =
-      phase === "playing" && !engineThinking && chess.turn === playerColor;
+      !watchModeRef.current && phase === "playing" && !engineThinking && chess.turn === playerColor;
 
     groundRef.current.set({
       fen,
       turnColor: chess.turn,
-      orientation: playerColor,
+      orientation: watchModeRef.current ? "white" : playerColor,
       highlight: { check: true, custom: getCheckHighlights(chess) },
       lastMove: lastMove ?? undefined,
       animation: { enabled: true, duration: 300 },
@@ -458,6 +462,20 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
 
   // ---- game lifecycle ----
 
+  function stopWatch() {
+    sendToEngine("stop");
+    engineThinkingRef.current = false;
+    setEngineThinking(false);
+    phaseRef.current = "setup";
+    setPhase("setup");
+    const resetFen = initialFen ?? DEFAULT_START_FEN;
+    fenRef.current = resetFen;
+    setFen(resetFen);
+    setLastMove(null);
+    gameMovesRef.current = [];
+    try { chessRef.current = Chess.fromSetup(parseFen(resetFen).unwrap()).unwrap(); } catch { chessRef.current = Chess.default(); }
+  }
+
   function startGame() {
     const startFen = initialFen ?? startFenRef.current;
 
@@ -485,8 +503,7 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
 
     sendToEngine("ucinewgame");
 
-    if (startChess.turn !== playerColor) {
-      // Engine moves first (it's not the player's turn in this position)
+    if (watchModeRef.current || startChess.turn !== playerColor) {
       engineThinkingRef.current = true;
       setEngineThinking(true);
       sendToEngine(`position fen ${startFen}`);
@@ -552,7 +569,7 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
           {phase === "setup" && (
             <>
               <div style={{ fontWeight: 700, textAlign: "center", fontSize: 15 }}>
-                Play vs Computer
+                {watchMode ? "Engine vs Engine" : "Play vs Computer"}
               </div>
 
               {initialFen && (
@@ -561,29 +578,31 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
                 </div>
               )}
 
-              <div>
-                <div style={{ marginBottom: 6, fontSize: 12, color: "#bbb" }}>Play as</div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {(["white", "black"] as const).map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setPlayerColor(c)}
-                      style={{
-                        flex: 1,
-                        padding: "6px 0",
-                        background: playerColor === c ? "#2a7" : "#2a2a2a",
-                        border: `1px solid ${playerColor === c ? "#2a7" : "#444"}`,
-                        color: "#fff",
-                        borderRadius: 4,
-                        cursor: "pointer",
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {c}
-                    </button>
-                  ))}
+              {!watchMode && (
+                <div>
+                  <div style={{ marginBottom: 6, fontSize: 12, color: "#bbb" }}>Play as</div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {(["white", "black"] as const).map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setPlayerColor(c)}
+                        style={{
+                          flex: 1,
+                          padding: "6px 0",
+                          background: playerColor === c ? "#2a7" : "#2a2a2a",
+                          border: `1px solid ${playerColor === c ? "#2a7" : "#444"}`,
+                          color: "#fff",
+                          borderRadius: 4,
+                          cursor: "pointer",
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <div style={{ marginBottom: 6, fontSize: 12, color: "#bbb" }}>
@@ -600,8 +619,8 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
                 />
               </div>
 
-              {/* Draft selectors — hidden when position comes from the board editor */}
-              {!initialFen && user ? (
+              {/* Draft selectors — hidden in watch mode or when position comes from the board editor */}
+              {!watchMode && !initialFen && user ? (
                 <>
                   <div>
                     <div style={{ marginBottom: 6, fontSize: 12, color: "#bbb" }}>Your draft</div>
@@ -652,7 +671,7 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
                     </select>
                   </div>
                 </>
-              ) : (!initialFen && (
+              ) : (!watchMode && !initialFen && (
                 <div style={{ fontSize: 11, color: "#888", textAlign: "center" }}>
                   Log in to use your draft
                 </div>
@@ -680,63 +699,117 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
           {/* ---- PLAYING ---- */}
           {phase === "playing" && (
             <>
-              {/* Engine block — highlighted when it's the engine's turn */}
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "10px 0",
-                  borderRadius: 6,
-                  background: engineThinking ? "#2a2a2a" : "#141414",
-                  border: engineThinking ? "2px solid #4caf50" : "2px solid #333",
-                }}
-              >
-                <div style={{ fontWeight: 600 }}>Fairy Stockfish</div>
-                {selectedEngineDraftId && drafts.find((d) => d.id === selectedEngineDraftId) && (
-                  <div style={{ fontSize: 11, color: "#888", fontWeight: 400, marginTop: 3 }}>
-                    {drafts.find((d) => d.id === selectedEngineDraftId)!.name}
+              {watchMode ? (
+                <>
+                  {/* Black engine block */}
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "10px 0",
+                      borderRadius: 6,
+                      background: engineThinking && chessRef.current.turn === "black" ? "#2a2a2a" : "#141414",
+                      border: engineThinking && chessRef.current.turn === "black" ? "2px solid #4caf50" : "2px solid #333",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>Fairy Stockfish (Black)</div>
+                    {engineThinking && chessRef.current.turn === "black" && (
+                      <div style={{ fontSize: 11, color: "#4caf50", marginTop: 4 }}>thinking…</div>
+                    )}
                   </div>
-                )}
-                {engineThinking && (
-                  <div style={{ fontSize: 11, color: "#4caf50", marginTop: 4 }}>
-                    thinking…
+
+                  <div style={{ flex: 1 }} />
+
+                  {/* White engine block */}
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "10px 0",
+                      borderRadius: 6,
+                      background: engineThinking && chessRef.current.turn === "white" ? "#2a2a2a" : "#141414",
+                      border: engineThinking && chessRef.current.turn === "white" ? "2px solid #4caf50" : "2px solid #333",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>Fairy Stockfish (White)</div>
+                    {engineThinking && chessRef.current.turn === "white" && (
+                      <div style={{ fontSize: 11, color: "#4caf50", marginTop: 4 }}>thinking…</div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div style={{ flex: 1 }} />
-
-              {/* Player block — highlighted when it's the player's turn */}
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "10px 0",
-                  borderRadius: 6,
-                  background: !engineThinking ? "#2a2a2a" : "#141414",
-                  border: !engineThinking ? "2px solid #4caf50" : "2px solid #333",
-                  fontWeight: 600,
-                }}
-              >
-                <div>You ({playerColor})</div>
-                {selectedDraftId && drafts.find((d) => d.id === selectedDraftId) && (
-                  <div style={{ fontSize: 11, color: "#888", fontWeight: 400, marginTop: 3 }}>
-                    {drafts.find((d) => d.id === selectedDraftId)!.name}
+                  <button
+                    onClick={stopWatch}
+                    style={{
+                      padding: "6px 0",
+                      background: "#333",
+                      border: "1px solid #555",
+                      color: "#ccc",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Stop
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Engine block — highlighted when it's the engine's turn */}
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "10px 0",
+                      borderRadius: 6,
+                      background: engineThinking ? "#2a2a2a" : "#141414",
+                      border: engineThinking ? "2px solid #4caf50" : "2px solid #333",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>Fairy Stockfish</div>
+                    {selectedEngineDraftId && drafts.find((d) => d.id === selectedEngineDraftId) && (
+                      <div style={{ fontSize: 11, color: "#888", fontWeight: 400, marginTop: 3 }}>
+                        {drafts.find((d) => d.id === selectedEngineDraftId)!.name}
+                      </div>
+                    )}
+                    {engineThinking && (
+                      <div style={{ fontSize: 11, color: "#4caf50", marginTop: 4 }}>
+                        thinking…
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <button
-                onClick={resign}
-                style={{
-                  padding: "6px 0",
-                  background: "#333",
-                  border: "1px solid #555",
-                  color: "#ccc",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                }}
-              >
-                Resign
-              </button>
+                  <div style={{ flex: 1 }} />
+
+                  {/* Player block — highlighted when it's the player's turn */}
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "10px 0",
+                      borderRadius: 6,
+                      background: !engineThinking ? "#2a2a2a" : "#141414",
+                      border: !engineThinking ? "2px solid #4caf50" : "2px solid #333",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <div>You ({playerColor})</div>
+                    {selectedDraftId && drafts.find((d) => d.id === selectedDraftId) && (
+                      <div style={{ fontSize: 11, color: "#888", fontWeight: 400, marginTop: 3 }}>
+                        {drafts.find((d) => d.id === selectedDraftId)!.name}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={resign}
+                    style={{
+                      padding: "6px 0",
+                      background: "#333",
+                      border: "1px solid #555",
+                      color: "#ccc",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Resign
+                  </button>
+                </>
+              )}
             </>
           )}
 
@@ -776,7 +849,7 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
                     state: {
                       initialFen: gameStartFenRef.current,
                       initialMoves: gameMovesRef.current,
-                      orientation: playerColorRef.current,
+                      orientation: watchModeRef.current ? "white" : playerColorRef.current,
                     },
                   })
                 }

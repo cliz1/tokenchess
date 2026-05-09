@@ -47,7 +47,7 @@ function EditorRouteWrapper() {
 function ComputerGameRouteWrapper() {
   const location = useLocation();
   const state = location.state as any;
-  return <ComputerGamePage initialFen={state?.initialFen} />;
+  return <ComputerGamePage initialFen={state?.initialFen} watchMode={state?.watchMode} />;
 }
 
 

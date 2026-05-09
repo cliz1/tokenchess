@@ -584,6 +584,25 @@ function handlePlayVsComputer() {
   navigate("/play/computer", { state: { initialFen: fenParts.join(" ") } });
 }
 
+function handleWatchEngineVsEngine() {
+  const res = validateFenForAnalysis();
+  if (!res.ok) {
+    setAnalysisError(res.reason ?? "FEN is not valid");
+    return;
+  }
+
+  const piecesState = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
+  const baseFen = piecesToFen(piecesState);
+  const currentParts = fen.split(" ");
+  const fenParts = baseFen.split(" ");
+  fenParts[2] = currentParts[2] ?? "-";
+  fenParts[3] = currentParts[3] ?? "-";
+  fenParts[4] = currentParts[4] ?? "0";
+  fenParts[5] = currentParts[5] ?? "1";
+
+  navigate("/play/computer", { state: { initialFen: fenParts.join(" "), watchMode: true } });
+}
+
 
     function handleSetStartPosition() {
     setFen(START_FEN);
@@ -778,6 +797,11 @@ function EditorButton({
     primary
   >
     Play vs Computer
+  </EditorButton>
+  <EditorButton
+    onClick={handleWatchEngineVsEngine}
+  >
+    Watch Engine vs Engine
   </EditorButton>
     {analysisError && (
     <div
