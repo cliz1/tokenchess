@@ -124,7 +124,7 @@ const PIECE_TOKEN_COST: Record<string, number> = {
   y: 2,
   s: 1,
   w: 7, 
-  x: 4 
+  x: 5 
 };
 
 const MAX_TOKENS = 39;

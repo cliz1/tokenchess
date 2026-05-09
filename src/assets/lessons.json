@@ -338,7 +338,7 @@
     "steps": [
      { "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns. For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ", "image": "/images/Coin_of_Kushan.jpg" },
       { 
-  "text": "Note that this game is a work in progress, so a piece's evaluation may change in future updates as a measure of balance.\n\nAs of **May 2026**, the value in tokens for each piece is as follows:\n\n| Piece | Tokens |\n|------|--------|\n| Pawn | 1 |\n| Knight | 3 |\n| Bishop | 3 |\n| Rook | 5 |\n| Queen | 9 |\n| Champion | 8 |\n| Princess | 8 |\n| Amazon | 13 |\n| Mann | 3 |\n| Painter | 2 |\n| Snare | 1 |\n| Wizard | 7 |\n| Archer | 4 |"
+  "text": "Note that this game is a work in progress, so a piece's evaluation may change in future updates as a measure of balance.\n\nAs of **May 2026**, the value in tokens for each piece is as follows:\n\n| Piece | Tokens |\n|------|--------|\n| Pawn | 1 |\n| Knight | 3 |\n| Bishop | 3 |\n| Rook | 5 |\n| Queen | 9 |\n| Champion | 8 |\n| Princess | 8 |\n| Amazon | 13 |\n| Mann | 3 |\n| Painter | 2 |\n| Snare | 1 |\n| Wizard | 7 |\n| Archer | 5 |"
  }
     ]
   },
@@ -400,7 +400,7 @@
     "title": "Balance",
     "quote": "",
     "steps": [
-        { "text": "May 2026: \n **1) Wizard token cost 4 -> 7**. \n Fairy stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. \n Don't buy it? Give Fairy stockfish a Wizard and find out! \n **2) Archer token cost 7 -> 4** \n While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a rook. But certainly not more than two bishops! \n **3) Snare token cost 2 -> 1** \n The snare cannot capture, and is very weak to attack by pawns. Giving it a valuation of more than a pawn seems unfair for this reason. \n **4) Rolling Snare Movement buff** \n The Rolling Snare now moves like a Queen to make it more comparable to pawn/painter promotions." }
+        { "text": "May 2026: \n **1) Wizard token cost 4 -> 7**. \n Fairy stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. \n Don't buy it? Give Fairy stockfish a Wizard and find out! \n **2) Archer token cost 7 -> 5** \n While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a rook. But certainly not more than two bishops! \n **3) Snare token cost 2 -> 1** \n The snare cannot capture, and is very weak to attack by pawns. Giving it a valuation of more than a pawn seems unfair for this reason. \n **4) Rolling Snare Movement buff** \n The Rolling Snare now moves like a Queen to make it more comparable to pawn/painter promotions." }
     ]
   }
 
