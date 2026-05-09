@@ -9,7 +9,14 @@ self.onmessage = (e) => {
   }
 };
 
+self.addEventListener('unhandledrejection', (e) => {
+  console.error("Worker unhandled rejection:", e.reason);
+});
+
+console.log("engine-worker: SharedArrayBuffer available:", typeof SharedArrayBuffer);
+console.log("engine-worker: calling importScripts");
 importScripts("/stockfish.js");
+console.log("engine-worker: importScripts done, Stockfish:", typeof Stockfish);
 
 fetch("/variants.ini")
   .then((r) => r.text())
