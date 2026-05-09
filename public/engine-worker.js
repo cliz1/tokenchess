@@ -23,9 +23,7 @@ fetch("/variants.ini")
   .then((ini) => {
     return Stockfish({
   mainScriptUrlOrBlob: "/stockfish.js",
-  locateFile: (file) => file.endsWith(".wasm")
-    ? "https://github.com/cliz1/tokenchess/releases/download/v1.0-assets/stockfish.wasm"
-    : `/${file}`,
+  locateFile: (file) => file.endsWith(".wasm") ? "/stockfish-wasm" : `/${file}`,
   preRun: [(sf) => {
     sf.FS.writeFile("/variants.ini", ini);
   }],
