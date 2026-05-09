@@ -295,7 +295,7 @@ export default function ComputerGamePage({ initialFen }: { initialFen?: string }
     const worker = new Worker("/engine-worker.js");
     workerRef.current = worker;
     worker.onmessage = (e) => onEngineLineRef.current(e.data);
-    worker.onerror = (e) => console.error("Engine error:", e.message, "| file:", e.filename, "| line:", e.lineno, "| type:", e.type);
+    worker.onerror = (e) => console.error("Engine error:", e.message);
     worker.postMessage("uci");
     return () => worker.terminate();
   }, []);

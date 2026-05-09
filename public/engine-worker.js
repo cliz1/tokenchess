@@ -9,14 +9,7 @@ self.onmessage = (e) => {
   }
 };
 
-self.addEventListener('unhandledrejection', (e) => {
-  console.error("Worker unhandled rejection:", e.reason);
-});
-
-console.log("engine-worker: SharedArrayBuffer available:", typeof SharedArrayBuffer);
-console.log("engine-worker: calling importScripts");
 importScripts("/stockfish.js");
-console.log("engine-worker: importScripts done, Stockfish:", typeof Stockfish);
 
 fetch("/variants.ini")
   .then((r) => r.text())
@@ -35,7 +28,5 @@ fetch("/variants.ini")
   sf.postMessage("setoption name VariantPath value /variants.ini");
   queue.forEach((cmd) => sf.postMessage(cmd));
   queue = [];
-}).catch((err) => {
-  throw new Error("Stockfish init failed: " + err);
 });
   });
