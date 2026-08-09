@@ -20,6 +20,8 @@ export type GameUpdate = {
   };
   rematchOffers?: string[];
   drawOffers?: string[];
+  takebackOffers?: string[];
+  takebackApplied?: boolean;
   colors?: {white: string ; black: string};
 };
 
@@ -69,6 +71,8 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
           clock: data.clock,
           rematchOffers: data.rematchOffers,
           drawOffers: data.drawOffers,
+          takebackOffers: data.takebackOffers,
+          takebackApplied: data.takebackApplied,
           draftWarning: data.draftWarning,
         });
       }
@@ -111,6 +115,10 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
     wsRef.current?.send(JSON.stringify({ type: "draw" }));
   }, []);
 
-  return { sendMove, sendRematch, sendLeave, sendResign, sendDraw };
+  const sendTakeback = useCallback(() => {
+    wsRef.current?.send(JSON.stringify({ type: "takeback" }));
+  }, []);
+
+  return { sendMove, sendRematch, sendLeave, sendResign, sendDraw, sendTakeback };
 }
  

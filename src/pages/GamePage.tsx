@@ -43,6 +43,7 @@ export default function GamePage() {
 
   const [opponentDrawOffered, setOpponentDrawOffered] = useState(false);
   const [opponentRematchOffered, setOpponentRematchOffered] = useState(false);
+  const [opponentTakebackOffered, setOpponentTakebackOffered] = useState(false);
 
 
  type ClockState = {
@@ -152,12 +153,15 @@ export default function GamePage() {
 
     const drawOffers = update.drawOffers ?? [];
     const rematchOffers = update.rematchOffers ?? [];
+    const takebackOffers = update.takebackOffers ?? [];
 
     const oppHasOfferedDraw = !!(opponentId && drawOffers.includes(opponentId) && !(user?.id && drawOffers.includes(user.id)));
     const oppHasOfferedRematch = !!(opponentId && rematchOffers.includes(opponentId) && !(user?.id && rematchOffers.includes(user.id)));
+    const oppHasOfferedTakeback = !!(opponentId && takebackOffers.includes(opponentId) && !(user?.id && takebackOffers.includes(user.id)));
 
     setOpponentDrawOffered(oppHasOfferedDraw);
     setOpponentRematchOffered(oppHasOfferedRematch);
+    setOpponentTakebackOffered(oppHasOfferedTakeback);
 
     if (sameFen && sameLastMove && update.result === undefined) return;
 
@@ -194,7 +198,7 @@ export default function GamePage() {
     let newChess = chessRef.current;
     let preCaptured: any | null = null;
 
-    if (update.lastMove && prevFen) {
+    if (!update.takebackApplied && update.lastMove && prevFen) {
       try {
         const prevSetup = parseFen(prevFen).unwrap();
         const preChess = Chess.fromSetup(prevSetup).unwrap();
@@ -218,7 +222,12 @@ export default function GamePage() {
       fenRef.current = update.fen;
     }
 
-    if (update.lastMove) {
+    if (update.takebackApplied) {
+      // position was rewound, not advanced: skip the forward-move sound and
+      // just resync lastMove (which may now be undefined if we rewound to the start)
+      setLastMove(update.lastMove ?? null);
+      lastMoveRef.current = update.lastMove ?? null;
+    } else if (update.lastMove) {
       const [from, to] = update.lastMove;
       const fromSq = parseSquare(from);
       const toSq = parseSquare(to);
@@ -234,7 +243,7 @@ export default function GamePage() {
     }
   }, []);
 
-  const { sendMove, sendLeave, sendRematch, sendResign, sendDraw } = useGameSocket(roomId, onGameUpdate);
+  const { sendMove, sendLeave, sendRematch, sendResign, sendDraw, sendTakeback } = useGameSocket(roomId, onGameUpdate);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -665,6 +674,7 @@ if (clock) {
               <div style={{ textAlign: "center", fontSize: 12, color: "#ffeb3b", marginBottom: 4 }}>
                 {opponentDrawOffered && <div>Your opponent offers a draw</div>}
                 {opponentRematchOffered && <div>Your opponent offers a rematch</div>}
+                {opponentTakebackOffered && <div>Your opponent requests a takeback</div>}
               </div>
             )}
 
@@ -673,6 +683,7 @@ if (clock) {
               <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
                 <button onClick={sendResign} title="Resign">⚐</button>
                 <button onClick={sendDraw} title="Offer draw">½</button>
+                <button onClick={sendTakeback} title="Request takeback">↺</button>
               </div>
             )}
 

@@ -92,6 +92,7 @@ export type Room = {
   result?: RoomResult | string;
   rematchVotes?: Set<string>;
   drawVotes?: Set<string>;
+  takebackVotes?: Set<string>;
   cleanupTimeout?: NodeJS.Timeout | number;
   scores?: Record<string, number>;
 
@@ -106,6 +107,8 @@ export type Room = {
   blackPlayerId?: string;
 
   moves?: string[];   // SAN strings e.g. ["e4", "e5", "Nf3"]
+  fenHistory?: string[];      // fen after each ply in `moves`, same length/index as `moves`
+  moveSquares?: [string, string][]; // [from, to] after each ply in `moves`
   startFen?: string;  // snapshot the FEN when the game begins
   draftWarning?: string; // set when a draft fails budget validation
 };
@@ -553,6 +556,7 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       timeControl,
       rematchVotes: new Set(),
       drawVotes: new Set(),
+      takebackVotes: new Set(),
       private: req.body.isPrivate ?? false,
     };
 
@@ -664,7 +668,7 @@ function serializePlayers(room: Room) {
 // helper: broadcast a room update to all clients, computing role/color per-client from room.players
 function sendRoomUpdate(
   room: Room,
-  payload: { fen?: string; lastMove?: [string, string]; result?: RoomResult | string; reason?: string } = {},
+  payload: { fen?: string; lastMove?: [string, string]; result?: RoomResult | string; reason?: string; takebackApplied?: boolean } = {},
   msgType: "update" | "gameOver" | "newGame" | "sync" = "update",
 ) {
   for (const client of room.clients) {
@@ -693,6 +697,8 @@ function sendRoomUpdate(
     : undefined,
       rematchOffers: room.rematchVotes ? Array.from(room.rematchVotes) : [],
       drawOffers: room.drawVotes ? Array.from(room.drawVotes) : [],
+      takebackOffers: room.takebackVotes ? Array.from(room.takebackVotes) : [],
+      takebackApplied: payload.takebackApplied,
       colors: {
         white: room.whitePlayerId,
         black: room.blackPlayerId,
@@ -822,6 +828,8 @@ wss.on("connection", (ws: WebSocket, req) => {
               room.fen = normalFen;
               room.startFen = normalFen;
               room.moves = [];
+              room.fenHistory = [];
+              room.moveSquares = [];
 
             } catch (err) {
               // keep existing fen (usually START_FEN)
@@ -891,6 +899,7 @@ wss.on("connection", (ws: WebSocket, req) => {
             : undefined,
             rematchOffers: room.rematchVotes ? Array.from(room.rematchVotes) : [],
             drawOffers: room.drawVotes ? Array.from(room.drawVotes) : [],
+            takebackOffers: room.takebackVotes ? Array.from(room.takebackVotes) : [],
             colors: {
               white: room.whitePlayerId,
               black: room.blackPlayerId,
@@ -941,8 +950,9 @@ wss.on("connection", (ws: WebSocket, req) => {
       if (typeof promotion === "string") moveObj.promotion = promotion;
       if (!chess.isLegal(moveObj)) return;
 
-      // clear draw votes every move
+      // clear draw/takeback votes every move
       room.drawVotes = new Set();
+      room.takebackVotes = new Set();
 
       // capture SAN before making the move
       const san = makeSan(chess, moveObj);
@@ -964,6 +974,7 @@ wss.on("connection", (ws: WebSocket, req) => {
           
         room.drawVotes = new Set();
         room.rematchVotes = new Set();
+        room.takebackVotes = new Set();
 
         applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
         await saveGame(room); // attempt to save PGN
@@ -992,6 +1003,10 @@ wss.on("connection", (ws: WebSocket, req) => {
       // update pgn
       room.moves = room.moves ?? [];
       room.moves.push(san);
+      room.fenHistory = room.fenHistory ?? [];
+      room.fenHistory.push(room.fen);
+      room.moveSquares = room.moveSquares ?? [];
+      room.moveSquares.push([fromStr, toStr]);
 
       if (gameOver) {
         freezeClock(room);
@@ -999,6 +1014,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         room.result = result;
         room.drawVotes = new Set();
         room.rematchVotes = new Set();
+        room.takebackVotes = new Set();
         applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
         // when a game finishes, mark finished and update lobby
         room.status = "finished";
@@ -1053,9 +1069,12 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.concluded = false;
       room.result = undefined;
       room.moves = [];
+      room.fenHistory = [];
+      room.moveSquares = [];
 
       room.rematchVotes.clear();
       room.drawVotes = new Set();
+      room.takebackVotes = new Set();
 
       // set status back to playing
       room.status = "playing";
@@ -1095,6 +1114,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       room.drawVotes = new Set();
       room.rematchVotes = new Set();
+      room.takebackVotes = new Set();
 
       // Apply result to scores
       applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
@@ -1133,6 +1153,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
         room.drawVotes = new Set();
         room.rematchVotes = new Set();
+        room.takebackVotes = new Set();
 
         // mark finished
         room.status = "finished";
@@ -1141,6 +1162,61 @@ wss.on("connection", (ws: WebSocket, req) => {
 
         sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, result: room.result, reason: "draw-agreement" }, "gameOver");
       }
+      return;
+    }
+
+    // ---------- TAKEBACK ----------
+    if (data.type === "takeback" && roomId) {
+      const room = rooms.get(roomId)!;
+      if (room.concluded) return;
+      const uid = (ws as any).playerId;
+      if (!uid || !room.players?.includes(uid)) return;
+
+      room.takebackVotes = room.takebackVotes ?? new Set();
+      if (room.takebackVotes.has(uid)) return; // already requested/accepted
+
+      // requester is whoever cast the first vote; that player's own last move is what gets undone
+      const requesterUid = room.takebackVotes.size === 0 ? uid : Array.from(room.takebackVotes)[0];
+      const requesterColor: "white" | "black" =
+        requesterUid === room.whitePlayerId ? "white" : "black";
+
+      const totalMoves = room.moves?.length ?? 0;
+      // games always start with white to move (see START_FEN / getCombinedStartFens)
+      const currentTurnColor: "white" | "black" = totalMoves % 2 === 0 ? "white" : "black";
+
+      // always rewind to *before* the requester's own last move, restoring their turn:
+      // 1 ply back if the opponent hasn't replied yet, 2 plies back if they already have
+      const removeCount = currentTurnColor === requesterColor ? 2 : 1;
+      const newMoveCount = totalMoves - removeCount;
+      if (newMoveCount < 0) return; // requester has no move of their own to take back yet
+
+      room.takebackVotes.add(uid);
+
+      if (room.takebackVotes.size !== 2) {
+        sendRoomUpdate(room, {}, "update");
+        return;
+      }
+
+      room.fenHistory = room.fenHistory ?? [];
+      room.moveSquares = room.moveSquares ?? [];
+
+      room.fen = newMoveCount === 0 ? (room.startFen ?? room.fen) : room.fenHistory[newMoveCount - 1];
+      room.lastMove = newMoveCount === 0 ? undefined : room.moveSquares[newMoveCount - 1];
+      room.moves = (room.moves ?? []).slice(0, newMoveCount);
+      room.fenHistory = room.fenHistory.slice(0, newMoveCount);
+      room.moveSquares = room.moveSquares.slice(0, newMoveCount);
+
+      room.takebackVotes = new Set();
+      room.drawVotes = new Set();
+
+      // hand the clock back to the requester; we don't track per-ply remaining time,
+      // so elapsed time on the undone moves is not refunded
+      if (room.clock) {
+        room.clock.running = requesterColor;
+        room.clock.lastStartTs = Date.now();
+      }
+
+      sendRoomUpdate(room, { fen: room.fen, lastMove: room.lastMove, takebackApplied: true }, "update");
       return;
     }
 
