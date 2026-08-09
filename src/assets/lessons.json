@@ -152,7 +152,7 @@
     "quote": "“All sorrows are less with bread.” – Sancho Panza",
     "steps": [
       {
-        "text": "A Baker is equivalent to the King, but as he was not born into royalty the game does not hinge on his well-being. \n Most valuable in endgames, he can deliver checkmate to a king unlike his minor piece counterparts.",
+        "text": "A game of chess does not hinge on the survival of a humble Baker, but otherwise they are identical to the King. \n They are considered more valuable in endgames, and unlike a bishop or knight, they can deliver checkmate alone.",
         "challenge": {
           "initialFen": "4M3/7k/5K2/8/8/8/8/8 w - - 0 1",
           "steps": [
