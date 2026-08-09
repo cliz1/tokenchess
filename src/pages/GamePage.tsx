@@ -31,6 +31,9 @@ export default function GamePage() {
 
   const [fen, setFen] = useState<string>(startFen);
   const fenRef = useRef<string>(startFen);
+  // wet paint rule state: not encoded in fen, so it's tracked alongside it and
+  // reapplied onto any Chess object rebuilt from fen (mirrors server room state).
+  const wetPaintSquareRef = useRef<number | undefined>(undefined);
   const [lastMove, setLastMove] = useState<[string, string] | null>(null);
   const lastMoveRef = useRef<[string, string] | null>(null);
 
@@ -207,10 +210,14 @@ export default function GamePage() {
       } catch {}
     }
 
+    // server is authoritative for wet paint state; always resync it
+    wetPaintSquareRef.current = update.wetPaintSquare ?? undefined;
+
     if (update.fen !== prevFen) {
       try {
         const setup = parseFen(update.fen).unwrap();
         newChess = Chess.fromSetup(setup).unwrap();
+        newChess.wetPaintSquare = wetPaintSquareRef.current;
       } catch {
         newChess = chessRef.current;
       }
@@ -266,6 +273,7 @@ export default function GamePage() {
 
     const setup = parseFen(fen).unwrap();
     const newChess = Chess.fromSetup(setup).unwrap();
+    newChess.wetPaintSquare = wetPaintSquareRef.current;
     chessRef.current = newChess;
     const isGameOver = gameResult !== null && gameResult !== "ongoing";
     const cantMove = isGameOver || role !== "player" || !clock;
@@ -335,6 +343,7 @@ export default function GamePage() {
             const preCaptured = chess.board.get(toSq) ?? null;
             playMoveSound(chess, move, from, to, preCaptured);
             chess.play(move);
+            wetPaintSquareRef.current = chess.wetPaintSquare;
             const newFen = makeFen(chess.toSetup());
             setFen(newFen);
             fenRef.current = newFen;
@@ -366,6 +375,7 @@ const promotePawn = (role: string) => {
   const preCaptured = chessRef.current.board.get(parseSquare(to)!) ?? null;
   playMoveSound(chessRef.current, move, from, to, preCaptured);
   chessRef.current.play(move);
+  wetPaintSquareRef.current = chessRef.current.wetPaintSquare;
   const newFen = makeFen(chessRef.current.toSetup());
   setFen(newFen);
   fenRef.current = newFen;
@@ -780,6 +790,7 @@ if (clock) {
                     const preCaptured = chess.board.get(toSq) ?? null;
                     playMoveSound(chess, move, from, to, preCaptured);
                     chess.play(move);
+                    wetPaintSquareRef.current = chess.wetPaintSquare;
                     const newFen = makeFen(chess.toSetup());
                     setFen(newFen);
                     fenRef.current = newFen;

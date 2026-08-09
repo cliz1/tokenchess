@@ -111,6 +111,11 @@ export type Room = {
   moveSquares?: [string, string][]; // [from, to] after each ply in `moves`
   startFen?: string;  // snapshot the FEN when the game begins
   draftWarning?: string; // set when a draft fails budget validation
+
+  // wet paint rule state: not encoded in FEN, so it must be tracked out-of-band
+  // and reapplied onto the Chess object rebuilt from `fen` on every move.
+  wetPaintSquare?: number;
+  wetPaintHistory?: (number | undefined)[]; // wetPaintSquare after each ply, parallel to fenHistory
 };
 
 const PIECE_TOKEN_COST: Record<string, number> = {
@@ -679,6 +684,7 @@ function sendRoomUpdate(
     const out = {
       type: msgType,
       fen: payload.fen ?? room.fen,
+      wetPaintSquare: room.wetPaintSquare ?? null,
       lastMove: payload.lastMove ?? room.lastMove,
       result: payload.result ?? room.result,
       role: isPlayer ? "player" : "spectator",
@@ -935,6 +941,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       const parsed = parseFen(room.fen);
       if (parsed.isErr) return;
       const chess = Chess.fromSetup(parsed.unwrap()).unwrap();
+      // FEN doesn't encode the wet paint rule's state, so reapply it here
+      chess.wetPaintSquare = room.wetPaintSquare;
 
       const whiteId = room.whitePlayerId;
       const blackId = room.blackPlayerId;
@@ -1000,6 +1008,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       room.fen = makeFen(chess.toSetup());
       room.lastMove = [fromStr, toStr];
+      room.wetPaintSquare = chess.wetPaintSquare;
       // update pgn
       room.moves = room.moves ?? [];
       room.moves.push(san);
@@ -1007,6 +1016,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.fenHistory.push(room.fen);
       room.moveSquares = room.moveSquares ?? [];
       room.moveSquares.push([fromStr, toStr]);
+      room.wetPaintHistory = room.wetPaintHistory ?? [];
+      room.wetPaintHistory.push(room.wetPaintSquare);
 
       if (gameOver) {
         freezeClock(room);
@@ -1071,6 +1082,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.moves = [];
       room.fenHistory = [];
       room.moveSquares = [];
+      room.wetPaintSquare = undefined;
+      room.wetPaintHistory = [];
 
       room.rematchVotes.clear();
       room.drawVotes = new Set();
@@ -1199,12 +1212,15 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       room.fenHistory = room.fenHistory ?? [];
       room.moveSquares = room.moveSquares ?? [];
+      room.wetPaintHistory = room.wetPaintHistory ?? [];
 
       room.fen = newMoveCount === 0 ? (room.startFen ?? room.fen) : room.fenHistory[newMoveCount - 1];
       room.lastMove = newMoveCount === 0 ? undefined : room.moveSquares[newMoveCount - 1];
+      room.wetPaintSquare = newMoveCount === 0 ? undefined : room.wetPaintHistory[newMoveCount - 1];
       room.moves = (room.moves ?? []).slice(0, newMoveCount);
       room.fenHistory = room.fenHistory.slice(0, newMoveCount);
       room.moveSquares = room.moveSquares.slice(0, newMoveCount);
+      room.wetPaintHistory = room.wetPaintHistory.slice(0, newMoveCount);
 
       room.takebackVotes = new Set();
       room.drawVotes = new Set();

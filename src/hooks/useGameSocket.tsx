@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 export type GameUpdate = {
   type: "sync" | "update" | "gameOver" | "newGame";
   fen: string;
+  wetPaintSquare?: number | null; // not encoded in fen; mirrors server room state
   draftWarning?: string;
   lastMove?: [string, string];
   role?: "player" | "spectator";
@@ -62,6 +63,7 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
         onUpdateRef.current({
           type: data.type,
           fen: data.fen,
+          wetPaintSquare: data.wetPaintSquare,
           lastMove: data.lastMove,
           result: data.result,
           role: data.role,
