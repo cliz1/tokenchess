@@ -4,6 +4,12 @@ import { makeSquare, parseSquare } from "chessops/util";
 import { parseFen } from "chessops/fen";
 import '../App.css';
 
+// Front-end display names for piece roles whose displayed name differs from
+// their internal role slug (which stays as-is to avoid touching fen/chessops/chessground).
+export const ROLE_DISPLAY_NAMES: Record<string, string> = {
+  mann: "Baker",
+};
+
 export function playSound(type: "move1" | "move2" | "move3" | "move4" |  "capture1" | "capture2" | "capture3" |"check" | "paint" | "wizard" | "archer" | "x_capture" | "snare" | "win" | "lose" | "draw" | "castle") {
   const src = {
     move1: "/sounds/move1.mp3",

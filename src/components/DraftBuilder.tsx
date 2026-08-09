@@ -5,7 +5,8 @@ import type { Config } from "chessground/config";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
-import "../assets/custom-pieces.css"; 
+import "../assets/custom-pieces.css";
+import { ROLE_DISPLAY_NAMES } from "../utils/chessHelpers";
 //import "images/coin-svg-repo.svg";
 
 const FILES = "abcdefgh";
@@ -766,7 +767,7 @@ useEffect(() => {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 48px", gap: 6, fontSize: 13 }}>
               {pieceRoles.map((r) => (
                 <React.Fragment key={r}>
-                  <div style={{ color: "#ddd", textTransform: "capitalize" }}>{r}</div>
+                  <div style={{ color: "#ddd", textTransform: "capitalize" }}>{ROLE_DISPLAY_NAMES[r] ?? r}</div>
                   <div style={{ color: "#fff", textAlign: "right" }}>{getCost(r)}</div>
                 </React.Fragment>
               ))}

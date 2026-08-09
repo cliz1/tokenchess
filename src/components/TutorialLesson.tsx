@@ -3,6 +3,12 @@ import TutorialBoard from "./TutorialBoard";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
+import { ROLE_DISPLAY_NAMES } from "../utils/chessHelpers";
+
+// reverse of ROLE_DISPLAY_NAMES: displayed lesson title -> role slug used for piece CSS/asset lookup
+const DISPLAY_NAME_TO_ROLE: Record<string, string> = Object.fromEntries(
+  Object.entries(ROLE_DISPLAY_NAMES).map(([role, name]) => [name.toLowerCase(), role])
+);
 
 
 type Step = {
@@ -22,7 +28,7 @@ type Props = {
 
 export default function TutorialLesson({ title, steps, quote }: Props) {
   const availablePieces = ["champion", "princess", "amazon", "mann", "painter", "snare", "wizard", "archer"];
-  const lessonPiece = title.toLowerCase();
+  const lessonPiece = DISPLAY_NAME_TO_ROLE[title.toLowerCase()] ?? title.toLowerCase();
   const showPiece = availablePieces.includes(lessonPiece);
 
   return (
