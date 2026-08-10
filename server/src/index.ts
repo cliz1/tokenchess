@@ -102,6 +102,7 @@ export type Room = {
   };
 
   private?: boolean;
+  anythingGoes?: boolean; // when true, horde (piece quantity) restrictions are disabled; token budget still applies
 
   whitePlayerId?: string;
   blackPlayerId?: string;
@@ -136,6 +137,23 @@ const PIECE_TOKEN_COST: Record<string, number> = {
 };
 
 const MAX_TOKENS = 39;
+
+// Per-piece quantity ("horde") limits, keyed by the same single-letter codes as PIECE_TOKEN_COST.
+// Skipped entirely for "anything goes" games; token budget is enforced separately and always applies.
+const HORDE_LIMITS: Record<string, number> = {
+  x: 1, // archer
+  y: 1, // painter
+  a: 2, // amazon
+  q: 2, // queen
+  c: 2, // champion
+  i: 2, // princess
+  r: 3, // rook
+  w: 3, // wizard
+  n: 4, // knight
+  b: 4, // bishop
+  s: 4, // snare
+  m: 4, // mann (baker)
+};
 
 
 export const rooms = new Map<string, Room>();
@@ -205,6 +223,7 @@ function serializeLobby() {
           ? r.players.map((id) => r.usernames[id] ?? "Unknown")
           : undefined, // only send players if in progress
       timeControl: r.timeControl ?? { length: 10, increment: 0 },
+      anythingGoes: !!r.anythingGoes,
     }));
 }
 
@@ -563,6 +582,7 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       drawVotes: new Set(),
       takebackVotes: new Set(),
       private: req.body.isPrivate ?? false,
+      anythingGoes: !!req.body.anythingGoes,
     };
 
     rooms.set(roomId, room);
@@ -833,13 +853,18 @@ wss.on("connection", (ws: WebSocket, req) => {
               const bit = Math.floor(Math.random() * 2);
               room.whitePlayerId = bit === 0 ? p1 : p2;
               room.blackPlayerId = bit === 0 ? p2 : p1;
-              const { normalFen } = await getCombinedStartFens(room.whitePlayerId, room.blackPlayerId);
+              const { normalFen, defaultedPlayerIds } = await getCombinedStartFens(
+                room.whitePlayerId,
+                room.blackPlayerId,
+                room.anythingGoes ?? false,
+              );
               console.log("normalFen: ", room.fen)
               room.fen = normalFen;
               room.startFen = normalFen;
               room.moves = [];
               room.fenHistory = [];
               room.moveSquares = [];
+              room.draftWarning = buildDraftWarning(room, defaultedPlayerIds);
 
             } catch (err) {
               // keep existing fen (usually START_FEN)
@@ -1074,12 +1099,18 @@ wss.on("connection", (ws: WebSocket, req) => {
       // RECOMPUTE FEN FROM ACTIVE DRAFTS
       let startFen: string;
       try {
-        const { normalFen } = await getCombinedStartFens(room.whitePlayerId, room.blackPlayerId);
+        const { normalFen, defaultedPlayerIds } = await getCombinedStartFens(
+          room.whitePlayerId,
+          room.blackPlayerId,
+          room.anythingGoes ?? false,
+        );
         // alternate orientation implicitly via player order
         startFen = normalFen;
+        room.draftWarning = buildDraftWarning(room, defaultedPlayerIds);
       } catch (err) {
         console.error("Failed to compute start FEN:", err);
         startFen = START_FEN;
+        room.draftWarning = "Could not load one or more drafts. Playing with the standard setup.";
       }
 
       room.fen = startFen;
@@ -1284,7 +1315,7 @@ server.listen(port, "0.0.0.0", () => {
 });
 
 // ---------- helpers continued: combine drafts into a start FEN ----------
-function validateDraftFen(fen: string) {
+function validateDraftFen(fen: string, allowHorde = false) {
   const placement = fen.split(" ")[0];
   const ranks = placement.split("/");
 
@@ -1293,6 +1324,7 @@ function validateDraftFen(fen: string) {
   }
 
   let tokenSum = 0;
+  const counts: Record<string, number> = {};
 
   for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
     const rank = ranks[rankIndex];
@@ -1324,6 +1356,7 @@ function validateDraftFen(fen: string) {
         }
 
         tokenSum += cost;
+        counts[piece] = (counts[piece] ?? 0) + 1;
       }
     }
 
@@ -1336,10 +1369,37 @@ function validateDraftFen(fen: string) {
     throw new Error(`Draft exceeds token budget (${tokenSum} > ${MAX_TOKENS})`);
   }
 
+  // Horde (piece quantity) restrictions are always skipped for "anything goes" games;
+  // the token budget check above still applies regardless.
+  if (!allowHorde) {
+    for (const [piece, limit] of Object.entries(HORDE_LIMITS)) {
+      if ((counts[piece] ?? 0) > limit) {
+        throw new Error(`Draft exceeds horde limit for piece "${piece}" (max ${limit})`);
+      }
+    }
+  }
+
   return tokenSum;
 }
 
-async function getCombinedStartFens(player1Id: string, player2Id: string) {
+// Builds a user-facing warning naming which player(s), if any, had their draft
+// replaced with the standard setup for violating the current game's rules.
+function buildDraftWarning(room: Room, defaultedPlayerIds: string[]): string | undefined {
+  if (defaultedPlayerIds.length === 0) return undefined;
+  const names = defaultedPlayerIds.map((pid) => room.usernames?.[pid] ?? "A player");
+  const ruleNote = room.anythingGoes
+    ? "exceeds the token budget"
+    : "violates the token budget or piece limits";
+  return names.length === 2
+    ? `Both players' drafts ${ruleNote} and were replaced with the standard setup.`
+    : `${names[0]}'s draft ${ruleNote} and was replaced with the standard setup.`;
+}
+
+// Standard, always-legal draft rows used to replace a player's draft when it
+// fails validation for the current game's rules (see getCombinedStartFens).
+const DEFAULT_DRAFT_ROWS = ["PPPPPPPP", "RNBQKBNR"];
+
+async function getCombinedStartFens(player1Id: string, player2Id: string, anythingGoes = false) {
   const drafts = await prisma.draft.findMany({
     where: { userId: { in: [player1Id, player2Id] }, isActive: true },
     select: { userId: true, data: true },
@@ -1361,9 +1421,6 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
   const fenA = fens[player1Id];
   const fenB = fens[player2Id];
 
-  validateDraftFen(fenA);
-  validateDraftFen(fenB);
-
   // helper to extract last 2 rows from a player's fen
   function extractWhiteRows(fen: string) {
     const placement = fen.split(" ")[0];
@@ -1372,8 +1429,24 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
     return rows.slice(-2);
   }
 
-  const whiteRowsA = extractWhiteRows(fenA);
-  const whiteRowsB = extractWhiteRows(fenB);
+  // Validate each player's draft against the current game's rules independently.
+  // A player whose draft violates the rules (bad structure, over budget, or —
+  // outside anything-goes games — over the horde limits) gets the standard
+  // draft substituted in for just their side; the other player's draft is untouched.
+  const defaultedPlayerIds: string[] = [];
+
+  function rowsForPlayer(fen: string, playerId: string): string[] {
+    try {
+      validateDraftFen(fen, anythingGoes);
+      return extractWhiteRows(fen);
+    } catch {
+      defaultedPlayerIds.push(playerId);
+      return DEFAULT_DRAFT_ROWS;
+    }
+  }
+
+  const whiteRowsA = rowsForPlayer(fenA, player1Id);
+  const whiteRowsB = rowsForPlayer(fenB, player2Id);
 
   // helper to lowercase + reverse the *order* of two rows (not the string characters)
   function mirrorAndLower(rows: string[]) {
@@ -1394,7 +1467,7 @@ async function getCombinedStartFens(player1Id: string, player2Id: string) {
   const reversedCombined = [...reversedBlackTop, "8", "8", "8", "8", ...reversedWhiteBottom].join("/");
   const reversedFen = `${reversedCombined} w KQkq - 0 1`;
 
-  return { normalFen, reversedFen };
+  return { normalFen, reversedFen, defaultedPlayerIds };
 }
 
 // clock helpers

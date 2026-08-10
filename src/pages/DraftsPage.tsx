@@ -4,14 +4,14 @@ import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
 import DraftBuilder from "../components/DraftBuilder";
 
-type Draft = { 
-  id: string; 
-  name: string; 
-  data: { fen: string }; 
-  isPublic: boolean; 
-  createdAt: string; 
-  isActive: boolean; 
-  slot: number; 
+type Draft = {
+  id: string;
+  name: string;
+  data: { fen: string; anythingGoes?: boolean };
+  isPublic: boolean;
+  createdAt: string;
+  isActive: boolean;
+  slot: number;
 };
 
 export default function DraftsPage() {
@@ -42,14 +42,14 @@ export default function DraftsPage() {
     }
   }
 
-  async function updateDraftFen(index: number, fen: string) {
+  async function updateDraftFen(index: number, fen: string, anythingGoes: boolean) {
     const draft = drafts[index];
     if (!draft) return;
 
     try {
       const updated = await apiFetch(`/drafts/${draft.id}`, {
         method: "PUT",
-        body: JSON.stringify({ data: { fen } }),
+        body: JSON.stringify({ data: { fen, anythingGoes } }),
       });
 
       const copy = [...drafts];
@@ -106,6 +106,9 @@ export default function DraftsPage() {
                 }}
               >
                 {d.name}
+                {d.data?.anythingGoes && (
+                  <span style={{ marginLeft: 6, fontSize: 11, color: "#e0c060" }}>AG</span>
+                )}
               </div>
             ))}
           </div>
@@ -145,7 +148,8 @@ export default function DraftsPage() {
           {current && (
             <DraftBuilder
               initialFen={current.data?.fen}
-              onSave={(fen) => updateDraftFen(selected, fen)}
+              initialAnythingGoes={current.data?.anythingGoes}
+              onSave={(fen, anythingGoes) => updateDraftFen(selected, fen, anythingGoes)}
             />
           )}
         </>

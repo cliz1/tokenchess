@@ -12,7 +12,15 @@ import { ROLE_DISPLAY_NAMES } from "../utils/chessHelpers";
 const FILES = "abcdefgh";
 type PalettePiece = { role: string; color: "white" | "black" };
 
-export default function DraftBuilder({ onSave, initialFen }: { onSave?: (fen: string) => void; initialFen?: string }) {
+export default function DraftBuilder({
+  onSave,
+  initialFen,
+  initialAnythingGoes,
+}: {
+  onSave?: (fen: string, anythingGoes: boolean) => void;
+  initialFen?: string;
+  initialAnythingGoes?: boolean;
+}) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
 
@@ -25,6 +33,26 @@ export default function DraftBuilder({ onSave, initialFen }: { onSave?: (fen: st
   const [orientation, _setOrientation] = useState<"white" | "black">("white");
   const [perspective, _setPerspective] = useState<"white" | "black">("white");
   const [saved, setSaved] = useState(false);
+
+  const [anythingGoes, setAnythingGoes] = useState<boolean>(initialAnythingGoes ?? false);
+  const anythingGoesRef = useRef<boolean>(anythingGoes);
+  useEffect(() => {
+    anythingGoesRef.current = anythingGoes;
+  }, [anythingGoes]);
+  useEffect(() => {
+    setAnythingGoes(initialAnythingGoes ?? false);
+  }, [initialAnythingGoes]);
+
+  function handleToggleAnythingGoes(e: React.ChangeEvent<HTMLInputElement>) {
+    const next = e.target.checked;
+    if (next) {
+      flashWarning(
+        "Anything Goes drafts ignore piece quantity limits. This draft won't be usable in standard (non-Anything Goes) games unless it also satisfies the normal limits.",
+        5000,
+      );
+    }
+    setAnythingGoes(next);
+  }
 
 
   const [tokens, setTokens] = useState<number>(INITIAL_TOKENS);
@@ -387,7 +415,7 @@ useEffect(() => {
       }
 
       // --- HORDE RESTRICTIONS: up to 2 of one piece type, exception only 1 archer  ---
-      if (piece.color === perspective) {
+      if (piece.color === perspective && !anythingGoesRef.current) {
         const countOfRole = Array.from(baseMap.values())
           .filter(p => p.color === perspective && p.role === piece.role).length;
 
@@ -762,6 +790,29 @@ useEffect(() => {
             Placing pieces consumes tokens. If a placement would make tokens go below 0 it will be blocked.
           </div>
 
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 8px",
+              borderRadius: 6,
+              border: "1px solid rgba(255,255,255,0.06)",
+              cursor: "pointer",
+              fontSize: 13,
+              color: "#ddd",
+            }}
+            title="Disables piece quantity (horde) limits for this draft."
+          >
+            <input type="checkbox" checked={anythingGoes} onChange={handleToggleAnythingGoes} />
+            Anything Goes
+          </label>
+          {anythingGoes && (
+            <div style={{ fontSize: 11, color: "#e0c060" }}>
+              Piece limits are disabled. This draft can only be used in Anything Goes games.
+            </div>
+          )}
+
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: 8 }}>
             <div style={{ fontSize: 13, color: "#bbb", marginBottom: 6 }}>Piece costs</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 48px", gap: 6, fontSize: 13 }}>
@@ -798,7 +849,7 @@ useEffect(() => {
           <div style={{ paddingTop: ".75rem" }}>
             <button
               onClick={() => {
-                if (onSave) onSave(fen);
+                if (onSave) onSave(fen, anythingGoes);
                 setSaved(true);
                 setTimeout(() => setSaved(false), 1500);
               }}

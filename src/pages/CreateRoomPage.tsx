@@ -7,6 +7,7 @@ export default function CreateRoomPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [length] = useState<number>(6);
+  const [anythingGoes, setAnythingGoes] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +23,7 @@ export default function CreateRoomPage() {
       //const token = localStorage.getItem("token");
       const res = await apiFetch("/rooms", {
         method: "POST",
-        body: JSON.stringify({ length }),
+        body: JSON.stringify({ length, anythingGoes }),
       });
       const roomId = res.roomId;
       navigate(`/game?room=${encodeURIComponent(roomId)}`);
@@ -52,6 +53,17 @@ export default function CreateRoomPage() {
 
       <h2>Create Game Room</h2>
       <form onSubmit={handleCreate}>
+        <label
+          title="Disables piece quantity (horde) limits for both players' drafts. Token budget still applies."
+        >
+          Anything Goes:
+          <input
+            type="checkbox"
+            checked={anythingGoes}
+            onChange={(e) => setAnythingGoes(e.target.checked)}
+            style={{ marginLeft: 5 }}
+          />
+        </label>
         <div style={{ marginTop: 12 }}>
           <button type="submit" disabled={loading}>
             {loading ? "Creating…" : "Create Room"}

@@ -8,6 +8,7 @@ export default function LobbyPage() {
   const [minutes, setMinutes] = useState(10); // default 10 min
   const [increment, setIncrement] = useState(0); // default 0 sec increment
   const [isPrivate, setIsPrivate] = useState(false); // default to public
+  const [anythingGoes, setAnythingGoes] = useState(false); // default horde restrictions on
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export default function LobbyPage() {
       body: JSON.stringify({
         length: minutes,
         increment, // seconds
-        isPrivate
+        isPrivate,
+        anythingGoes,
       }),
     });
     navigate(`/game?room=${res.roomId}`);
@@ -94,6 +96,16 @@ export default function LobbyPage() {
             style={{ marginLeft: 5 }}
           />
         </label>
+
+        <label style={{ marginLeft: 10 }} title="Disables piece quantity (horde) limits for both players' drafts. Token budget still applies.">
+          Anything Goes:
+          <input
+            type="checkbox"
+            checked={anythingGoes}
+            onChange={(e) => setAnythingGoes(e.target.checked)}
+            style={{ marginLeft: 5 }}
+          />
+        </label>
       </div>
 
 
@@ -144,6 +156,14 @@ export default function LobbyPage() {
             }}
           >
             <span>{tc}</span>
+            {r.anythingGoes && (
+              <>
+                <span>·</span>
+                <span style={{ color: "#e0c060" }} title="Horde piece limits are disabled in this game">
+                  Anything Goes
+                </span>
+              </>
+            )}
             <span>·</span>
             <span>
               {r.status === "open" ? "Waiting for opponent" : "In progress"}
