@@ -710,6 +710,10 @@ function sendRoomUpdate(
         black: room.blackPlayerId,
       },
       draftWarning: room.draftWarning,
+      startFen: room.startFen,
+      moves: room.moves ?? [],
+      fenHistory: room.fenHistory ?? [],
+      moveSquares: room.moveSquares ?? [],
     } as any;
 
     try {
@@ -911,6 +915,10 @@ wss.on("connection", (ws: WebSocket, req) => {
               black: room.blackPlayerId,
             },
             draftWarning: room.draftWarning,
+            startFen: room.startFen,
+            moves: room.moves ?? [],
+            fenHistory: room.fenHistory ?? [],
+            moveSquares: room.moveSquares ?? [],
           }),
         );
       }

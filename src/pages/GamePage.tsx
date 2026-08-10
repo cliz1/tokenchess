@@ -37,6 +37,14 @@ export default function GamePage() {
   const [lastMove, setLastMove] = useState<[string, string] | null>(null);
   const lastMoveRef = useRef<[string, string] | null>(null);
 
+  // move history, for browsing past positions without touching the live game state above
+  const [historyStartFen, setHistoryStartFen] = useState<string>(startFen);
+  const [moves, setMoves] = useState<string[]>([]);
+  const [fenHistory, setFenHistory] = useState<string[]>([]);
+  const [moveSquares, setMoveSquares] = useState<[string, string][]>([]);
+  // null = viewing the live position; otherwise an index into `moves`/`fenHistory` (0 = start position)
+  const [viewPly, setViewPly] = useState<number | null>(null);
+
   const [gameResult, setGameResult] = useState<null | "1-0" | "0-1" | "1/2-1/2" | "ongoing">(null);
   const [role, setRole] = useState<"player" | "spectator">("spectator");
   const [playerColor, setPlayerColor] = useState<"white" | "black" | null>(null);
@@ -166,6 +174,20 @@ export default function GamePage() {
     setOpponentRematchOffered(oppHasOfferedRematch);
     setOpponentTakebackOffered(oppHasOfferedTakeback);
 
+    // Sync move history unconditionally (even on a "no-op" broadcast, e.g. the
+    // server echoing back a move this client already applied optimistically) —
+    // otherwise the local player's own most recent move never appears in the
+    // history arrays until a later, fen-changing update catches it up, which
+    // desyncs `moves.length` from the true live position and makes history
+    // navigation overshoot by a ply.
+    if (update.startFen) setHistoryStartFen(update.startFen);
+    if (update.moves) setMoves(update.moves);
+    if (update.fenHistory) setFenHistory(update.fenHistory);
+    if (update.moveSquares) setMoveSquares(update.moveSquares);
+    // only snap the view back to live when the position actually changed, so
+    // browsing history isn't interrupted by unrelated broadcasts (e.g. offers)
+    if (update.fen !== prevFen) setViewPly(null);
+
     if (sameFen && sameLastMove && update.result === undefined) return;
 
     if (update.result !== undefined) {
@@ -265,21 +287,71 @@ export default function GamePage() {
   clockRef.current = clock;
 }, [clock]);
 
+  // the position actually shown on the board: live game state, unless the user is
+  // browsing history, in which case it's a snapshot from `fenHistory`/`moveSquares`.
+  // `fen`/`lastMove`/`chessRef` above stay the live/authoritative state at all times.
+  const isViewingHistory = viewPly !== null;
+  const displayFen = viewPly === null
+    ? fen
+    : viewPly === 0
+      ? historyStartFen
+      : fenHistory[viewPly - 1] ?? fen;
+  const displayLastMove: [string, string] | null = viewPly === null
+    ? lastMove
+    : viewPly === 0
+      ? null
+      : moveSquares[viewPly - 1] ?? null;
 
+  const clampPly = useCallback((p: number) => Math.max(0, Math.min(p, moves.length)), [moves.length]);
 
+  const goToPly = useCallback((ply: number) => {
+    const clamped = clampPly(ply);
+    setViewPly(clamped >= moves.length ? null : clamped);
+  }, [clampPly, moves.length]);
+
+  const goToFirst = useCallback(() => setViewPly(moves.length > 0 ? 0 : null), [moves.length]);
+
+  const goToPrev = useCallback(() => {
+    setViewPly(prev => {
+      const current = prev === null ? moves.length : prev;
+      return Math.max(0, current - 1);
+    });
+  }, [moves.length]);
+
+  const goToNext = useCallback(() => {
+    setViewPly(prev => {
+      if (prev === null) return null;
+      const next = prev + 1;
+      return next >= moves.length ? null : next;
+    });
+  }, [moves.length]);
+
+  const goToLast = useCallback(() => setViewPly(null), []);
+
+  // left/right arrow keys step through move history
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); goToPrev(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); goToNext(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [goToPrev, goToNext]);
 
   useEffect(() => {
     if (!groundRef.current) return;
 
-    const setup = parseFen(fen).unwrap();
+    const setup = parseFen(displayFen).unwrap();
     const newChess = Chess.fromSetup(setup).unwrap();
-    newChess.wetPaintSquare = wetPaintSquareRef.current;
+    newChess.wetPaintSquare = isViewingHistory ? undefined : wetPaintSquareRef.current;
     chessRef.current = newChess;
     const isGameOver = gameResult !== null && gameResult !== "ongoing";
-    const cantMove = isGameOver || role !== "player" || !clock;
+    const cantMove = isViewingHistory || isGameOver || role !== "player" || !clock;
 
     groundRef.current.set({
-      fen,
+      fen: displayFen,
       turnColor: newChess.turn,
       animation: { enabled: true, duration: 300 },
       orientation: playerColor ?? "white",
@@ -357,14 +429,68 @@ export default function GamePage() {
           },
         },
       },
-      lastMove: lastMove ?? undefined,
+      lastMove: displayLastMove ?? undefined,
     });
-  }, [fen, lastMove, role, playerColor, sendMove]);
+  }, [displayFen, displayLastMove, isViewingHistory, role, playerColor, sendMove]);
 
   const handleLeave = () => {
     sendLeave();
     navigate("/");
   };
+
+  // move list is always a single mainline in a live game (no branching), so this is
+  // just paired rows of SAN moves, each clickable to jump to the position after it.
+  function renderMoveList() {
+    const currentIdx = viewPly === null ? moves.length - 1 : viewPly - 1;
+    const rows: { num: number; whiteIdx: number; blackIdx: number | null }[] = [];
+    for (let i = 0; i < moves.length; i += 2) {
+      rows.push({ num: i / 2 + 1, whiteIdx: i, blackIdx: i + 1 < moves.length ? i + 1 : null });
+    }
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          maxHeight: 140,
+          overflowY: "auto",
+          fontSize: 13,
+          padding: 6,
+          background: "#141414",
+          borderRadius: 4,
+        }}
+      >
+        {rows.length === 0 && <div style={{ color: "#666", textAlign: "center" }}>No moves yet</div>}
+        {rows.map((row) => (
+          <div key={row.num} style={{ display: "flex", gap: 8 }}>
+            <div style={{ minWidth: 20, textAlign: "right", color: "#888" }}>{row.num}.</div>
+            <div
+              onClick={() => goToPly(row.whiteIdx + 1)}
+              style={{
+                cursor: "pointer",
+                fontWeight: row.whiteIdx === currentIdx ? 700 : 400,
+                color: row.whiteIdx === currentIdx ? "#fff" : "#ccc",
+              }}
+            >
+              {moves[row.whiteIdx]}
+            </div>
+            {row.blackIdx !== null && (
+              <div
+                onClick={() => goToPly(row.blackIdx! + 1)}
+                style={{
+                  cursor: "pointer",
+                  fontWeight: row.blackIdx === currentIdx ? 700 : 400,
+                  color: row.blackIdx === currentIdx ? "#fff" : "#ccc",
+                }}
+              >
+                {moves[row.blackIdx]}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
 const promotePawn = (role: string) => {
   if (gameResult && gameResult !== "ongoing") { console.warn("Move attempted after game over"); return; }
@@ -717,6 +843,17 @@ if (clock) {
               }
               active={!!(clock && bottomRunning && clock.running === bottomRunning)}
             />
+
+            {/* Move history: browse past positions without affecting the live game */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {renderMoveList()}
+              <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
+                <button onClick={goToFirst} title="First move">⏮</button>
+                <button onClick={goToPrev} title="Previous move">‹</button>
+                <button onClick={goToNext} title="Next move">›</button>
+                <button onClick={goToLast} title="Last move (live)">⏭</button>
+              </div>
+            </div>
 
             {/* Game over controls */}
             {gameResult && role === "player" && (

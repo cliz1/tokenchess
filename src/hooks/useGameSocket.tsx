@@ -24,6 +24,10 @@ export type GameUpdate = {
   takebackOffers?: string[];
   takebackApplied?: boolean;
   colors?: {white: string ; black: string};
+  startFen?: string;
+  moves?: string[];
+  fenHistory?: string[];
+  moveSquares?: [string, string][];
 };
 
 export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => void) {
@@ -76,6 +80,10 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
           takebackOffers: data.takebackOffers,
           takebackApplied: data.takebackApplied,
           draftWarning: data.draftWarning,
+          startFen: data.startFen,
+          moves: data.moves,
+          fenHistory: data.fenHistory,
+          moveSquares: data.moveSquares,
         });
       }
     };
