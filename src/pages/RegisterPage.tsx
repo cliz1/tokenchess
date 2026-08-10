@@ -26,6 +26,9 @@ export default function RegisterPage() {
     else if (err.message === "USERNAME_CHARS") {
       setError("Usernames can only contain letters and numbers.");
     }
+    else if (err.message === "USERNAME_LENGTH") {
+      setError("Usernames must be between 3 and 16 characters.");
+    }
     else if (err.message === "USERNAME_PROFANITY") {
       setError("That username isn’t allowed.");
     }
@@ -82,6 +85,9 @@ export default function RegisterPage() {
             style={inputStyle}
             required
           />
+          <div style={{ marginTop: 6, fontSize: 12, color: "#888" }}>
+            3–16 characters, letters and numbers only, no offensive terms.
+          </div>
         </div>
         <div style={{ marginTop: 12 }}>
           <input

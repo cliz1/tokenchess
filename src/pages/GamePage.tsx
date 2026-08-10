@@ -356,6 +356,7 @@ export default function GamePage() {
       animation: { enabled: true, duration: 300 },
       orientation: playerColor ?? "white",
       highlight: { check: true, custom: getCheckHighlights(newChess) },
+      inspectable: { enabled: true },
       movable: cantMove? {color:undefined, free: false, showDests: false, dests: {}, events: {}} : {
         color: playerColor ?? newChess.turn,
         dests: calculateDests(newChess),
