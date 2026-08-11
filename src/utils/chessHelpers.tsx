@@ -57,11 +57,11 @@ export function createChessInstance(fen: string): Chess {
   return Chess.fromSetup(setupResult.unwrap()).unwrap();
 }
 
-// highlights the king when its in check
+// highlights the royal piece (king or general) when it's in check
 export function getCheckHighlights(chess: Chess): Map<Key, string> {
   const highlights = new Map<Key, string>();
   if (chess.isCheck()) {
-    const king = chess.board.kingOf(chess.turn);
+    const king = chess.board.royalOf(chess.turn);
     if (king !== undefined) highlights.set(makeSquare(king), "check");
   }
   return highlights;

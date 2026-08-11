@@ -69,6 +69,7 @@ export default function BoardEditor({ initialFen }: BoardEditorProps) {
     if (r.includes("wizard")) return "w";
     if (r.includes("archer")) return "x";
     if (r.includes("centaur")) return "u";
+    if (r.includes("general")) return "g";
     if (r.includes("queen")) return "q";
     if (r.includes("king")) return "k";
     return r.charAt(0) || "p";
@@ -306,7 +307,8 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
     "rollingsnare",
     "royalpainter",
     "centaur",
-    "king"
+    "king",
+    "general"
   ];
 
   const palette: PalettePiece[] = pieceRoles.map((role) => ({ role, color: paletteColor }));
@@ -344,7 +346,9 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
   }
 
   // --------- VALIDATION + NAVIGATION ----------
-  function countKingsFromState(): { white: number; black: number } {
+  // A side's "royal" piece is its king OR its general (a general is a king alternative;
+  // a side must have exactly one of the two, never both, never neither).
+  function countRoyalsFromState(): { white: number; black: number } {
     try {
       const piecesState = groundRef.current?.state?.pieces;
       if (piecesState) {
@@ -354,7 +358,8 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
         for (const sq in obj) {
           const p = obj[sq];
           if (!p) continue;
-          if (p.role && p.role.toLowerCase().includes("king")) {
+          const role = p.role ? p.role.toLowerCase() : "";
+          if (role === "king" || role === "general") {
             if (p.color === "white") white++;
             else if (p.color === "black") black++;
           }
@@ -365,21 +370,21 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
       // ignore, fallback to fen parsing below
     }
 
-    // fallback: parse FEN first field and count K/k
+    // fallback: parse FEN first field and count K/k/G/g
     const placement = fen.split(" ")[0] ?? fen;
     let white = 0;
     let black = 0;
     for (const ch of placement) {
-      if (ch === "K") white++;
-      if (ch === "k") black++;
+      if (ch === "K" || ch === "G") white++;
+      if (ch === "k" || ch === "g") black++;
     }
     return { white, black };
   }
 
 function validateFenForAnalysis(): { ok: boolean; reason?: string } {
-  const { white, black } = countKingsFromState();
+  const { white, black } = countRoyalsFromState();
   if (white !== 1 || black !== 1) {
-    return { ok: false, reason: `Need exactly one king of each color — currently white=${white}, black=${black}` };
+    return { ok: false, reason: `Need exactly one royal piece (king or general) per side — currently white=${white}, black=${black}` };
   }
 
   const piecesState = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
@@ -390,6 +395,7 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
     p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king",
     c: "champion", i: "princess", m: "mann", l: "rollingsnare", o: "royalpainter",
     y: "painter", s: "snare", w: "wizard", x: "archer", a: "amazon", u: "centaur",
+    g: "general",
   };
 
   // helper: algebraic -> 0..63 square index (a1=0, b1=1, ..., a2=8, ...)
@@ -399,7 +405,7 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
     return rank * 8 + file;
   };
 
-  // find opponent king square (algebraic)
+  // find opponent's royal square (king or general), algebraic
   const moverColor = sideToMove; // "white" | "black"
   const opponentColor = moverColor === "white" ? "black" : "white";
   let opponentKingSqAlg: string | null = null;
@@ -407,14 +413,14 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
     const p = piecesState[sq];
     if (!p) continue;
     const roleStr = typeof p.role === "string" ? p.role.toLowerCase() : p.role;
-    if (roleStr && roleStr.includes("king") && p.color === opponentColor) {
+    if ((roleStr === "king" || roleStr === "general") && p.color === opponentColor) {
       opponentKingSqAlg = sq;
       break;
     }
   }
   if (!opponentKingSqAlg) {
-    //console.debug("validateFenForAnalysis: opponent king not found", { piecesState, moverColor });
-    return { ok: false, reason: `Couldn't find opponent king on the board.` };
+    //console.debug("validateFenForAnalysis: opponent royal piece not found", { piecesState, moverColor });
+    return { ok: false, reason: `Couldn't find opponent's king or general on the board.` };
   }
   const opponentKingIndex = algebraicToIndex(opponentKingSqAlg);
 
