@@ -68,6 +68,7 @@ export default function BoardEditor({ initialFen }: BoardEditorProps) {
     else if (r.includes("snare")) return "s";
     if (r.includes("wizard")) return "w";
     if (r.includes("archer")) return "x";
+    if (r.includes("centaur")) return "u";
     if (r.includes("queen")) return "q";
     if (r.includes("king")) return "k";
     return r.charAt(0) || "p";
@@ -304,6 +305,7 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
     "amazon",
     "rollingsnare",
     "royalpainter",
+    "centaur",
     "king"
   ];
 
@@ -387,7 +389,7 @@ function validateFenForAnalysis(): { ok: boolean; reason?: string } {
   const fenLetterToRole: Record<string, string> = {
     p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king",
     c: "champion", i: "princess", m: "mann", l: "rollingsnare", o: "royalpainter",
-    y: "painter", s: "snare", w: "wizard", x: "archer", a: "amazon",
+    y: "painter", s: "snare", w: "wizard", x: "archer", a: "amazon", u: "centaur",
   };
 
   // helper: algebraic -> 0..63 square index (a1=0, b1=1, ..., a2=8, ...)

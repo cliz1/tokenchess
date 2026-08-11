@@ -141,6 +141,7 @@ export function playMoveSound(
   }
 
   const toFile = toIdx % 8;
+  const fromFile = fromIdx % 8;
   const toRankIdx = Math.floor(toIdx / 8);
   const fromRank = Math.floor(fromIdx / 8);
 
@@ -193,7 +194,12 @@ export function playMoveSound(
     else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
       playSound("archer");
       playSound("x_capture");
-    } 
+    }
+    else if (movingPiece.role === "centaur" && Math.abs(toFile - fromFile) === Math.abs(toRankIdx - fromRank)) {
+      // centaur's ranged diagonal shot (its knight-move deltas never satisfy file===rank distance)
+      playSound("archer");
+      playSound("x_capture");
+    }
     else if (isCastleMove){
       playSound("castle");
     }
