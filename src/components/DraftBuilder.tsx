@@ -43,6 +43,44 @@ export default function DraftBuilder({
     setAnythingGoes(initialAnythingGoes ?? false);
   }, [initialAnythingGoes]);
 
+  const [useGeneral, setUseGeneral] = useState<boolean>(() => {
+    const placement = (initialFen ?? EMPTY_FEN).split(" ")[0] ?? "";
+    return /[gG]/.test(placement);
+  });
+  useEffect(() => {
+    const placement = (initialFen ?? EMPTY_FEN).split(" ")[0] ?? "";
+    setUseGeneral(/[gG]/.test(placement));
+  }, [initialFen]);
+
+  // swaps every king<->general on the board in place (used by the "Use General" toggle,
+  // and to revert when Anything Goes is turned off since general only exists in that mode)
+  function applyRoyalSwap(useGen: boolean) {
+    try {
+      const curr = groundRef.current?.state?.pieces;
+      if (!curr) return;
+      const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
+      const newMap = new Map(baseMap);
+      let changed = false;
+      for (const [sq, p] of baseMap.entries()) {
+        if (useGen && p.role === "king") {
+          newMap.set(sq, { ...p, role: "general" });
+          changed = true;
+        } else if (!useGen && p.role === "general") {
+          newMap.set(sq, { ...p, role: "king" });
+          changed = true;
+        }
+      }
+      if (!changed) return;
+      groundRef.current?.set({ pieces: newMap });
+      const newFen = typeof groundRef.current.getFen === "function"
+        ? groundRef.current.getFen()
+        : piecesToFen(statePiecesToObject(newMap));
+      setFen(newFen);
+    } catch {
+      // swallow
+    }
+  }
+
   function handleToggleAnythingGoes(e: React.ChangeEvent<HTMLInputElement>) {
     const next = e.target.checked;
     if (next) {
@@ -50,8 +88,17 @@ export default function DraftBuilder({
         "Anything Goes drafts ignore piece quantity limits. This draft won't be usable in standard (non-Anything Goes) games unless it also satisfies the normal limits.",
         5000,
       );
+    } else if (useGeneral) {
+      applyRoyalSwap(false);
+      setUseGeneral(false);
     }
     setAnythingGoes(next);
+  }
+
+  function handleToggleUseGeneral(e: React.ChangeEvent<HTMLInputElement>) {
+    const next = e.target.checked;
+    setUseGeneral(next);
+    applyRoyalSwap(next);
   }
 
 
@@ -105,14 +152,17 @@ useEffect(() => {
     if (r.includes("rook")) return 5;
     if (r.includes("queen")) return 9;
     if (r.includes("champion")) return 8;
-    if (r.includes("king")) return 0;
-    if (r.includes("princess")) return 8; 
+    if (r.includes("king") || r.includes("general")) return 0;
+    if (r.includes("princess")) return 8;
     if (r.includes("amazon")) return 13;
     if (r.includes("mann")) return 3;
+    if (r.includes("royalpainter")) return 21;
+    if (r.includes("rollingsnare")) return 5;
+    if (r.includes("centaur")) return 9;
     if (r.includes("painter")) return 2;
     if (r.includes("snare")) return 1;
     if (r.includes("wizard")) return 7;
-    if (r.includes("archer")) return 5; 
+    if (r.includes("archer")) return 5;
     return 2;
   }
 
@@ -139,14 +189,18 @@ useEffect(() => {
     if (r.includes("rook")) return "r";
     if (r.includes("queen")) return "q";
     if (r.includes("king")) return "k";
+    if (r.includes("general")) return "g";
     if (r.includes("champion")) return "c";
     if (r.includes("princess")) return "i";
     if (r.includes("amazon")) return "a";
     if (r.includes("mann")) return "m";
+    if (r.includes("royalpainter")) return "o";
+    if (r.includes("rollingsnare")) return "l";
     if (r.includes("painter")) return "y";
     if (r.includes("snare")) return "s";
     if (r.includes("wizard")) return "w";
     if (r.includes("archer")) return "x";
+    if (r.includes("centaur")) return "u";
     return r.charAt(0) || "p";
   }
 
@@ -279,6 +333,9 @@ useEffect(() => {
         case "K":
           role = "king";
           break;
+        case "G":
+          role = "general";
+          break;
         case "C":
           role = "champion";
           break;
@@ -302,6 +359,15 @@ useEffect(() => {
           break;
         case"X":
           role = "archer";
+          break;
+        case "O":
+          role = "royalpainter";
+          break;
+        case "L":
+          role = "rollingsnare";
+          break;
+        case "U":
+          role = "centaur";
           break;
         default:
           role = "pawn";
@@ -489,8 +555,8 @@ useEffect(() => {
       const existing = baseMap.get(sq);
       if (!existing) return;
 
-      // ---------- BLOCK KING DRAGGING (left click) ----------
-      if (ev.button === 0 && !ev.altKey && existing.role === "king") {
+      // ---------- BLOCK KING/GENERAL DRAGGING (left click) ----------
+      if (ev.button === 0 && !ev.altKey && (existing.role === "king" || existing.role === "general")) {
         try { (ev as any).stopImmediatePropagation?.(); } catch {}
         ev.preventDefault();
         return;
@@ -503,8 +569,8 @@ useEffect(() => {
       try { (ev as any).stopImmediatePropagation?.(); } catch {}
       ev.preventDefault();
 
-      // cannot delete kings
-      if (existing.role === "king") {
+      // cannot delete kings/generals
+      if (existing.role === "king" || existing.role === "general") {
         return;
       }
 
@@ -541,7 +607,7 @@ useEffect(() => {
       const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
       const existing = baseMap.get(sq);
       if (!existing) return;
-      if (existing.role === "king") return;
+      if (existing.role === "king" || existing.role === "general") return;
 
       if (existing.color === perspective) {
         const refundAmt = getCost(existing.role);
@@ -589,6 +655,7 @@ useEffect(() => {
     "snare",
     "wizard",
     "archer",
+    ...(anythingGoes ? ["centaur", "royalpainter", "rollingsnare"] : []),
   ];
 
   const paletteColor: "white" | "black" = perspective;
@@ -665,31 +732,41 @@ useEffect(() => {
     setOrientation(newOrientation);
   } */
 
+  function fenWithRoyal(fenStr: string, useGen: boolean) {
+    if (!useGen) return fenStr;
+    const [placement, ...rest] = fenStr.split(" ");
+    const swapped = placement.replace(/k/g, "g").replace(/K/g, "G");
+    return [swapped, ...rest].join(" ");
+  }
+
   function handleSetStartPosition() {
-    const cost = computeCostOfColorFromFen(START_FEN, perspective);
+    const targetFen = fenWithRoyal(START_FEN, useGeneral);
+    const cost = computeCostOfColorFromFen(targetFen, perspective);
     const newTokens = Math.max(0, INITIAL_TOKENS - cost);
     setTokens(newTokens);
     tokensRef.current = newTokens;
 
-    setFen(START_FEN);
-    try { groundRef.current?.set?.({ fen: START_FEN }); } catch {}
+    setFen(targetFen);
+    try { groundRef.current?.set?.({ fen: targetFen }); } catch {}
   }
   function handleSetEmptyPosition() {
+    const targetFen = fenWithRoyal(EMPTY_FEN, useGeneral);
     const newTokens = INITIAL_TOKENS;
     setTokens(newTokens);
     tokensRef.current = newTokens;
 
-    setFen(EMPTY_FEN);
-    try { groundRef.current?.set?.({ fen: EMPTY_FEN }); } catch {}
+    setFen(targetFen);
+    try { groundRef.current?.set?.({ fen: targetFen }); } catch {}
   }
 
     function handleSetPawnsPosition() {
+    const targetFen = fenWithRoyal(PAWNS_FEN, useGeneral);
     const newTokens = INITIAL_TOKENS;
     setTokens(newTokens);
     tokensRef.current = newTokens;
 
-    setFen(PAWNS_FEN);
-    try { groundRef.current?.set?.({ fen: PAWNS_FEN }); } catch {}
+    setFen(targetFen);
+    try { groundRef.current?.set?.({ fen: targetFen }); } catch {}
   }
 
   const getTokenIcon = (tokens: number) => {
@@ -811,6 +888,26 @@ useEffect(() => {
             <div style={{ fontSize: 11, color: "#e0c060" }}>
               Piece limits are disabled. This draft can only be used in Anything Goes games.
             </div>
+          )}
+
+          {anythingGoes && (
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 8px",
+                borderRadius: 6,
+                border: "1px solid rgba(255,255,255,0.06)",
+                cursor: "pointer",
+                fontSize: 13,
+                color: "#ddd",
+              }}
+              title="Replaces both kings on the board with generals."
+            >
+              <input type="checkbox" checked={useGeneral} onChange={handleToggleUseGeneral} />
+              Use General instead of King
+            </label>
           )}
 
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: 8 }}>

@@ -133,7 +133,11 @@ const PIECE_TOKEN_COST: Record<string, number> = {
   y: 2,
   s: 1,
   w: 7, 
-  x: 5 
+  x: 5,
+  g: 0,
+  o: 21, 
+  u: 9,
+  l: 5 
 };
 
 const MAX_TOKENS = 39;
@@ -657,11 +661,13 @@ function applyResultToScores(room: Room, result: RoomResult | string, whiteId?: 
   switch (result) {
     case "Checkmate: 1-0":
     case "Black Resigns: 1-0":
+    case "Stalemate: 1-0":
       room.scores[whiteId] = (room.scores[whiteId] ?? 0) + 1;
       room.scores[blackId] = room.scores[blackId] ?? 0;
       break;
     case "Checkmate: 0-1":
     case "White Resigns: 0-1":
+    case "Stalemate: 0-1":
       room.scores[whiteId] = room.scores[whiteId] ?? 0;
       room.scores[blackId] = (room.scores[blackId] ?? 0) + 1;
       break;
@@ -1032,7 +1038,14 @@ wss.on("connection", (ws: WebSocket, req) => {
         result = chess.turn === "black" ? "Checkmate: 1-0" : "Checkmate: 0-1";
       } else if (chess.isStalemate()) {
         gameOver = true;
-        result = "Stalemate: 1/2-1/2";
+        // if the side delivering the stalemate has a general, they win the game.
+        const oppositeTurn = chess.turn === "black" ? "white" : "black";
+        if ((chess.board.kingOf(oppositeTurn) === undefined)){
+          result = oppositeTurn === "black" ? "Stalemate: 0-1" : "Stalemate: 1-0";
+        }
+        else{
+          result = "Stalemate: 1/2-1/2";
+        }
       }
       else if (chess.isInsufficientMaterial()){
         gameOver = true;
@@ -1340,8 +1353,8 @@ function validateDraftFen(fen: string, allowHorde = false) {
 
       // Only the last two ranks (6 and 7) are allowed to have draft pieces
       if (rankIndex < 6) {
-        // Allow black king on e8 (first rank, index 0)
-        if (!(rankIndex === 0 && ch.toLowerCase() === "k")) {
+        // Allow black king or general on e8 
+        if (!(rankIndex === 0 && (ch.toLowerCase() === "k" || ch.toLowerCase() === "g"))) {
           throw new Error(
             `Invalid draft FEN: unexpected piece "${ch}" outside draft ranks`
           );

@@ -8,6 +8,8 @@ import '../App.css';
 // their internal role slug (which stays as-is to avoid touching fen/chessops/chessground).
 export const ROLE_DISPLAY_NAMES: Record<string, string> = {
   mann: "Baker",
+  royalpainter: "Royal Painter",
+  rollingsnare: "Rolling Snare",
 };
 
 export function playSound(type: "move1" | "move2" | "move3" | "move4" |  "capture1" | "capture2" | "capture3" |"check" | "paint" | "wizard" | "archer" | "x_capture" | "snare" | "win" | "lose" | "draw" | "castle") {
