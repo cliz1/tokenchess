@@ -429,6 +429,44 @@ app.get("/api/me", authMiddleware, async (req: any, res) => {
   res.json({ id: user.id, email: user.email, username: user.username });
 });
 
+function expandFenRank(rank: string): string[] {
+  const out: string[] = [];
+  for (const ch of rank) {
+    if (ch >= "1" && ch <= "8") {
+      for (let i = 0; i < Number(ch); i++) out.push(".");
+    } else {
+      out.push(ch);
+    }
+  }
+  return out;
+}
+
+// Returns the squares (on rank 1, the only rank a drafted general can occupy)
+// of any general that has no pawn/snare/painter directly in front of it on
+// rank 2 — such a general could be checked from the starting position, before
+// either side has made a move. Mirrors the client-side check in
+// DraftBuilder.tsx; kept here too so the rule can't be bypassed by calling
+// the API directly. Malformed FENs are left for validateDraftFen (run at
+// game start) to reject, so this returns no findings for them.
+function findUnprotectedGenerals(fen: string): string[] {
+  const placement = fen.split(" ")[0] ?? "";
+  const rows = placement.split("/");
+  if (rows.length !== 8) return [];
+  const rank1 = expandFenRank(rows[7]);
+  const rank2 = expandFenRank(rows[6]);
+  if (rank1.length !== 8 || rank2.length !== 8) return [];
+
+  const protectors = new Set(["P", "S", "Y"]);
+  const exposed: string[] = [];
+  for (let c = 0; c < 8; c++) {
+    if (rank1[c] !== "G") continue;
+    if (!protectors.has(rank2[c])) {
+      exposed.push(`${"abcdefgh"[c]}1`);
+    }
+  }
+  return exposed;
+}
+
 // ---------- routes: drafts (unchanged) ----------
 app.get("/api/drafts", authMiddleware, async (req: any, res) => {
   const drafts = await prisma.draft.findMany({
@@ -447,6 +485,14 @@ app.post("/api/drafts", authMiddleware, async (req: any, res) => {
   }
   if (!name) {
     return res.status(400).json({ error: "Missing name" });
+  }
+  if (data && typeof data.fen === "string") {
+    const exposed = findUnprotectedGenerals(data.fen);
+    if (exposed.length > 0) {
+      return res.status(400).json({
+        error: `General on ${exposed.join(", ")} has no pawn, snare, or painter directly in front of it, which would allow check from the starting position.`,
+      });
+    }
   }
 
   try {
@@ -485,6 +531,14 @@ app.put("/api/drafts/:id", authMiddleware, async (req: any, res) => {
   const draft = await prisma.draft.findUnique({ where: { id } });
   if (!draft || draft.userId !== req.user.id) {
     return res.status(404).json({ error: "Not found" });
+  }
+  if (data && typeof data.fen === "string") {
+    const exposed = findUnprotectedGenerals(data.fen);
+    if (exposed.length > 0) {
+      return res.status(400).json({
+        error: `General on ${exposed.join(", ")} has no pawn, snare, or painter directly in front of it, which would allow check from the starting position.`,
+      });
+    }
   }
   if (isActive) {
     await prisma.draft.updateMany({

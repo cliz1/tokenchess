@@ -379,6 +379,43 @@ useEffect(() => {
     return total;
   }
 
+  function expandFenRank(rank: string): string[] {
+    const out: string[] = [];
+    for (const ch of rank) {
+      if (ch >= "1" && ch <= "8") {
+        for (let i = 0; i < Number(ch); i++) out.push(".");
+      } else {
+        out.push(ch);
+      }
+    }
+    return out;
+  }
+
+  // Returns the squares (on rank 1, the only rank a drafted general can occupy)
+  // of any general that has no pawn/snare/painter directly in front of it on
+  // rank 2 — such a general could be checked from the starting position,
+  // before either side has made a move. Only the last two placement rows are
+  // the player's actual draft (see server's rowsForPlayer), so the decorative
+  // opponent king/general placeholder on rank 8 is intentionally ignored.
+  function findUnprotectedGenerals(fenStr: string): string[] {
+    const placement = fenStr.split(" ")[0] ?? "";
+    const rows = placement.split("/");
+    if (rows.length !== 8) return [];
+    const rank1 = expandFenRank(rows[7]);
+    const rank2 = expandFenRank(rows[6]);
+    if (rank1.length !== 8 || rank2.length !== 8) return [];
+
+    const protectors = new Set(["P", "S", "Y"]);
+    const exposed: string[] = [];
+    for (let c = 0; c < 8; c++) {
+      if (rank1[c] !== "G") continue;
+      if (!protectors.has(rank2[c])) {
+        exposed.push(`${FILES[c]}1`);
+      }
+    }
+    return exposed;
+  }
+
   function remainingTokensForStatePieces(statePieces: any, color: "white" | "black") {
     const used = computeCostOfColorFromPieces(statePieces, color);
     return Math.max(0, INITIAL_TOKENS - used);
@@ -946,6 +983,14 @@ useEffect(() => {
           <div style={{ paddingTop: ".75rem" }}>
             <button
               onClick={() => {
+                const exposed = findUnprotectedGenerals(fen);
+                if (exposed.length > 0) {
+                  flashWarning(
+                    `Cannot save: general on ${exposed.join(", ")} has no pawn, snare, or painter directly in front of it. This would allow check from the starting position.`,
+                    4000,
+                  );
+                  return;
+                }
                 if (onSave) onSave(fen, anythingGoes);
                 setSaved(true);
                 setTimeout(() => setSaved(false), 1500);

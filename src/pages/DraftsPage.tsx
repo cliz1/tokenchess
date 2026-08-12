@@ -55,8 +55,9 @@ export default function DraftsPage() {
       const copy = [...drafts];
       copy[index] = updated;
       setDrafts(copy);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update draft FEN", err);
+      alert(err.message ?? "Failed to save draft");
     }
   }
 
