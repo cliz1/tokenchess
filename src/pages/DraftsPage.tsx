@@ -1,5 +1,5 @@
 // src/pages/DraftsPage.tsx
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
 import DraftBuilder from "../components/DraftBuilder";
@@ -19,11 +19,25 @@ export default function DraftsPage() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selected, setSelected] = useState<number>(0); // slot index 0..4
   const [renaming, setRenaming] = useState<string>("");
+  const [activating, setActivating] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
+  const saveFnRef = useRef<() => void>(() => {});
 
-  useEffect(() => { 
-    if (user) load(); 
-    else setDrafts([]); 
+  const handleRegisterSave = useCallback((fn: () => void) => {
+    saveFnRef.current = fn;
+  }, []);
+  const handleSavedChange = useCallback((s: boolean) => {
+    setSavedFlash(s);
+  }, []);
+
+  useEffect(() => {
+    if (user) load();
+    else setDrafts([]);
   }, [user]);
+
+  useEffect(() => {
+    setRenaming("");
+  }, [selected]);
 
   async function load() {
     try {
@@ -80,68 +94,81 @@ export default function DraftsPage() {
     }
   }
 
+  async function activateCurrent() {
+    const draft = drafts[selected];
+    if (!draft || draft.isActive) return;
+
+    setActivating(true);
+    try {
+      await apiFetch(`/drafts/${draft.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ isActive: true }),
+      });
+      await load();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActivating(false);
+    }
+  }
+
   const current = drafts[selected];
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, maxWidth: 1100, margin: "0 auto" }}>
       {!user && <div>Please sign in to manage drafts.</div>}
 
       {user && (
         <>
-          {/* Slot selector */}
-          <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+          {/* Draft slot tabs */}
+          <div className="draft-tabs">
             {drafts.map((d, i) => (
               <div
                 key={d.id}
+                className={`draft-tab${i === selected ? " is-selected" : ""}`}
                 onClick={() => setSelected(i)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  background: d.isActive
-                    ? "#2a7"
-                    : i === selected
-                    ? "#444"
-                    : "#222",
-                  color: "#fff",
-                }}
               >
-                {d.name}
-                {d.data?.anythingGoes && (
-                  <span style={{ marginLeft: 6, fontSize: 11, color: "#e0c060" }}>AG</span>
+                {d.isActive && (
+                  <span className="draft-tab-active-mark" title="Currently active draft">
+                    ★
+                  </span>
                 )}
+                <span>{d.name}</span>
+                {d.data?.anythingGoes && <span className="draft-tab-ag">AG</span>}
               </div>
             ))}
           </div>
 
-          {/* Rename + Set Active */}
+          {/* Consolidated action toolbar: rename, activate, save */}
           {current && (
-            <div style={{ marginBottom: 12 }}>
+            <div className="draft-toolbar">
               <input
+                type="text"
                 value={renaming}
                 onChange={(e) => setRenaming(e.target.value)}
-                placeholder={`Rename ${current.name}`}
+                placeholder={`Rename "${current.name}"`}
               />
-              <button onClick={() => renameDraft(selected)} style={{ marginLeft: 8 }}>
+              <button className="btn-ghost" onClick={() => renameDraft(selected)}>
                 Rename
               </button>
 
+              <div className="toolbar-divider" />
+
               <button
-                onClick={async () => {
-                  try {
-                    await apiFetch(`/drafts/${current.id}`, {
-                      method: "PUT",
-                      body: JSON.stringify({ isActive: true }),
-                    });
-                    await load();
-                  } catch (err: any) {
-                    alert(err.message);
-                  }
-                }}
-                style={{ marginLeft: 8 }}
+                className={current.isActive ? "btn-activated" : "btn-ghost"}
+                onClick={activateCurrent}
+                disabled={current.isActive || activating}
               >
-                {current.isActive ? "Active" : "Activate"}
+                {current.isActive ? "★ Active" : activating ? "Activating…" : "Set Active"}
               </button>
+
+              <div className="toolbar-divider" />
+
+              <button className="btn-primary" onClick={() => saveFnRef.current()}>
+                Save Draft
+              </button>
+
+              {savedFlash && <span className="saved-flash">Saved!</span>}
             </div>
           )}
 
@@ -151,6 +178,8 @@ export default function DraftsPage() {
               initialFen={current.data?.fen}
               initialAnythingGoes={current.data?.anythingGoes}
               onSave={(fen, anythingGoes) => updateDraftFen(selected, fen, anythingGoes)}
+              onRegisterSave={handleRegisterSave}
+              onSavedChange={handleSavedChange}
             />
           )}
         </>

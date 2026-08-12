@@ -16,10 +16,14 @@ export default function DraftBuilder({
   onSave,
   initialFen,
   initialAnythingGoes,
+  onRegisterSave,
+  onSavedChange,
 }: {
   onSave?: (fen: string, anythingGoes: boolean) => void;
   initialFen?: string;
   initialAnythingGoes?: boolean;
+  onRegisterSave?: (fn: () => void) => void;
+  onSavedChange?: (saved: boolean) => void;
 }) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
@@ -32,7 +36,6 @@ export default function DraftBuilder({
   const [fen, setFen] = useState<string>(initialFen ?? EMPTY_FEN);
   const [orientation, _setOrientation] = useState<"white" | "black">("white");
   const [perspective, _setPerspective] = useState<"white" | "black">("white");
-  const [saved, setSaved] = useState(false);
 
   const [anythingGoes, setAnythingGoes] = useState<boolean>(initialAnythingGoes ?? false);
   const anythingGoesRef = useRef<boolean>(anythingGoes);
@@ -143,6 +146,29 @@ useEffect(() => {
     setWarning(msg);
     setTimeout(() => setWarning(null), ms);
   }
+
+  // Save is triggered from the parent's toolbar; keep a ref to the latest
+  // save logic (it closes over fen/anythingGoes) and hand a stable wrapper
+  // up to the parent once via onRegisterSave.
+  const saveFnRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    saveFnRef.current = () => {
+      const exposed = findUnprotectedGenerals(fen);
+      if (exposed.length > 0) {
+        flashWarning(
+          `Cannot save: general on ${exposed.join(", ")} has no pawn, snare, or painter directly in front of it. This would allow check from the starting position.`,
+          4000,
+        );
+        return;
+      }
+      if (onSave) onSave(fen, anythingGoes);
+      onSavedChange?.(true);
+      setTimeout(() => onSavedChange?.(false), 1500);
+    };
+  }, [fen, anythingGoes, onSave, onSavedChange]);
+  useEffect(() => {
+    onRegisterSave?.(() => saveFnRef.current());
+  }, [onRegisterSave]);
 
   function getCost(role: string) {
     const r = role.toLowerCase();
@@ -819,10 +845,11 @@ useEffect(() => {
         {/* LEFT: info + START/EMPTY buttons */}
         <div
           style={{
-            width: 220,
+            width: 260,
             padding: 12,
             borderRadius: 8,
             background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(212,175,55,0.08)",
             display: "flex",
             flexDirection: "column",
             gap: 10,
@@ -830,51 +857,15 @@ useEffect(() => {
           }}
         >
           {/* START / EMPTY buttons */}
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={handleSetStartPosition}
-              style={{
-                flex: 1,
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#ddd",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              Start Position
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="btn-ghost" style={{ flex: 1, padding: "6px 6px", fontSize: 12 }} onClick={handleSetStartPosition}>
+              Start
             </button>
-            <button
-              onClick={handleSetEmptyPosition}
-              style={{
-                flex: 1,
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#ddd",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              Empty Board
+            <button className="btn-ghost" style={{ flex: 1, padding: "6px 6px", fontSize: 12 }} onClick={handleSetEmptyPosition}>
+              Empty
             </button>
-                        <button
-              onClick={handleSetPawnsPosition}
-              style={{
-                flex: 1,
-                padding: "6px 8px",
-                borderRadius: 6,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.06)",
-                color: "#ddd",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              Only Pawns
+            <button className="btn-ghost" style={{ flex: 1, padding: "6px 6px", fontSize: 12 }} onClick={handleSetPawnsPosition}>
+              Pawns
             </button>
           </div>
 
@@ -911,7 +902,7 @@ useEffect(() => {
               gap: 8,
               padding: "6px 8px",
               borderRadius: 6,
-              border: "1px solid rgba(255,255,255,0.06)",
+              border: "1px solid rgba(212,175,55,0.15)",
               cursor: "pointer",
               fontSize: 13,
               color: "#ddd",
@@ -935,7 +926,7 @@ useEffect(() => {
                 gap: 8,
                 padding: "6px 8px",
                 borderRadius: 6,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid rgba(212,175,55,0.15)",
                 cursor: "pointer",
                 fontSize: 13,
                 color: "#ddd",
@@ -947,14 +938,29 @@ useEffect(() => {
             </label>
           )}
 
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.03)", paddingTop: 8 }}>
+          <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", paddingTop: 8 }}>
             <div style={{ fontSize: 13, color: "#bbb", marginBottom: 6 }}>Piece costs</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 48px", gap: 6, fontSize: 13 }}>
+            <div
+              style={{
+                columnCount: 2,
+                columnGap: 14,
+                fontSize: 12.5,
+              }}
+            >
               {pieceRoles.map((r) => (
-                <React.Fragment key={r}>
-                  <div style={{ color: "#ddd", textTransform: "capitalize" }}>{ROLE_DISPLAY_NAMES[r] ?? r}</div>
-                  <div style={{ color: "#fff", textAlign: "right" }}>{getCost(r)}</div>
-                </React.Fragment>
+                <div
+                  key={r}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 6,
+                    breakInside: "avoid",
+                    paddingBottom: 4,
+                  }}
+                >
+                  <span style={{ color: "#ddd", textTransform: "capitalize" }}>{ROLE_DISPLAY_NAMES[r] ?? r}</span>
+                  <span style={{ color: "#fff" }}>{getCost(r)}</span>
+                </div>
               ))}
             </div>
           </div>
@@ -979,35 +985,10 @@ useEffect(() => {
               overflow: "hidden",
             }}
           />
-          <div style={{ marginTop: 10, fontFamily: "monospace", color: "#ddd" }}>FEN: {fen}</div>
-          <div style={{ paddingTop: ".75rem" }}>
-            <button
-              onClick={() => {
-                const exposed = findUnprotectedGenerals(fen);
-                if (exposed.length > 0) {
-                  flashWarning(
-                    `Cannot save: general on ${exposed.join(", ")} has no pawn, snare, or painter directly in front of it. This would allow check from the starting position.`,
-                    4000,
-                  );
-                  return;
-                }
-                if (onSave) onSave(fen, anythingGoes);
-                setSaved(true);
-                setTimeout(() => setSaved(false), 1500);
-              }}
-            >
-              Save
-            </button>
-          </div>
-
-          {saved && (
-            <div style={{ marginTop: 4, fontSize: 12, color: "#7fda7f" }}>
-              Saved!
-            </div>
-          )}
+          <div style={{ marginTop: 10, fontFamily: "monospace", fontSize: 12, color: "#888" }}>FEN: {fen}</div>
 
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
-            Tip: Alt+click or right-click a square to remove a piece.
+            Tip: Alt+click or right-click a square to remove a piece. Use the Save Draft button above to save your changes.
           </div>
         </div>
 
@@ -1017,11 +998,12 @@ useEffect(() => {
             className="palette"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2,1fr)",
-              gap: 12,
+              gridTemplateColumns: "repeat(3,1fr)",
+              gap: 10,
               alignContent: "start",
               padding: 8,
               background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(212,175,55,0.08)",
               borderRadius: 8,
             }}
           >

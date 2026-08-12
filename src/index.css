@@ -81,3 +81,126 @@ button:hover {
   white-space: pre-line;
 }
 
+/* ---- Draft builder: tabs, toolbar, secondary/primary buttons ---- */
+
+.draft-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.draft-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #ccc;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+.draft-tab:hover {
+  border-color: rgba(106,146,199,0.6);
+  color: #fff;
+  background: rgba(106,146,199,0.08);
+}
+.draft-tab.is-selected {
+  background: rgba(106,146,199,0.18);
+  border-color: #6a92c7;
+  color: #d8e6f9;
+  font-weight: 600;
+}
+.draft-tab-active-mark {
+  color: #d4af37;
+  font-size: 12px;
+}
+.draft-tab-ag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(224,192,96,0.16);
+  color: #e0c060;
+  letter-spacing: 0.5px;
+}
+
+.draft-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,175,55,0.1);
+  margin-bottom: 18px;
+}
+.draft-toolbar input[type="text"] {
+  background: #1c1c1c;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #eee;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 13px;
+  min-width: 160px;
+}
+.toolbar-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255,255,255,0.08);
+}
+.saved-flash {
+  font-size: 12px;
+  color: #7fda7f;
+}
+
+button.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(212,175,55,0.3);
+  color: #cdbd8f;
+  padding: 0.45em 0.85em;
+  font-size: 0.85em;
+}
+button.btn-ghost:hover {
+  background: rgba(212,175,55,0.12);
+  border-color: #d4af37;
+  color: #fff;
+}
+button.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: default;
+  background: transparent;
+  border-color: rgba(212,175,55,0.15);
+  color: #8a8370;
+}
+
+button.btn-activated {
+  background: rgba(212,175,55,0.12);
+  border: 1px solid #d4af37;
+  color: #f0d97a;
+  padding: 0.45em 0.85em;
+  font-size: 0.85em;
+  cursor: default;
+}
+button.btn-activated:hover {
+  background: rgba(212,175,55,0.12);
+  border-color: #d4af37;
+  color: #f0d97a;
+}
+
+button.btn-primary {
+  background: linear-gradient(180deg, #d4af37, #b58e24);
+  border: 1px solid #8a6a15;
+  color: #241c00;
+  font-weight: 600;
+  padding: 0.5em 1.1em;
+}
+button.btn-primary:hover {
+  background: linear-gradient(180deg, #e6c14d, #c69a2a);
+  border-color: #d4af37;
+  color: #241c00;
+}
+
