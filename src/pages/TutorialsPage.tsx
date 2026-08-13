@@ -30,7 +30,8 @@ export default function TutorialsPage() {
           { key: "Painter", label: "Painter" },
           { key: "Snare", label: "Snare" },
           { key: "Wizard", label: "Wizard" },
-          { key: "Archer", label: "Archer" }
+          { key: "Archer", label: "Archer" },
+          { key: "General", label: "General" }
         ],
       },
       {

@@ -55,8 +55,7 @@ export default function DraftBuilder({
     setUseGeneral(/[gG]/.test(placement));
   }, [initialFen]);
 
-  // swaps every king<->general on the board in place (used by the "Use General" toggle,
-  // and to revert when Anything Goes is turned off since general only exists in that mode)
+  // swaps every king<->general on the board in place (used by the "Use General" toggle)
   function applyRoyalSwap(useGen: boolean) {
     try {
       const curr = groundRef.current?.state?.pieces;
@@ -91,9 +90,6 @@ export default function DraftBuilder({
         "Anything Goes drafts ignore piece quantity limits. This draft won't be usable in standard (non-Anything Goes) games unless it also satisfies the normal limits.",
         5000,
       );
-    } else if (useGeneral) {
-      applyRoyalSwap(false);
-      setUseGeneral(false);
     }
     setAnythingGoes(next);
   }
@@ -918,25 +914,23 @@ useEffect(() => {
             </div>
           )}
 
-          {anythingGoes && (
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "6px 8px",
-                borderRadius: 6,
-                border: "1px solid rgba(212,175,55,0.15)",
-                cursor: "pointer",
-                fontSize: 13,
-                color: "#ddd",
-              }}
-              title="Replaces both kings on the board with generals."
-            >
-              <input type="checkbox" checked={useGeneral} onChange={handleToggleUseGeneral} />
-              Use General instead of King
-            </label>
-          )}
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 8px",
+              borderRadius: 6,
+              border: "1px solid rgba(212,175,55,0.15)",
+              cursor: "pointer",
+              fontSize: 13,
+              color: "#ddd",
+            }}
+            title="Replaces both kings on the board with generals."
+          >
+            <input type="checkbox" checked={useGeneral} onChange={handleToggleUseGeneral} />
+            Use General instead of King
+          </label>
 
           <div style={{ borderTop: "1px solid rgba(212,175,55,0.08)", paddingTop: 8 }}>
             <div style={{ fontSize: 13, color: "#bbb", marginBottom: 6 }}>Piece costs</div>

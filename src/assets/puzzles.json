@@ -41,5 +41,17 @@
     "alt_steps": [
     ],
     "label": ""
+  },
+        {
+    "initialFen": "r5rk/6pp/2nb4/1s6/3P1U2/PP2P3/GR6/8 w - - 0 1",
+    "orientation": "white",
+    "steps": [
+      { "white": { "from": "f4", "to": "g6" }, "black": { "from": "h7", "to": "g6" } },
+      { "white": { "from": "b2", "to": "h2" }, "black": { "from": "d6", "to": "h2" } },
+      { "white": { "from": "a2", "to": "h2" } }
+    ],
+    "alt_steps": [
+    ],
+    "label": ""
   }
 ]

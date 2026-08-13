@@ -332,6 +332,49 @@
       }
     ]
   },
+    "General": {
+    "title": "General",
+    "quote": "”If the flying general of Dragon City were here, no Tartar steed would dare cross the Yin mountains.” –Wang Changling",
+    "steps": [
+      {
+        "text": "In Xiangqi, the equivalent to the King is traditionally carved with Shuài 帥 or Jiàng 將, both meaning ”General.” \n In Token, the King can optionally be replaced by this piece.",
+        "image": "/images/general.webp"
+      },
+      {
+        "text": "The General moves one square orthogonally, never diagonally. \n As a result, the King dominates it one-on-one.",
+        "challenge": {
+          "initialFen": "8/1g6/8/3K4/8/8/8/8 w - - 0 1",
+          "steps": [
+            { "white": { "from": "d5", "to": "c6" }, "black": { "from": "b7", "to": "a7" } },
+            { "white": { "from": "c6", "to": "b6" }, "black": { "from": "a7", "to": "a8" } },
+            { "white": { "from": "b6", "to": "b7" } }
+          ]
+        },
+        "note": "Corner and checkmate the opposing general."
+      },
+      {
+        "text": "The General's trick is his ability to *capture* like a rook. This is an adaptation of Xiangqi's [Flying General rule](https://www.xiangqi.com/history).",
+        "challenge": {
+          "initialFen": "8/1k6/p7/1p6/3P2P1/8/PP6/G6q w - - 0 1",
+          "steps": [
+            { "white": { "from": "a1", "to": "h1" } }
+          ]
+        }
+      },
+            {
+        "text": "In the event of stalemate, if the side delivering the stalemate has a General, the result is a win for that side rather than a draw. Interestingly, this allows a General to win by itself against another.",
+        "challenge": {
+          "initialFen": "8/1g6/8/2G5/8/8/8/8 w - - 0 1",
+          "steps": [
+            { "white": { "from": "c5", "to": "c6" }, "black": { "from": "b7", "to": "b8" } },
+            { "white": { "from": "c6", "to": "c7" }, "black": { "from": "b8", "to": "a8" } },
+            { "white": { "from": "c7", "to": "b7" } }
+          ]
+        },
+        "note": "In this diagram, black is forced into a corner, after which the stalemate wins for white."
+      }
+    ]
+  },
   "token-values": {
     "title": "Precious little coins...",
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",

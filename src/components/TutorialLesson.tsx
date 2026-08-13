@@ -27,7 +27,7 @@ type Props = {
 };
 
 export default function TutorialLesson({ title, steps, quote }: Props) {
-  const availablePieces = ["champion", "princess", "amazon", "mann", "painter", "snare", "wizard", "archer"];
+  const availablePieces = ["champion", "princess", "amazon", "mann", "painter", "snare", "wizard", "archer", "general"];
   const lessonPiece = DISPLAY_NAME_TO_ROLE[title.toLowerCase()] ?? title.toLowerCase();
   const showPiece = availablePieces.includes(lessonPiece);
 
