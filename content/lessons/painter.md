@@ -24,7 +24,7 @@ Even when [promoting](https://en.wikipedia.org/wiki/Promotion_(chess)), the Pain
 
 ```challenge
 fen: "8/8/YK6/8/8/8/6kp/8 w - - 0 1"
-line: a6a7 h2h1q a7a8 g2g1 a8h1 g1f2 a8f3
+line: a6a7 h2h1q a7a8o g2g1 a8h1 g1f2 a8f3
 ```
 
 ---

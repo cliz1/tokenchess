@@ -43,6 +43,6 @@ Like the Painter, the Snare does *not* promote like a pawn.
 
 ```challenge
 fen: "3K4/2S5/1N2k3/8/8/7p/8/8 w - - 0 1"
-line: c7c8 e6e5 c8e6 h3h2 b6c4
-alt: c7c8 e6e5 c8e6 h3h2 b6d7
+line: c7c8l e6e5 c8e6 h3h2 b6c4
+alt: c7c8l e6e5 c8e6 h3h2 b6d7
 ```
