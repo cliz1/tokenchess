@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npm run content:check && npm run content:verify && npm run test:engine",
+    "content:build": "node tools/content/build.mjs",
+    "content:check": "node tools/content/build.mjs --check",
+    "content:verify": "node tools/content/verify.mjs",
+    "puzzles": "node tools/content/status.mjs",
+    "test:engine": "node tools/engine-parity/parity.mjs"
   },
   "dependencies": {
     "@badrap/result": "^0.2.13",
