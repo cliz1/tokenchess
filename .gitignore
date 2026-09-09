@@ -25,7 +25,7 @@ dist-ssr
 
 notes.txt
 commands.txt
-fens.txt
+/fens.txt
 .env
 .env.production
 
