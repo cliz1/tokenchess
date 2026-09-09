@@ -48,7 +48,7 @@ Key endpoints:
 ## Concept
 
 1. **Draft Phase**: Each player designs their starting position by placing fairy chess pieces within a token budget
-2. **Game Phase**: Two drafts are combined vertically on an 8×16 board; players compete in real-time
+2. **Game Phase**: Two drafts are combined on a standard 8×8 board; players compete in real-time
 3. **Learning**: Tutorials and puzzles teach fairy piece rules; analysis board for studying games
 
 
