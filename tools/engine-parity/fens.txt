@@ -1,0 +1,33 @@
+# Positions for the chessops-vs-engine move-generation parity check.
+# Most are lifted from src/fens.txt (the hand-built fairy piece test cases).
+# Every line must be a LEGAL position — an illegal one fails chessops setup,
+# not move generation, which is a false alarm rather than a finding.
+# Lines starting with # are ignored.
+
+2k5/8/8/6b1/8/2n5/3Y4/2K5 w - - 0 1
+1k6/8/8/8/4n3/2KY2r1/8/8 w - - 0 1
+2k5/4p3/8/3Y4/8/8/8/2K5 w - - 0 1
+2k5/Y7/8/8/4p3/3Y4/8/2K5 w - - 0 1
+2k5/4p3/8/3P4/8/8/8/2K5 w - - 0 1
+1k6/6P1/8/8/8/8/5p2/1K6 w - - 0 1
+3k4/8/8/8/2nSb3/8/8/3K4 w - - 0 1
+3k4/8/8/3n4/3S4/8/8/3K4 w - - 0 1
+8/8/8/3k4/3S4/8/8/3K4 w - - 0 1
+3k4/8/8/5n2/8/8/3S4/3K4 w - - 0 1
+n7/2k5/2S5/8/8/8/8/2K1B3 w - - 0 1
+5rk1/3y1ppp/8/8/1NSP4/2P5/5PPP/5RK1 w - - 0 1
+rnbqkbnr/ppppyppp/8/8/8/8/PPSPPPPP/RNBQKBNR w KQkq - 0 1
+2k5/8/6n1/8/4W3/8/8/2K5 w - - 0 1
+7k/8/8/8/2N1W3/8/8/2K5 w - - 0 1
+7k/8/8/8/1N1N1N1W/7B/8/2K5 w - - 0 1
+3r3k/8/8/8/8/3W1N2/3K4/8 w - - 0 1
+3r3k/8/8/8/8/3N1W2/3K4/8 w - - 0 1
+3k4/3w1n2/8/8/8/3R4/3K4/8 w - - 0 1
+6rk/6pw/8/4N3/8/8/8/6K1 w - - 0 1
+rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQ - 0 1
+2k5/8/8/8/8/8/3C4/2K5 w - - 0 1
+2k5/8/8/8/3I4/8/8/2K5 w - - 0 1
+2k5/8/8/8/3A4/8/8/2K5 w - - 0 1
+2k5/8/8/8/3X4/8/8/2K5 w - - 0 1
+2k5/8/3n4/8/3U4/8/8/2K5 w - - 0 1

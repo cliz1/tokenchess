@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# playwright
+test-results/
+playwright-report/
+blob-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -25,7 +30,7 @@ dist-ssr
 
 notes.txt
 commands.txt
-fens.txt
+/fens.txt
 .env
 .env.production
 
