@@ -6,7 +6,7 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "chessground": "github:cliz1/chessground#550b8513713cf08283691b0eb9191d77cfcd9a5d",
+    "chessground": "github:cliz1/chessground#931e04aab850549d025ab4eb65b6ea35905ee8bb",
     "chessops": "github:cliz1/chessops#6bf2e9b5bededc5347b55fe29c0eabbf904eef22"
   }
 }
