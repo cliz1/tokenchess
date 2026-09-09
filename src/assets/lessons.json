@@ -448,7 +448,8 @@
             {
               "white": {
                 "from": "a7",
-                "to": "a8"
+                "to": "a8",
+                "promotion": "royalpainter"
               },
               "black": {
                 "from": "g2",
@@ -560,7 +561,8 @@
             {
               "white": {
                 "from": "c7",
-                "to": "c8"
+                "to": "c8",
+                "promotion": "rollingsnare"
               },
               "black": {
                 "from": "e6",
@@ -588,7 +590,8 @@
             {
               "white": {
                 "from": "c7",
-                "to": "c8"
+                "to": "c8",
+                "promotion": "rollingsnare"
               },
               "black": {
                 "from": "e6",
