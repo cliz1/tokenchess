@@ -1,8 +1,11 @@
 {
-  "name": "anarchychess",
+  "name": "tokenchess",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -13,13 +16,13 @@
     "content:check": "node tools/content/build.mjs --check",
     "content:verify": "node tools/content/verify.mjs",
     "puzzles": "node tools/content/status.mjs",
-    "test:engine": "node tools/engine-parity/parity.mjs"
+    "test:engine": "node tools/engine-parity/parity.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@badrap/result": "^0.2.13",
-    "chessground": "github:cliz1/chessground",
-    "chessops": "github:cliz1/chessops",
-    "fairy-stockfish-nnue.wasm": "^1.1.11",
+    "chessground": "github:cliz1/chessground#550b8513713cf08283691b0eb9191d77cfcd9a5d",
+    "chessops": "github:cliz1/chessops#6bf2e9b5bededc5347b55fe29c0eabbf904eef22",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
@@ -29,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
