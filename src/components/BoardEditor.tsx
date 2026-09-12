@@ -33,9 +33,14 @@ export default function BoardEditor({ initialFen }: BoardEditorProps) {
   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const [paletteColor, setPaletteColor] = useState<"white" | "black">("white");
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   const isApplyingFenRef = useRef(false);
   const pendingApplyTimeoutRef = useRef<number | null>(null);
+  const selectedRoleRef = useRef<string | null>(null);
+  const paletteColorRef = useRef<"white" | "black">("white");
+  const isPaintingRef = useRef(false);
+  const paintedSquareRef = useRef<string | null>(null);
 
 
   function squareFromClientPos(x: number, y: number, rect: DOMRect, orientation: "white" | "black") {
@@ -128,6 +133,34 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
     setAnalysisError(null);
   }, [fen]);
 
+  useEffect(() => { selectedRoleRef.current = selectedRole; }, [selectedRole]);
+  useEffect(() => { paletteColorRef.current = paletteColor; }, [paletteColor]);
+
+  // Escape clears the armed brush
+  useEffect(() => {
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") setSelectedRole(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+
+  function placePieceAt(sq: string, piece: { role: string; color: string }) {
+    if (!groundRef.current) return;
+    if (typeof groundRef.current.newPiece === "function") {
+      groundRef.current.newPiece({ role: piece.role, color: piece.color }, sq);
+    } else {
+      const curr = groundRef.current.state.pieces;
+      const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
+      baseMap.set(sq, { role: piece.role, color: piece.color });
+      groundRef.current.set({ pieces: baseMap });
+    }
+    const newFen = typeof groundRef.current.getFen === "function"
+      ? groundRef.current.getFen()
+      : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
+    setFen(newFen);
+  }
 
   useEffect(() => {
     if (!boardRef.current) return;
@@ -198,22 +231,7 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
       const rect = el.getBoundingClientRect();
       const sq = squareFromClientPos(e.clientX, e.clientY, rect, orientation);
       if (!sq) return;
-      if (typeof groundRef.current.newPiece === "function") {
-        groundRef.current.newPiece({ role: piece.role, color: piece.color }, sq);
-        const newFen = typeof groundRef.current.getFen === "function"
-          ? groundRef.current.getFen()
-          : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
-        setFen(newFen);
-        return;
-      }
-      const curr = groundRef.current.state.pieces;
-      const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
-      baseMap.set(sq, { role: piece.role, color: piece.color });
-      groundRef.current.set({ pieces: baseMap });
-      const newFen = typeof groundRef.current.getFen === "function"
-        ? groundRef.current.getFen()
-        : piecesToFen(statePiecesToObject(baseMap));
-      setFen(newFen);
+      placePieceAt(sq, { role: piece.role, color: piece.color });
     };
 
     el.addEventListener("dragover", onDragOver);
@@ -226,27 +244,57 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
       if (ev.clientX < rect.left || ev.clientX > rect.right || ev.clientY < rect.top || ev.clientY > rect.bottom) return;
 
       const wantDelete = ev.altKey || ev.button === 2;
-      if (!wantDelete) return;
+      if (wantDelete) {
+        try { (ev as any).stopImmediatePropagation?.(); } catch {}
+        ev.preventDefault();
 
-      try { (ev as any).stopImmediatePropagation?.(); } catch {}
-      ev.preventDefault();
+        const sq = squareFromClientPos(ev.clientX, ev.clientY, rect, orientation);
+        if (!sq) return;
 
+        const curr = groundRef.current.state.pieces;
+        const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
+        if (!baseMap.has(sq)) return;
+
+        baseMap.delete(sq);
+        groundRef.current.set({ pieces: baseMap });
+
+        setTimeout(() => {
+          const newFen = typeof groundRef.current.getFen === "function"
+            ? groundRef.current.getFen()
+            : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
+          setFen(newFen);
+        }, 0);
+        return;
+      }
+
+      // ---------- BRUSH (a palette piece is armed) ----------
+      if (ev.button === 0 && selectedRoleRef.current) {
+        try { (ev as any).stopImmediatePropagation?.(); } catch {}
+        ev.preventDefault();
+
+        const sq = squareFromClientPos(ev.clientX, ev.clientY, rect, orientation);
+        if (!sq) return;
+
+        placePieceAt(sq, { role: selectedRoleRef.current, color: paletteColorRef.current });
+        paintedSquareRef.current = sq;
+        isPaintingRef.current = true;
+      }
+    };
+
+    const onPointerMoveCapture = (ev: PointerEvent) => {
+      if (!isPaintingRef.current || !selectedRoleRef.current) return;
+      if (!(ev.buttons & 1)) { isPaintingRef.current = false; return; }
+      if (!boardRef.current || !groundRef.current) return;
+      const rect = boardRef.current.getBoundingClientRect();
       const sq = squareFromClientPos(ev.clientX, ev.clientY, rect, orientation);
-      if (!sq) return;
+      if (!sq || sq === paintedSquareRef.current) return;
+      placePieceAt(sq, { role: selectedRoleRef.current, color: paletteColorRef.current });
+      paintedSquareRef.current = sq;
+    };
 
-      const curr = groundRef.current.state.pieces;
-      const baseMap = curr instanceof Map ? new Map(curr) : new Map(Array.isArray(curr) ? curr : Object.entries(curr ?? {}));
-      if (!baseMap.has(sq)) return;
-
-      baseMap.delete(sq);
-      groundRef.current.set({ pieces: baseMap });
-
-      setTimeout(() => {
-        const newFen = typeof groundRef.current.getFen === "function"
-          ? groundRef.current.getFen()
-          : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
-        setFen(newFen);
-      }, 0);
+    const onPointerUp = () => {
+      isPaintingRef.current = false;
+      paintedSquareRef.current = null;
     };
 
     const onContextMenu = (ev: MouseEvent) => {
@@ -272,12 +320,16 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
     };
 
     document.addEventListener("pointerdown", onPointerDownCapture, true);
+    document.addEventListener("pointermove", onPointerMoveCapture, true);
+    document.addEventListener("pointerup", onPointerUp, true);
     document.addEventListener("contextmenu", onContextMenu);
 
     return () => {
       el.removeEventListener("dragover", onDragOver);
       el.removeEventListener("drop", onDrop);
       document.removeEventListener("pointerdown", onPointerDownCapture, true);
+      document.removeEventListener("pointermove", onPointerMoveCapture, true);
+      document.removeEventListener("pointerup", onPointerUp, true);
       document.removeEventListener("contextmenu", onContextMenu);
       groundRef.current?.destroy();
       groundRef.current = null;
@@ -840,6 +892,7 @@ function EditorButton({
               boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
               borderRadius: 8,
               overflow: "hidden",
+              cursor: selectedRole ? "crosshair" : undefined,
             }}
           />
           <div style={{ marginTop: 10, marginBottom: 10, width: "100%", textAlign: "center" }}>
@@ -865,7 +918,9 @@ function EditorButton({
               />
           </div>
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
-            Tip: Alt+click or right-click a square to remove a piece.
+            Tip: click a palette piece to arm it as a brush, then click (or drag across) the board
+            to place it — click it again or press Esc to put the brush away. Alt+click or
+            right-click a square to remove a piece.
           </div>
         </div>
 
@@ -882,24 +937,31 @@ function EditorButton({
               borderRadius: 8,
             }}
           >
-            {palette.map((p, i) => (
-              <div
-                key={`${p.role}-${p.color}-${i}`}
-                draggable
-                onDragStart={(e) => handlePaletteDragStart(e, p)}
-                style={{
-                  width: 72,
-                  height: 72,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "grab",
-                  borderRadius: 6,
-                }}
-              >
-                <div className={`cg-piece ${p.role} ${p.color}`} style={{ width: 64, height: 64 }} />
-              </div>
-            ))}
+            {palette.map((p, i) => {
+              const isArmed = selectedRole === p.role;
+              return (
+                <div
+                  key={`${p.role}-${p.color}-${i}`}
+                  draggable
+                  onDragStart={(e) => handlePaletteDragStart(e, p)}
+                  onClick={() => setSelectedRole((prev) => (prev === p.role ? null : p.role))}
+                  title={`Click to ${isArmed ? "put away" : "arm as brush"}, or drag onto the board`}
+                  style={{
+                    width: 72,
+                    height: 72,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "grab",
+                    borderRadius: 6,
+                    background: isArmed ? "rgba(91,91,224,0.35)" : "transparent",
+                    boxShadow: isArmed ? "0 0 0 2px #5b5be0" : "none",
+                  }}
+                >
+                  <div className={`cg-piece ${p.role} ${p.color}`} style={{ width: 64, height: 64 }} />
+                </div>
+              );
+            })}
           </div>
 
           {/* SMALL BUTTON: swap palette color */}
