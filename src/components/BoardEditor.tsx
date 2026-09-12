@@ -35,12 +35,24 @@ export default function BoardEditor({ initialFen }: BoardEditorProps) {
   const [paletteColor, setPaletteColor] = useState<"white" | "black">("white");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  const isApplyingFenRef = useRef(false);
+  // Counts FEN applications made programmatically (via tryApplyFen) whose resulting
+  // chessground "change" event should be ignored. A plain boolean isn't enough here: chessground
+  // defers its "change" callback via setTimeout(…, 1), so fast typing can queue several
+  // applications before any of their callbacks fire — a boolean flag can only suppress one of
+  // them, letting the rest slip through and stomp the FEN input mid-keystroke.
+  const applyingFenCountRef = useRef(0);
   const pendingApplyTimeoutRef = useRef<number | null>(null);
   const selectedRoleRef = useRef<string | null>(null);
   const paletteColorRef = useRef<"white" | "black">("white");
   const isPaintingRef = useRef(false);
   const paintedSquareRef = useRef<string | null>(null);
+  const sideToMoveRef = useRef<"white" | "black">("white");
+
+  function applySideToFen(fenStr: string, side: "white" | "black") {
+    const parts = fenStr.split(/\s+/);
+    parts[1] = side === "white" ? "w" : "b";
+    return parts.join(" ");
+  }
 
 
   function squareFromClientPos(x: number, y: number, rect: DOMRect, orientation: "white" | "black") {
@@ -125,16 +137,12 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
   }
 
   useEffect(() => {
-  const pieces = statePiecesToObject(groundRef.current?.state?.pieces ?? {});
-  setFen(piecesToFen(pieces));
-}, [sideToMove]);
-
-  useEffect(() => {
     setAnalysisError(null);
   }, [fen]);
 
   useEffect(() => { selectedRoleRef.current = selectedRole; }, [selectedRole]);
   useEffect(() => { paletteColorRef.current = paletteColor; }, [paletteColor]);
+  useEffect(() => { sideToMoveRef.current = sideToMove; }, [sideToMove]);
 
   // Escape clears the armed brush
   useEffect(() => {
@@ -159,7 +167,7 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
     const newFen = typeof groundRef.current.getFen === "function"
       ? groundRef.current.getFen()
       : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
-    setFen(newFen);
+    setFen(applySideToFen(newFen, sideToMoveRef.current));
   }
 
   useEffect(() => {
@@ -181,10 +189,10 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
               const api = groundRef.current;
               if (!api) return;
 
-              // If we just applied a FEN programmatically, ignore this first change to avoid loops
-              if (isApplyingFenRef.current) {
-                // clear the flag after ignoring the programmatic change
-                isApplyingFenRef.current = false;
+              // If we just applied one or more FENs programmatically, ignore one queued
+              // change event per pending application (see applyingFenCountRef above).
+              if (applyingFenCountRef.current > 0) {
+                applyingFenCountRef.current -= 1;
                 return;
               }
 
@@ -194,16 +202,14 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
                   ? api.getFen()
                   : piecesToFen(statePiecesToObject(api.state.pieces));
 
-              // Normalize the fen to a consistent shape
-              newFen = normalizeFen(newFen);
+              // Normalize the fen to a consistent shape, then force the turn field to match
+              // our own tracked side-to-move — chessground's internal turn color isn't kept
+              // in sync with it (this is a board editor, not a live game), so trusting
+              // chessground's own reported turn here would silently reset it to white on
+              // every piece edit.
+              newFen = applySideToFen(normalizeFen(newFen), sideToMoveRef.current);
 
-              // If the input already equals newFen, still update sideToMove (in case it changed)
-              setFen((prev) => {
-                if (prev !== newFen) return newFen;
-                return prev;
-              });
-              const turn = newFen.split(/\s+/)[1] ?? "w";
-              setSideToMove(turn === "w" ? "white" : "black");
+              setFen((prev) => (prev !== newFen ? newFen : prev));
             } catch (err) {
               // ignore errors while reading state
             }
@@ -262,7 +268,7 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
           const newFen = typeof groundRef.current.getFen === "function"
             ? groundRef.current.getFen()
             : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
-          setFen(newFen);
+          setFen(applySideToFen(newFen, sideToMoveRef.current));
         }, 0);
         return;
       }
@@ -315,7 +321,7 @@ function piecesToFen(pieces: Record<string, { role: string; color: string }>) {
         const newFen = typeof groundRef.current.getFen === "function"
           ? groundRef.current.getFen()
           : piecesToFen(statePiecesToObject(groundRef.current.state.pieces));
-        setFen(newFen);
+        setFen(applySideToFen(newFen, sideToMoveRef.current));
       }, 0);
     };
 
@@ -730,21 +736,29 @@ function tryApplyFen(rawInput: string) {
     // will throw if invalid
     parseFen(normalized).unwrap();
 
-    // success → update state + board
-    setFen(normalized);
+    // Note: deliberately NOT calling setFen(normalized) here. The caller (the input's
+    // onChange) already set `fen` to the raw text the user typed. Overwriting it here with
+    // the normalized/padded string mid-keystroke used to snap the input's value out from
+    // under the user's cursor, garbling anything typed immediately after (e.g. typing a
+    // placement-only FEN would get padded to "... w - - 0 1" and further characters would
+    // land after that padding instead of where the user was actually typing).
 
-    // mark that we're programmatically applying a FEN so the change handler ignores the immediate event
-    isApplyingFenRef.current = true;
+    // mark that we're programmatically applying a FEN so the change handler ignores the
+    // corresponding queued change event (one increment per application — see
+    // applyingFenCountRef above)
+    applyingFenCountRef.current += 1;
 
-    // Use the chessground API to set the fen. If set() is synchronous we still guard using the flag.
+    // Use the chessground API to set the fen (drives the live board preview only).
     try {
       groundRef.current?.set?.({ fen: normalized });
-          // safety fallback: clear flag if change doesn't arrive within 150ms
+          // safety fallback: fully reset the count if change events never arrive within 150ms
+          // of the last application (e.g. because the applied fen didn't actually change
+          // anything, so chessground never fired "change" for it)
     if (pendingApplyTimeoutRef.current) {
       window.clearTimeout(pendingApplyTimeoutRef.current);
     }
     pendingApplyTimeoutRef.current = window.setTimeout(() => {
-      isApplyingFenRef.current = false;
+      applyingFenCountRef.current = 0;
       pendingApplyTimeoutRef.current = null;
     }, 150);
 
@@ -752,15 +766,16 @@ function tryApplyFen(rawInput: string) {
       // ignore
     }
 
-    // update side-to-move dropdown to stay in sync
-    const turnField = normalized.split(/\s+/)[1];
-    if (turnField === "w" || turnField === "b") {
-      setSideToMove(turnField === "w" ? "white" : "black");
+    // update side-to-move to stay in sync, but only when the user actually typed an
+    // explicit turn field themselves — not when normalizeFen defaulted it to "w" while
+    // they were still mid-way through typing the placement field.
+    const rawParts = rawInput.trim().split(/\s+/);
+    const rawTurnField = rawParts.length >= 2 ? rawParts[1] : undefined;
+    if (rawTurnField === "w" || rawTurnField === "b") {
+      setSideToMove(rawTurnField === "w" ? "white" : "black");
     }
   } catch (err) {
     // Invalid FEN while typing: don't throw — user is still typing
-    // Make sure we don't leave the isApplyingFenRef stuck true
-    isApplyingFenRef.current = false;
   }
 }
 
