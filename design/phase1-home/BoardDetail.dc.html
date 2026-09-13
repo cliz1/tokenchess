@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: {{t.accent}}; }
+    a:hover { color: {{t.accent2}}; }
+    .iconbtn:active, .promopiece:active { opacity: 0.8; }
+  </style>
+</helmet>
+
+<div style="width:390px;height:844px;background:{{t.ground}};display:flex;flex-direction:column;font-family:'Karla','Helvetica Neue',Arial,sans-serif;overflow:hidden;">
+
+  <!-- top bar -->
+  <div style="display:flex;align-items:center;gap:8px;padding:16px 8px;flex-shrink:0;">
+    <div class="iconbtn" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.ink2}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"></path></svg>
+    </div>
+    <div style="font-family:'Fraunces','Iowan Old Style',Georgia,serif;font-size:19px;font-weight:600;color:{{t.ink}};">Board · Jade Marble</div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;gap:16px;">
+
+    <!-- board: coordinates, last-move (g1-f3), check (e8) -->
+    <div style="position:relative;width:390px;height:390px;flex-shrink:0;">
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:100%;height:100%;">
+        <i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i>
+        <i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i>
+        <i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i>
+        <i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i>
+        <i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i>
+        <i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i>
+        <i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i>
+        <i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i><i style="background:#3f5f3d;"></i><i style="background:#93ab91;"></i>
+      </div>
+
+      <!-- last move: g1 -> f3 -->
+      <div style="position:absolute;left:75%;top:87.5%;width:12.5%;height:12.5%;background:rgba(0,155,199,0.41);"></div>
+      <div style="position:absolute;left:62.5%;top:62.5%;width:12.5%;height:12.5%;background:rgba(0,155,199,0.41);"></div>
+
+      <!-- check: e8 -->
+      <div style="position:absolute;left:50%;top:0%;width:12.5%;height:12.5%;background:radial-gradient(ellipse at center, rgba(255,0,0,1) 0%, rgba(231,0,0,1) 25%, rgba(169,0,0,0) 89%, rgba(158,0,0,0) 100%);"></div>
+
+      <!-- pieces -->
+      <div style="position:absolute;left:50%;top:0%;width:12.5%;height:12.5%;display:flex;align-items:center;justify-content:center;"><div style="width:70%;height:70%;border-radius:50%;background:{{pieceBlack}};display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,0.35);"><span style="font-size:15px;font-weight:700;color:{{pieceWhite}};">K</span></div></div>
+      <div style="position:absolute;left:0%;top:0%;width:12.5%;height:12.5%;display:flex;align-items:center;justify-content:center;"><div style="width:70%;height:70%;border-radius:50%;background:{{pieceBlack}};display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,0.35);"><span style="font-size:15px;font-weight:700;color:{{pieceWhite}};">R</span></div></div>
+      <div style="position:absolute;left:62.5%;top:62.5%;width:12.5%;height:12.5%;display:flex;align-items:center;justify-content:center;"><div style="width:70%;height:70%;border-radius:50%;background:{{pieceWhite}};display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,0.35);"><span style="font-size:15px;font-weight:700;color:{{pieceBlack}};">N</span></div></div>
+      <div style="position:absolute;left:50%;top:87.5%;width:12.5%;height:12.5%;display:flex;align-items:center;justify-content:center;"><div style="width:70%;height:70%;border-radius:50%;background:{{pieceWhite}};display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,0.35);"><span style="font-size:15px;font-weight:700;color:{{pieceBlack}};">K</span></div></div>
+      <div style="position:absolute;left:87.5%;top:87.5%;width:12.5%;height:12.5%;display:flex;align-items:center;justify-content:center;"><div style="width:70%;height:70%;border-radius:50%;background:{{pieceWhite}};display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,0.35);"><span style="font-size:15px;font-weight:700;color:{{pieceBlack}};">R</span></div></div>
+
+      <!-- coordinates: files a-h on the bottom rank, ranks 1-8 on the left file -->
+      <span style="position:absolute;left:calc(0% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">a</span>
+      <span style="position:absolute;left:calc(12.5% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">b</span>
+      <span style="position:absolute;left:calc(25% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">c</span>
+      <span style="position:absolute;left:calc(37.5% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">d</span>
+      <span style="position:absolute;left:calc(50% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">e</span>
+      <span style="position:absolute;left:calc(62.5% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">f</span>
+      <span style="position:absolute;left:calc(75% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">g</span>
+      <span style="position:absolute;left:calc(87.5% + 3px);bottom:2px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">h</span>
+
+      <span style="position:absolute;left:3px;top:calc(0% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">8</span>
+      <span style="position:absolute;left:3px;top:calc(12.5% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">7</span>
+      <span style="position:absolute;left:3px;top:calc(25% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">6</span>
+      <span style="position:absolute;left:3px;top:calc(37.5% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">5</span>
+      <span style="position:absolute;left:3px;top:calc(50% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">4</span>
+      <span style="position:absolute;left:3px;top:calc(62.5% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">3</span>
+      <span style="position:absolute;left:3px;top:calc(75% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(20,50,40,0.85);">2</span>
+      <span style="position:absolute;left:3px;top:calc(87.5% + 2px);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:600;color:rgba(200,230,220,0.9);">1</span>
+
+      <!-- promotion sheet -->
+      <sc-if value="{{showPromotion}}" hint-placeholder-val="true">
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
+          <div style="background:{{t.raised}};border:1px solid {{t.lineStrong}};border-radius:3px;padding:12px;display:flex;gap:6px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+            <div class="promopiece" style="width:44px;height:44px;border-radius:3px;background:{{t.surface}};border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;font-weight:700;color:{{t.ink}};">Q</span></div>
+            <div class="promopiece" style="width:44px;height:44px;border-radius:3px;background:{{t.surface}};border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;font-weight:700;color:{{t.ink}};">R</span></div>
+            <div class="promopiece" style="width:44px;height:44px;border-radius:3px;background:{{t.surface}};border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;font-weight:700;color:{{t.ink}};">B</span></div>
+            <div class="promopiece" style="width:44px;height:44px;border-radius:3px;background:{{t.surface}};border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;font-weight:700;color:{{t.ink}};">N</span></div>
+            <div class="promopiece" style="width:44px;height:44px;border-radius:3px;background:{{t.surface}};border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;font-weight:700;color:{{t.ink}};">C</span></div>
+            <div class="promopiece" style="width:44px;height:44px;border-radius:3px;background:{{t.surface}};border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;font-weight:700;color:{{t.ink}};">I</span></div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="text-align:center;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:{{t.ink3}};padding:0 20px;">Last move g1–f3 · check on e8 · promotion: queen, rook, bishop, knight, champion, princess</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":true,"section":"Theme"},"showPromotion":{"editor":"boolean","default":true,"section":"Promotion"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.dark ?? true;
+    const showPromotion = this.props.showPromotion ?? true;
+    const t = dark ? {
+      ground: "#100e0a", surface: "#191510", raised: "#221d16",
+      ink: "#ece4d6", ink2: "#b0a695", ink3: "#7d7365",
+      line: "#2d271e", lineStrong: "#443c2e",
+      accent: "#d8a94a", accent2: "#b98f34"
+    } : {
+      ground: "#f0ece3", surface: "#f8f6f1", raised: "#fffefb",
+      ink: "#1f1b14", ink2: "#57503f", ink3: "#8a8171",
+      line: "#ddd6c8", lineStrong: "#c3baa8",
+      accent: "#8a6413", accent2: "#b99537"
+    };
+    return { t, showPromotion, pieceWhite: "#ece4d6", pieceBlack: "#241e17" };
+  }
+}
+</script>
+</body>
+</html>

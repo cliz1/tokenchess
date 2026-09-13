@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    a { color: {{t.accent}}; }
+    a:hover { color: {{t.accent2}}; }
+    .tile:active, .card:active, .tab:active { opacity: 0.82; }
+  </style>
+</helmet>
+
+<div style="width:390px;height:844px;background:{{t.ground}};display:flex;flex-direction:column;font-family:'Karla','Helvetica Neue',Arial,sans-serif;overflow:hidden;position:relative;">
+
+  <!-- header -->
+  <div style="padding:32px 20px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+    <div>
+      <div style="font-family:'Fraunces','Iowan Old Style',Georgia,serif;font-size:24px;font-weight:600;letter-spacing:-0.01em;color:{{t.ink}};">A game of chess...</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+        <div style="font-family:'Fraunces','Iowan Old Style',Georgia,serif;font-size:16px;font-weight:500;color:{{t.ink2}};">...with tokens</div>
+        <img src="coin-stack.svg" alt="" style="width:20px;height:20px;">
+        <img src="coin-stack.svg" alt="" style="width:20px;height:20px;">
+      </div>
+    </div>
+    <div style="width:44px;height:44px;min-width:44px;border-radius:3px;background:{{t.raised}};border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.ink2}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.2"></circle><path d="M5 20c1-3.8 4-5.8 7-5.8s6 2 7 5.8"></path></svg>
+    </div>
+  </div>
+
+  <!-- scroll content -->
+  <div style="flex:1;overflow-y:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:16px;">
+
+    <!-- featured article -->
+    <div class="card" style="background:{{t.raised}};border:1px solid {{t.line}};border-radius:3px;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:44px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.accent}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M7 4h10a1 1 0 0 1 1 1v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"></path><path d="M6 6a2 2 0 1 1 4 0v12a2 2 0 1 1-4 0"></path><path d="M9 9h6M9 12h6"></path></svg>
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;letter-spacing:0.13em;text-transform:uppercase;color:{{t.accent}};">Featured article</div>
+      </div>
+      <div style="font-family:'Fraunces','Iowan Old Style',Georgia,serif;font-size:17px;font-weight:600;color:{{t.ink}};line-height:1.3;">How Chaturanga Became Chess</div>
+      <div style="font-size:13px;color:{{t.ink2}};line-height:1.5;">Sixth-century dice-chess, a journey west through Persia, and a thousand years of drift behind every piece on this board.</div>
+    </div>
+
+    <!-- puzzle journey -->
+    <div class="card" style="background:{{t.accentWash}};border:1px solid {{t.accent2}};border-radius:3px;padding:16px;display:flex;align-items:center;gap:14px;min-height:44px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="{{t.accent}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M9 4h4a1 1 0 0 1 1 1v2.2a1.8 1.8 0 1 0 0 3.6V13a1 1 0 0 1-1 1h-2.2a1.8 1.8 0 1 1-3.6 0H5a1 1 0 0 1-1-1V9a1.8 1.8 0 1 0 0-3.6V5a1 1 0 0 1 1-1h4Z"></path></svg>
+      <div style="flex:1;">
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;letter-spacing:0.13em;text-transform:uppercase;color:{{t.accent}};">Puzzle journey · continue</div>
+        <div style="font-family:'Fraunces','Iowan Old Style',Georgia,serif;font-size:16px;font-weight:600;color:{{t.ink}};margin-top:4px;">Chapter 4 — Painter</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{t.ink3}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m9 5 7 7-7 7"></path></svg>
+    </div>
+
+    <!-- quick actions -->
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+
+      <div class="tile" style="background:{{t.raised}};border:1px solid {{t.line}};border-radius:3px;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:92px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.ink2}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"></rect><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M18 6l-2 2M6 18l2-2M18 18l-2-2"></path></svg>
+        <div>
+          <div style="font-size:14.5px;font-weight:600;color:{{t.ink}};">Play</div>
+          <div style="font-size:12px;color:{{t.ink3}};margin-top:2px;">vs. Fairy-Stockfish</div>
+        </div>
+      </div>
+
+      <div class="tile" style="background:{{t.raised}};border:1px solid {{t.line}};border-radius:3px;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:92px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{t.ink2}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"></path><path d="m3 13 9 5 9-5"></path></svg>
+        <div>
+          <div style="font-size:14.5px;font-weight:600;color:{{t.ink}};">Drafts</div>
+          <div style="font-size:12px;color:{{t.ink3}};margin-top:2px;">5 slots · 39 tokens</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- tab bar -->
+  <div style="display:flex;align-items:stretch;justify-content:space-around;background:{{t.surface}};border-top:1px solid {{t.line}};padding:8px 4px calc(8px + env(safe-area-inset-bottom, 0px));">
+
+    <div class="tab" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:44px;min-height:44px;padding:2px 6px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{t.accent}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"></path><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"></path></svg>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:500;color:{{t.accent}};">Home</div>
+    </div>
+
+    <div class="tab" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:44px;min-height:44px;padding:2px 6px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{t.ink3}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5v-13Z"></path><path d="M20 5.5c0-.83-.67-1.5-1.5-1.5H12v16h6.5a1.5 1.5 0 0 0 1.5-1.5v-13Z"></path></svg>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:500;color:{{t.ink3}};">Learn</div>
+    </div>
+
+    <div class="tab" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:44px;min-height:44px;padding:2px 6px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{t.ink3}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h4a1 1 0 0 1 1 1v2.2a1.8 1.8 0 1 0 0 3.6V13a1 1 0 0 1-1 1h-2.2a1.8 1.8 0 1 1-3.6 0H5a1 1 0 0 1-1-1V9a1.8 1.8 0 1 0 0-3.6V5a1 1 0 0 1 1-1h4Z"></path></svg>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:500;color:{{t.ink3}};">Puzzles</div>
+    </div>
+
+    <div class="tab" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:44px;min-height:44px;padding:2px 6px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{t.ink3}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"></rect><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M18 6l-2 2M6 18l2-2M18 18l-2-2"></path></svg>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:500;color:{{t.ink3}};">Play</div>
+    </div>
+
+    <div class="tab" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:44px;min-height:44px;padding:2px 6px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="{{t.ink3}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"></path><path d="m3 13 9 5 9-5"></path></svg>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:500;color:{{t.ink3}};">Drafts</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"dark":{"editor":"boolean","default":true,"section":"Theme"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = this.props.dark ?? true;
+    const t = dark ? {
+      ground: "#100e0a", surface: "#191510", raised: "#221d16",
+      ink: "#ece4d6", ink2: "#b0a695", ink3: "#7d7365",
+      line: "#2d271e", lineStrong: "#443c2e",
+      accent: "#d8a94a", accent2: "#b98f34", accentWash: "rgba(216,169,74,0.11)",
+      patina: "#7fa08c", patinaWash: "rgba(127,160,140,0.12)",
+      squareDark: "rgba(216,169,74,0.13)", squareLight: "rgba(216,169,74,0.04)"
+    } : {
+      ground: "#f0ece3", surface: "#f8f6f1", raised: "#fffefb",
+      ink: "#1f1b14", ink2: "#57503f", ink3: "#8a8171",
+      line: "#ddd6c8", lineStrong: "#c3baa8",
+      accent: "#8a6413", accent2: "#b99537", accentWash: "rgba(184,149,55,0.12)",
+      patina: "#3d6553", patinaWash: "rgba(61,101,83,0.12)",
+      squareDark: "rgba(138,100,19,0.16)", squareLight: "rgba(138,100,19,0.05)"
+    };
+    return { t };
+  }
+}
+</script>
+</body>
+</html>

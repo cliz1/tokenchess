@@ -3,3 +3,4 @@ export * from "./type";
 export * from "./spacing";
 export * from "./motion";
 export * from "./elevation";
+export * from "./board";

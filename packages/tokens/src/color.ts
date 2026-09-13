@@ -4,6 +4,12 @@
 // both). These exact values are settled; see type.ts / spacing.ts /
 // motion.ts / elevation.ts for the parts that aren't yet.
 
+// squareDark/squareLight below are an accent-tinted decorative motif (the
+// small checkerboard swatch on Home's puzzle card, echoing the plan
+// artifact's own board-motif graphic) — NOT the real chessboard. The actual
+// board's square colors are user-selectable and live in board.ts instead,
+// independent of app theme.
+
 export interface ColorScale {
   ground: string;
   surface: string;

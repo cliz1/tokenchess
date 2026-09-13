@@ -43,6 +43,29 @@
     "label": ""
   },
   {
+    "initialFen": "2K5/3PP2k/1m6/3m4/8/8/8/8 b - - 0 1",
+    "steps": [
+      {
+        "black": {
+          "from": "d5",
+          "to": "c6"
+        },
+        "white": {
+          "from": "c8",
+          "to": "d8"
+        }
+      },
+      {
+        "black": {
+          "from": "b6",
+          "to": "c7"
+        }
+      }
+    ],
+    "alt_steps": [],
+    "label": ""
+  },
+  {
     "initialFen": "2R5/r2A4/k7/1b6/q7/p7/K7/8 w - - 0 1",
     "steps": [
       {
@@ -161,6 +184,42 @@
         "white": {
           "from": "a2",
           "to": "h2"
+        }
+      }
+    ],
+    "alt_steps": [],
+    "label": ""
+  },
+  {
+    "initialFen": "r6k/q4pb1/1C6/5n1p/2N1p3/1P2P3/PB3P2/1K4R1 w - - 0 1",
+    "steps": [
+      {
+        "white": {
+          "from": "b2",
+          "to": "g7"
+        },
+        "black": {
+          "from": "h8",
+          "to": "g8"
+        }
+      },
+      {
+        "white": {
+          "from": "b6",
+          "to": "f6"
+        }
+      }
+    ],
+    "alt_steps": [],
+    "label": ""
+  },
+  {
+    "initialFen": "r4nk1/5ppp/2p3P1/1p1ip2P/8/1P1PP1Q1/N1P1B3/K5R1 b - - 0 1",
+    "steps": [
+      {
+        "black": {
+          "from": "d5",
+          "to": "c3"
         }
       }
     ],
