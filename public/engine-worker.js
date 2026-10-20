@@ -16,7 +16,7 @@ fetch("/variants.ini")
   .then((ini) => {
     return Stockfish({
   mainScriptUrlOrBlob: "/stockfish.js",
-  locateFile: (file) => file.endsWith(".wasm") ? "/stockfish-wasm" : `/${file}`,
+  locateFile: (file) => `/${file}`,
   preRun: [(sf) => {
     sf.FS.writeFile("/variants.ini", ini);
   }],
