@@ -47,3 +47,8 @@ gamesocket_WIP.tsx
 db_urls.txt
 
 EngineTestPage.tsx
+design/
+
+# content authoring pipeline -- kept locally, not shipped publicly
+content/
+tools/content/

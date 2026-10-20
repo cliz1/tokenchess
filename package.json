@@ -11,7 +11,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "npm run content:check && npm run content:verify && npm run test:engine",
+    "test": "npm run test:engine",
     "content:build": "node tools/content/build.mjs",
     "content:check": "node tools/content/build.mjs --check",
     "content:verify": "node tools/content/verify.mjs",
