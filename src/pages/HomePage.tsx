@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../assets/custom-pieces.css";
 
-const UPDATE_KEY = "seenUpdateMay2026";
+const UPDATE_KEY = "seenUpdateNovember2026";
 
-const UPDATE_TITLE = "May 2026 Patch Notes";
+const UPDATE_TITLE = "November 2026 Patch Notes";
 const UPDATE_LINES = [
-  "Token costs have been rebalanced across several pieces. Before playing a game, please review your active draft — drafts that now exceed the 39-token budget will fall back to the standard setup when a game starts.",
-  "You can now play against the computer directly from the Board Editor using any custom position, or using your drafts via Play -> vs Computer",
-  "Various bug fixes, mostly related to wizard swapping.",
+  "New king variant: the General, who brings Xiangqi's flying style into Token Chess.",
+  "Game mode: Anything Goes. Look for the AG tag on your drafts.",
+  "A new tutorial experience is now in beta. Feedback is welcome.",
 ];
 
 export default function HomePage() {
@@ -93,7 +93,7 @@ export default function HomePage() {
               ))}
             </ul>
             <Link
-              to="/tutorials/balance"
+              to="/learn"
               onClick={dismiss}
               style={{
                 display: "block",
@@ -103,7 +103,7 @@ export default function HomePage() {
                 textDecoration: "none",
               }}
             >
-              View the Balance changes →
+              Try the new tutorial (beta) →
             </Link>
 
             <button

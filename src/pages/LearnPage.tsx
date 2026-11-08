@@ -12,8 +12,11 @@ type LessonStep = { text?: string; note?: string; fen?: string; image?: string; 
 type Lesson = { title: string; quote?: string; steps: LessonStep[] };
 const LESSONS = lessons as unknown as Record<string, Lesson>;
 
-// the guided track: the piece lessons, in teaching order
-const TRACK = ["Champion", "Princess", "Amazon", "Baker", "Painter", "Snare", "Wizard", "Archer", "General"];
+// the guided track, grouped into chapters, in teaching order
+const CHAPTERS = [
+  { title: "Chapter 1: Basics", lessons: ["Champion", "Princess", "Amazon", "Baker", "Painter", "Snare", "Wizard", "Archer", "General"] },
+];
+const TRACK = CHAPTERS.flatMap((c) => c.lessons);
 
 const DISPLAY_NAME_TO_ROLE: Record<string, string> = Object.fromEntries(
   Object.entries(ROLE_DISPLAY_NAMES).map(([role, name]) => [name.toLowerCase(), role])
@@ -22,10 +25,12 @@ const DISPLAY_NAME_TO_ROLE: Record<string, string> = Object.fromEntries(
 type Beat = LessonStep & { lesson: string; title: string; quote?: string; first: boolean; role: string };
 
 const STORAGE_KEY = "tokenchess.learn.beat";
+// furthest beat ever reached; gated challenges mean everything before it is solved
+const FURTHEST_KEY = "tokenchess.learn.furthest";
 
-const readSaved = (max: number) => {
+const readSaved = (max: number, key = STORAGE_KEY) => {
   try {
-    const n = Number(localStorage.getItem(STORAGE_KEY));
+    const n = Number(localStorage.getItem(key));
     return Number.isInteger(n) && n >= 0 && n < max ? n : 0;
   } catch {
     return 0;
@@ -58,6 +63,8 @@ export default function LearnPage() {
   );
 
   const [index, setIndex] = useState(() => readSaved(beats.length));
+  const [furthest, setFurthest] = useState(() => Math.max(readSaved(beats.length, FURTHEST_KEY), readSaved(beats.length)));
+  const [showProgress, setShowProgress] = useState(false);
   const [solved, setSolved] = useState(false);
   const beat = beats[index];
   const last = beats.length - 1;
@@ -67,10 +74,25 @@ export default function LearnPage() {
     setSolved(false);
     try {
       localStorage.setItem(STORAGE_KEY, String(index));
+      if (index > furthest) {
+        localStorage.setItem(FURTHEST_KEY, String(index));
+      }
     } catch {
       /* storage can be unavailable; progress just won't persist */
     }
-  }, [index]);
+    setFurthest((f) => Math.max(f, index));
+  }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const lessonRows = useMemo(
+    () =>
+      TRACK.map((key) => {
+        const start = beats.findIndex((b) => b.lesson === key);
+        if (start < 0) return null;
+        const count = beats.filter((b) => b.lesson === key).length;
+        return { key, start, count, title: beats[start].title, role: beats[start].role };
+      }).filter((r): r is NonNullable<typeof r> => r !== null),
+    [beats]
+  );
 
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
   useEffect(() => {
@@ -122,7 +144,21 @@ export default function LearnPage() {
         <div style={{ flex: 1, textAlign: "center", fontSize: 13, color: "#8a8171", letterSpacing: "0.08em", textTransform: "uppercase" }}>
           {beat.title} · {lessonStart + 1} of {TRACK.length}
         </div>
-        <div style={{ minWidth: 44 }} />
+        <button
+          type="button"
+          onClick={() => setShowProgress(true)}
+          aria-label="View progress"
+          style={{
+            minHeight: 36, padding: "0 12px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
+            background: "rgba(216,169,74,0.1)", border: "1px solid rgba(216,169,74,0.4)", borderRadius: 999,
+            color: "#d8a94a", fontSize: 13, fontWeight: 600,
+          }}
+        >
+          <span aria-hidden style={{ position: "relative", width: 28, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", overflow: "hidden" }}>
+            <span style={{ position: "absolute", inset: 0, width: `${((furthest + 1) / beats.length) * 100}%`, background: "#d8a94a" }} />
+          </span>
+          Progress · {Math.round(((furthest + 1) / beats.length) * 100)}%
+        </button>
       </div>
 
       <div
@@ -191,6 +227,57 @@ export default function LearnPage() {
           </button>
         )}
       </div>
+      {showProgress && (
+        <div
+          onClick={() => setShowProgress(false)}
+          style={{ position: "absolute", inset: 0, zIndex: 20, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        >
+          <div
+            role="dialog"
+            aria-label="Your progress"
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "#1a1610", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: 20, width: "100%", maxWidth: 460, maxHeight: "100%", overflowY: "auto", position: "relative" }}
+          >
+              <button type="button" onClick={() => setShowProgress(false)} aria-label="Close" style={{ background: "none", border: "none", color: "#aaa", fontSize: 22, cursor: "pointer", minWidth: 44, minHeight: 44, position: "absolute", top: 8, right: 8 }}>✕</button>
+            {CHAPTERS.map((ch) => (
+              <div key={ch.title} style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 22, fontFamily: "Fraunces, Georgia, serif", fontWeight: 600, margin: "0 44px 12px 2px" }}>{ch.title}</div>
+                {lessonRows.filter((r) => ch.lessons.includes(r.key)).map((r) => {
+              const done = Math.min(r.count, Math.max(0, furthest - r.start));
+              const unlocked = r.start <= furthest;
+              const complete = done === r.count;
+              const current = beat.lesson === r.key;
+              return (
+                <button
+                  key={r.key}
+                  type="button"
+                  disabled={!unlocked}
+                  onClick={() => { setIndex(r.start); setShowProgress(false); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12, width: "100%", minHeight: 56, padding: "8px 10px", marginBottom: 6,
+                    textAlign: "left", color: unlocked ? "#ece4d6" : "#5a5346", cursor: unlocked ? "pointer" : "default",
+                    background: current ? "rgba(216,169,74,0.12)" : "transparent",
+                    border: `1px solid ${current ? "rgba(216,169,74,0.5)" : "rgba(255,255,255,0.08)"}`, borderRadius: 8,
+                  }}
+                >
+                  <div className={`cg-piece ${r.role} white`} style={{ width: 36, height: 36, flex: "0 0 auto", backgroundRepeat: "no-repeat", backgroundPosition: "center", backgroundSize: "36px 36px", opacity: unlocked ? 1 : 0.3 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600 }}>{r.title}</div>
+                    <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)", marginTop: 6 }}>
+                      <div style={{ height: "100%", borderRadius: 2, width: `${(done / r.count) * 100}%`, background: "#d8a94a" }} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: complete ? "#d8a94a" : "#8a8171" }}>
+                    {complete ? "Done" : unlocked ? `${done}/${r.count}` : "Locked"}
+                  </div>
+                </button>
+              );
+            })}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

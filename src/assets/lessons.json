@@ -460,16 +460,6 @@
               "white": {
                 "from": "a8",
                 "to": "h1"
-              },
-              "black": {
-                "from": "g1",
-                "to": "f2"
-              }
-            },
-            {
-              "white": {
-                "from": "a8",
-                "to": "f3"
               }
             }
           ]
