@@ -78,125 +78,124 @@
       }
     ]
   },
-  "Champion": {
-    "title": "Champion",
-    "quote": "“Suffer now and live the rest of your life as a champion.” – Muhammad Ali",
+  "token-values": {
+    "title": "Precious little coins...",
+    "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
       {
-        "text": "The Champion combines the movement of the Rook and Knight pieces. It is a classic addition in chess variants. \n In Token, it takes the name given by Italian priest [Pietro Carerra](https://en.wikipedia.org/wiki/Pietro_Carrera), who first introduced the *Campione* to western chess in the 17th century.",
-        "challenge": {
-          "initialFen": "8/6k1/n3p3/2p3P1/2PC2K1/1P6/8/8 w - - 0 1",
-          "steps": [
-            {
-              "white": {
-                "from": "d4",
-                "to": "e6"
-              },
-              "black": {
-                "from": "g7",
-                "to": "f7"
-              }
-            },
-            {
-              "white": {
-                "from": "e6",
-                "to": "a6"
-              }
-            }
-          ]
-        },
-        "note": "Capture the pawn, then the knight."
+        "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns. For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ",
+        "image": "/images/Coin_of_Kushan.jpg"
       },
       {
-        "text": "You can castle with the Champion, just as you would a rook!",
-        "challenge": {
-          "initialFen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPP2PPP/RN1QK2C w kKQq - 0 1",
-          "steps": [
-            {
-              "white": {
-                "from": "e1",
-                "to": "g1"
-              }
-            }
-          ]
-        },
-        "note": "Castle with the Champion."
+        "text": "Note that this game is a work in progress, so a piece's evaluation may change in future updates as a measure of balance.\n\nAs of **May 2026**, the value in tokens for each piece is as follows:\n\n| Piece | Tokens |\n|------|--------|\n| Pawn | 1 |\n| Knight | 3 |\n| Bishop | 3 |\n| Rook | 5 |\n| Queen | 9 |\n| Champion | 8 |\n| Princess | 8 |\n| Amazon | 13 |\n| Baker | 3 |\n| Painter | 2 |\n| Snare | 1 |\n| Wizard | 7 |\n| Archer | 5 |"
       }
     ]
   },
-  "Princess": {
-    "title": "Princess",
-    "quote": "“Whoever makes me unhappy for a day, I will make suffer for a lifetime.” – Empress Dowager Cixi",
+  "draft": {
+    "title": "...you and what army?",
+    "quote": "",
     "steps": [
       {
-        "text": "The Princess combines the movement of the Bishop and Knight. \n The combination of short and long range strength makes her exceedingly tricky to play against.",
-        "challenge": {
-          "initialFen": "7k/1b6/8/3p4/2p3I1/5P2/r3PK2/8 w - - 0 1",
-          "steps": [
-            {
-              "white": {
-                "from": "g4",
-                "to": "f6"
-              }
-            }
-          ]
-        },
-        "note": "White to move, mate in one."
+        "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games. Simply drag pieces from the pallette onto the first two ranks of the board-- the first rank is for pieces, the second rank is for pawns, painters, and snares.",
+        "image": "/images/draftpage.png"
       },
       {
-        "text": "As seen in the above example, one advantage of the Princess is her ability to checkmate a cornered king without additional help. Below is a slightly more complex illustration of this idea.",
-        "challenge": {
-          "initialFen": "8/8/8/8/8/7p/5I1k/4K3 w - - 0 1",
-          "steps": [
-            {
-              "white": {
-                "from": "f2",
-                "to": "h4"
-              },
-              "black": {
-                "from": "h2",
-                "to": "h1"
-              }
-            },
-            {
-              "white": {
-                "from": "h4",
-                "to": "f3"
-              }
-            }
-          ]
-        },
-        "note": "Find the checkmate in two. (Difficulty: Medium)"
+        "text": "**In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page.** \n This draft, highlighted in green at the top, will be your starting setup when playing a game, and may be changed at any time between games. **Make sure to save any changes made to a draft with the button at the bottom!**",
+        "image": "/images/drafttutorial.png"
+      },
+      {
+        "text": "There are special restrictions on the **quantity** of each piece type in a draft. This is designed to keep things fun and fair by promoting diversity and mitigating 'hordes' of a single piece type. For example, while a single Painter is a formidable foe, eight of them together are...*oppressive.*",
+        "image": "/images/horde.png"
+      },
+      {
+        "text": "Just like token values, these quantity restrictions are a work in progress and may change in response to community feedback.\n\nAs of **January 2026**, the quantity limit for each piece is as follows:\n\n| Max Allowed | Pieces |\n|-------------|--------|\n| **1** | Archer, Painter |\n| **2** | Amazon, Champion, Princess, Queen |\n| **3** | Rook, Wizard |\n| **4** | Bishop, Knight, Baker, Snare |\n\n**Please note:** These limits are **per-piece**. For example, you may include *both* a Painter *and* an Archer in the same draft."
       }
     ]
   },
-  "Amazon": {
-    "title": "Amazon",
-    "quote": "“I will not be triumphed over.” – Cleopatra VII",
+  "multiplayer": {
+    "title": "Step into the arena...",
+    "quote": "",
     "steps": [
       {
-        "text": "Behold! The all-powerful Queen+Knight hybrid, popularly called the [Amazon](https://en.wikipedia.org/wiki/Amazons) in reference to greek mythology. \n Impressively, she can checkmate a king on the edge of the board without help from another piece.",
-        "challenge": {
-          "initialFen": "5k2/8/8/8/3A4/8/8/3K4 w - - 0 1",
-          "steps": [
-            {
-              "white": {
-                "from": "d4",
-                "to": "e6"
-              }
-            }
-          ],
-          "alt_steps": [
-            {
-              "white": {
-                "from": "d4",
-                "to": "f6"
-              }
-            }
-          ]
-        },
-        "note": "White to move, mate in one. (Bonus: find both solutions!)"
+        "text": "Once you have saved and activated at least one draft, you are ready to play a game of Token! At the top menu, click Play -> Game Lobby. Here you can create a game room with a time control of your liking, or join another player's room by clicking their username.",
+        "image": "/images/gamelobby.png"
       },
+      {
+        "text": "Each room has a code, so you can alternatively join a friend's game by clicking Play -> Join Game and entering their room code. Once in a room, you can rematch as many times as you like, with the option to switch your active draft in between each game of the match.",
+        "image": "/images/gamepage.png"
+      },
+      {
+        "text": "Multiplayer is currently the **only** supported playing method, as there is no Token Chess AI yet. \n For fans of computer chess - stay tuned!"
+      },
+      {
+        "text": "If your game starts from the default chess position, it means one of two things: **1) you or your opponent do not have a draft set as 'active'**, or **2) you or your opponent are using a draft that became illegal after balance changes**. If the second case happens, check the balance notes at the bottom of this page, then remove and re-add any pieces in your draft that have increased in value.",
+        "image": "/images/defaultgame.png"
+      }
+    ]
+  },
+  "board-editor": {
+    "title": "A chess sandbox...",
+    "quote": "",
+    "steps": [
+      {
+        "text": "Click the 'Board' option at the top menu to use the Board Editor and Analysis feature. Here you can create custom positions by dragging pieces onto the board. You can also copy/edit/paste FEN in the text bar on the bottom. To enter analysis mode, press **Analyze.**",
+        "image": "/images/boardeditor.png"
+      },
+      {
+        "text": "Once in analysis mode, you can freely play moves from both sides. Forward and rewind through moves using the buttons on the side, or with your arrow keys.",
+        "image": "/images/analysisboard.png"
+      }
+    ]
+  },
+  "puzzles": {
+    "title": "Puzzles",
+    "quote": "",
+    "steps": [
+      {
+        "text": "Access puzzles by clicking Play -> Puzzles. This feature is a work in progress, as there are only a few haphazard puzzles currently available. In the future, this will host a collection of community-created puzzles of various difficulties.",
+        "image": "/images/puzzlesboard.png"
+      }
+    ]
+  },
+  "source": {
+    "title": "The secret sauce...",
+    "quote": "",
+    "steps": [
+      {
+        "text": "Token Chess is created and maintained by Nathaniel Clizbe, a software developer and chess enthusiast. \n Source code for the project is available [here.](https://github.com/cliz1/tokenchess)",
+        "image": "/images/coin.png"
+      },
+      {
+        "text": "This project is developed as an experimental chess platform; bugs and unfinished features may exist. \n Issues and suggestions are welcome via GitHub."
+      }
+    ]
+  },
+  "community": {
+    "title": "Community",
+    "quote": "",
+    "steps": [
+      {
+        "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-club)",
+        "image": "/images/tokenclub.png"
+      },
+      {
+        "text": "As this game has some novel aspects, it is strongly encouraged to share your experience or suggest ideas!"
+      }
+    ]
+  },
+  "balance": {
+    "title": "Balance",
+    "quote": "",
+    "steps": [
+      {
+        "text": "May 2026: \n **1) Wizard token cost 4 -> 7**. \n Fairy stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. \n Don't buy it? Give Fairy stockfish a Wizard and find out! \n **2) Archer token cost 7 -> 5** \n While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a rook. But certainly not more than two bishops! \n **3) Snare token cost 2 -> 1** \n The snare cannot capture, and is very weak to attack by pawns. Giving it a valuation of more than a pawn seems unfair for this reason. \n **4) Rolling Snare Movement buff** \n The Rolling Snare now moves like a Queen to make it more comparable to pawn/painter promotions."
+      }
+    ]
+  },
+  "archived": {
+    "title": "archived",
+    "quote": "",
+    "steps": [
       {
         "text": "It is nearly impossible to survive more than a few moves against an Amazon in endgame play. \n In a more advanced example below, the Amazon swiftly overcomes a Champion with a beautiful *zugzwang*.",
         "challenge": {
@@ -321,15 +320,149 @@
           ]
         },
         "note": "Defeat the Champion. (Difficulty: Hard)"
+      },
+      {
+        "text": "In the event of stalemate, if the side delivering the stalemate has a General, the result is a win for that side rather than a draw. Interestingly, this allows a General to win by itself against another.",
+        "challenge": {
+          "initialFen": "8/1g6/8/2G5/8/8/8/8 w - - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "c5",
+                "to": "c6"
+              },
+              "black": {
+                "from": "b7",
+                "to": "b8"
+              }
+            },
+            {
+              "white": {
+                "from": "c6",
+                "to": "c7"
+              },
+              "black": {
+                "from": "b8",
+                "to": "a8"
+              }
+            },
+            {
+              "white": {
+                "from": "c7",
+                "to": "b7"
+              }
+            }
+          ]
+        },
+        "note": "In this diagram, black is forced into a corner, after which the stalemate wins for white."
       }
     ]
+  },
+  "Champion": {
+    "title": "Champion",
+    "quote": "“Suffer now and live the rest of your life as a champion.” – Muhammad Ali",
+    "steps": [
+      {
+        "text": "The Rook-knight, an ancient fairy piece, was first called *Campione* by the priest [Pietro Carerra](https://en.wikipedia.org/wiki/Pietro_Carrera).",
+        "challenge": {
+          "initialFen": "8/6k1/n3p3/2p3P1/2PC2K1/1P6/8/8 w - - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "d4",
+                "to": "e6"
+              },
+              "black": {
+                "from": "g7",
+                "to": "f7"
+              }
+            },
+            {
+              "white": {
+                "from": "e6",
+                "to": "a6"
+              }
+            }
+          ]
+        },
+        "note": "Capture the knight in two moves."
+      },
+      {
+        "text": "The Champion provides a special haven for the King, just as the rook does.",
+        "challenge": {
+          "initialFen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPP2PPP/RN1QK2C w kKQq - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "e1",
+                "to": "g1"
+              }
+            }
+          ]
+        },
+        "note": "Castle with the Champion."
+      }
+    ],
+    "chapter": 1
+  },
+  "Princess": {
+    "title": "Princess",
+    "quote": "“Whoever makes me unhappy for a day, I will make suffer for a lifetime.” – Empress Dowager Cixi",
+    "steps": [
+      {
+        "text": "The Princess possess the strengths of Bishop and Knight without any of the weaknesses.",
+        "challenge": {
+          "initialFen": "7k/1b6/8/3p4/2p3I1/5P2/r3PK2/8 w - - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "g4",
+                "to": "f6"
+              }
+            }
+          ]
+        },
+        "note": "Checkmate."
+      }
+    ],
+    "chapter": 1
+  },
+  "Amazon": {
+    "title": "Amazon",
+    "quote": "“I will not be triumphed over.” – Cleopatra VII",
+    "steps": [
+      {
+        "text": "Behold!\n\nThe all-powerful hybrid they call the [Amazon](https://en.wikipedia.org/wiki/Amazons). \n\nSome say she is too powerful for the 8x8 dimension. \nIs it true? \n\nFind out yourself, if you have the tokens...",
+        "challenge": {
+          "initialFen": "5k2/8/8/8/3A4/8/8/3K4 w - - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "d4",
+                "to": "e6"
+              }
+            }
+          ],
+          "alt_steps": [
+            {
+              "white": {
+                "from": "d4",
+                "to": "f6"
+              }
+            }
+          ]
+        },
+        "note": "Checkmate. Who needs another piece?"
+      }
+    ],
+    "chapter": 1
   },
   "Baker": {
     "title": "Baker",
     "quote": "“All sorrows are less with bread.” – Sancho Panza",
     "steps": [
       {
-        "text": "A game of chess does not hinge on the survival of a humble Baker, but otherwise they are identical to the King. \n They are considered more valuable in endgames, and unlike a bishop or knight, they can deliver checkmate alone.",
+        "text": "The King and the Baker are distinct only by blood. \n\nThe latter's fate has no significance to the game of chess, but don't be fooled - they are no less valuable than a bishop or knight. \n\nUnlike those pieces, the Baker can checkmate solely with the help of their own King.",
         "challenge": {
           "initialFen": "4M3/7k/5K2/8/8/8/8/8 w - - 0 1",
           "steps": [
@@ -351,10 +484,10 @@
             }
           ]
         },
-        "note": "White to move, mate in two."
+        "note": "Checkmate in two moves."
       },
       {
-        "text": "A Baker is a great protector of the King. The below example demonstrates his ability to hold a draw against a Queen.",
+        "text": "With a loyal Baker at his side, the King has little to fear.",
         "challenge": {
           "initialFen": "5k2/8/8/2K3q1/2M5/8/8/8 w - - 0 1",
           "steps": [
@@ -396,16 +529,17 @@
             }
           ]
         },
-        "note": "Use the Baker to block the checks."
+        "note": "A mere Queen is not enough to break through this sturdy loaf maker."
       }
-    ]
+    ],
+    "chapter": 1
   },
   "Painter": {
     "title": "Painter",
     "quote": "“I dream my paintings, and then I paint my dreams.” – Vincent van Gogh",
     "steps": [
       {
-        "text": "While similar to a pawn, a Painter has no violence in their heart. They are a dreamer, but not a fighter. \n Rather than capture, the Painter *paints* pieces the opposite color.",
+        "text": "While similar to a pawn, a Painter is incapable of violence - they are a dreamer, not a fighter. \n\nRather than capture, the Painter *paints* pieces.",
         "challenge": {
           "initialFen": "8/p1k1r1b1/1p4p1/1KPY1pN1/5P2/8/8/8 w - - 0 1",
           "steps": [
@@ -427,10 +561,10 @@
             }
           ]
         },
-        "note": "Push the Painter, then paint the rook."
+        "note": "That rook could use a fresh coat..."
       },
       {
-        "text": "Even when [promoting](https://en.wikipedia.org/wiki/Promotion_(chess)), the Painter refuses to pick up a sword. \n Instead, they become the *Royal Painter*, which moves like a Queen but *paints* instead of capturing.",
+        "text": "Even when [promoting](https://en.wikipedia.org/wiki/Promotion_(chess)), the Painter refuses to pick up a sword. \n \nInstead, they become a *Royal Painter*, moving like a Queen, paintbrush still in hand.",
         "challenge": {
           "initialFen": "8/8/YK6/8/8/8/6kp/8 w - - 0 1",
           "steps": [
@@ -464,27 +598,47 @@
             }
           ]
         },
-        "note": "White to move and win."
+        "note": "This race is no tie."
       },
       {
-        "text": "To prevent standoffs between two painters controlling the same square, Painters follow the *wet paint rule*: \n **Once a piece is painted, it cannot be painted again on the opponent's next move.** The piece may only be painted again once the paint dries one turn later.",
-        "image": "/images/wetpaint.png"
-      },
-      {
-        "text": "In the above diagram, White has just painted a queen on the previous move. \n Now black's turn, black **cannot paint the queen** since the paint has yet to dry."
+        "text": "A painter cannot apply a new coat to a piece whose paint is still wet. \n \n **When a piece is painted, it cannot be painted again on the opponent's next move.** The piece may only be painted again once the paint dries one turn later.",
+        "challenge": {
+          "initialFen": "8/4ky2/4a3/5Y2/8/8/8/4K3 w - - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "f5",
+                "to": "e6"
+              }
+            }
+          ]
+        },
+        "note": "Sorry black, the paint is wet. Checkmate."
       }
-    ]
+    ],
+    "chapter": 1
   },
   "Snare": {
     "title": "Snare",
     "quote": "“It's a trap!” – Admiral Ackbar",
     "steps": [
       {
-        "text": "The Snare does not capture, but instead restricts the movement of opposing pieces **directly next to or in front of it.** \n In the diagram below, the rooks *cannot* move, but the knights can.",
-        "image": "/images/snarediagram.png"
+        "text": "The Snare cannot capture. It paralyzes any piece **directly next to or in front of it.**",
+        "challenge": {
+          "initialFen": "3k4/8/3rn3/2r1r3/3S4/8/8/7K w - - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "d4",
+                "to": "d5"
+              }
+            }
+          ]
+        },
+        "note": "Step forward to ensnare the rooks."
       },
       {
-        "text": "The Snare moves forward one square, straight or diagonally. \n This example demonstrates the ability of a snare to assist in capturing a valuable target, such as a queen.",
+        "text": "The Snare moves forward one square, \nstraight or diagonally. \n\nIt is worth no more than a single pawn, but even pieces of the highest class may fall into its clutches.",
         "challenge": {
           "initialFen": "rnb1kb1r/ppp1pppp/5n2/3q4/8/3S4/PPP2PPP/RNBQKBNR w - - 0 1",
           "steps": [
@@ -516,10 +670,10 @@
             }
           ]
         },
-        "note": "Ensnare the opposing queen, then attack it with a pawn."
+        "note": "Ensnare the Queen and steal it with a pawn."
       },
       {
-        "text": "Note that since the Snare cannot capture, it cannot give check. \n However, a Snare can trap a king, often leading to an easy checkmate!",
+        "text": "The Snare poses no threat on its own. \nIt gives no checks.\n\nPutting the enemy in a cage, however, makes checkmate an easy task.",
         "challenge": {
           "initialFen": "1r6/8/1k6/8/2S5/8/3B4/1K6 w - - 0 1",
           "steps": [
@@ -541,10 +695,10 @@
             }
           ]
         },
-        "note": "White to move, mate in two."
+        "note": "Checkmate in two moves."
       },
       {
-        "text": "Like the Painter, the Snare does *not* promote like a pawn. \n It promotes to a *Rolling Snare,* which moves like a queen, but still cannot capture. Unlike the Snare, it also traps pieces directly *behind* it.",
+        "text": "When promoting, it becomes a *Rolling Snare*. \n\nIt moves any distance, and also traps pieces directly *behind* it.",
         "challenge": {
           "initialFen": "3K4/2S5/1N2k3/8/8/7p/8/8 w - - 0 1",
           "steps": [
@@ -606,16 +760,17 @@
             }
           ]
         },
-        "note": "White to move, mate in three."
+        "note": "Checkmate in three moves."
       }
-    ]
+    ],
+    "chapter": 1
   },
   "Wizard": {
     "title": "Wizard",
     "quote": "“A wizard is never late. Nor is he early. He arrives precisely when he means to.” – Gandalf",
     "steps": [
       {
-        "text": "The Wizard moves up to two squares like a queen. Like a knight, the Wizard can jump over any pieces in the way.",
+        "text": "The Wizard moves one or two squares as a Queen, but he is not bound by the regular laws of space. \n\nIf an object stands between him and his destination, he simply teleports there.",
         "challenge": {
           "initialFen": "4kbq1/5n2/8/4p3/4W3/3K4/8/8 w - - 0 1",
           "steps": [
@@ -637,10 +792,10 @@
             }
           ]
         },
-        "note": "Jump over the pawn, then capture the queen."
+        "note": "Capture the Queen in two moves."
       },
       {
-        "text": "The Wizard has the ability to swap places with a friendly piece within its movement range. \n This ability even disregards pins, contrary to standard chess rules which disallow moving “through“ check.",
+        "text": "The Wizard can **swap places** with a friendly piece within its movement range. \n\nHis magic doesn't expose his King for an instant.",
         "challenge": {
           "initialFen": "7k/6b1/8/8/3W4/2K5/3P4/8 w - - 0 1",
           "steps": [
@@ -652,10 +807,10 @@
             }
           ]
         },
-        "note": "Escape the pin."
+        "note": "Escape the deadly pin."
       },
       {
-        "text": "The Wizard may be used to escape the King from dangerous places, including positions that are otherwise checkmate!",
+        "text": "He may even rescue his King from inevitable defeat.",
         "challenge": {
           "initialFen": "rnb1kb1r/ppp1pppp/3p1n2/8/8/2N3Pp/PPPPPPqP/R2QW1KR w - - 0 1",
           "steps": [
@@ -667,16 +822,17 @@
             }
           ]
         },
-        "note": "Escape the checkmate attempt."
+        "note": "Escape."
       }
-    ]
+    ],
+    "chapter": 1
   },
   "Archer": {
     "title": "Archer",
     "quote": "“Swift as the wind, silent as the forest.” – Sun Tzu",
     "steps": [
       {
-        "text": "The Archer is a slow piece, moving one square diagonally at a time. This makes it a color-bound piece, like the Bishop.",
+        "text": "The Archer was supposed to be a Bishop, but it flunked out of the priesthood. \n\nStill bound by birth to one square color, it can only move a single square at a time.",
         "challenge": {
           "initialFen": "4k3/8/5X2/4p3/3pP3/3P4/8/4K3 w - - 0 1",
           "steps": [
@@ -701,14 +857,32 @@
         "note": "Capture the pawns."
       },
       {
-        "text": "The Archer can capture without moving, given that the captured piece is **2 to 3 diagonal squares away.**",
+        "text": "Failed by fate, the Archer chose a new path. They aquired the unthinkable ability to capture without moving. \n\nPieces **2 to 3 diagonal squares away** from the Archer stand no chance.",
         "challenge": {
-          "initialFen": "n3k3/7p/8/8/4X3/8/6r1/1n2K3 w - - 0 1",
+          "initialFen": "n3k3/7n/8/8/4X3/8/6r1/4K3 w - - 0 1",
           "steps": [
             {
               "white": {
                 "from": "e4",
-                "to": "b1"
+                "to": "g2"
+              },
+              "black": {
+                "from": "e8",
+                "to": "d8"
+              }
+            },
+            {
+              "white": {
+                "from": "e4",
+                "to": "h7"
+              }
+            }
+          ],
+          "alt_steps": [
+            {
+              "white": {
+                "from": "e4",
+                "to": "h7"
               },
               "black": {
                 "from": "e8",
@@ -719,38 +893,25 @@
               "white": {
                 "from": "e4",
                 "to": "g2"
-              },
-              "black": {
-                "from": "d8",
-                "to": "e8"
-              }
-            },
-            {
-              "white": {
-                "from": "e4",
-                "to": "h7"
               }
             }
           ]
         },
-        "note": "Capture the pieces in the following order: Knight, Rook, Pawn"
-      },
-      {
-        "text": "For clarity, the diagram below illustrates which squares the Archer can shoot.",
-        "image": "/images/archer.png"
+        "note": "Go ahead, shoot some things."
       }
-    ]
+    ],
+    "chapter": 1
   },
   "General": {
     "title": "General",
     "quote": "”If the flying general of Dragon City were here, no Tartar steed would dare cross the Yin mountains.” –Wang Changling",
     "steps": [
       {
-        "text": "In Xiangqi, the equivalent to the King is traditionally carved with Shuài 帥 or Jiàng 將, both meaning ”General.” \n In Token, the King can optionally be replaced by this piece.",
+        "text": "In Xiangqi, the royal piece is traditionally carved with Shuài 帥 or Jiàng 將, both meaning ”General.” \n\nIn Token, the King can optionally be replaced by this piece.",
         "image": "/images/general.webp"
       },
       {
-        "text": "The General moves one square orthogonally, never diagonally. \n As a result, the King dominates it one-on-one.",
+        "text": "The General moves one square straight, \n**never diagonally.** \n\nAs a result, the King dominates it one-on-one.",
         "challenge": {
           "initialFen": "8/1g6/8/3K4/8/8/8/8 w - - 0 1",
           "steps": [
@@ -782,10 +943,10 @@
             }
           ]
         },
-        "note": "Corner and checkmate the opposing general."
+        "note": "Corner the General."
       },
       {
-        "text": "The General's trick is his ability to *capture* like a rook. This is an adaptation of Xiangqi's [Flying General rule](https://www.xiangqi.com/history).",
+        "text": "The General has a special [flying style](https://www.xiangqi.com/history), enabling him to *capture* like a rook.",
         "challenge": {
           "initialFen": "8/1k6/p7/1p6/3P2P1/8/PP6/G6q w - - 0 1",
           "steps": [
@@ -797,156 +958,8 @@
             }
           ]
         }
-      },
-      {
-        "text": "In the event of stalemate, if the side delivering the stalemate has a General, the result is a win for that side rather than a draw. Interestingly, this allows a General to win by itself against another.",
-        "challenge": {
-          "initialFen": "8/1g6/8/2G5/8/8/8/8 w - - 0 1",
-          "steps": [
-            {
-              "white": {
-                "from": "c5",
-                "to": "c6"
-              },
-              "black": {
-                "from": "b7",
-                "to": "b8"
-              }
-            },
-            {
-              "white": {
-                "from": "c6",
-                "to": "c7"
-              },
-              "black": {
-                "from": "b8",
-                "to": "a8"
-              }
-            },
-            {
-              "white": {
-                "from": "c7",
-                "to": "b7"
-              }
-            }
-          ]
-        },
-        "note": "In this diagram, black is forced into a corner, after which the stalemate wins for white."
       }
-    ]
-  },
-  "token-values": {
-    "title": "Precious little coins...",
-    "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
-    "steps": [
-      {
-        "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns. For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ",
-        "image": "/images/Coin_of_Kushan.jpg"
-      },
-      {
-        "text": "Note that this game is a work in progress, so a piece's evaluation may change in future updates as a measure of balance.\n\nAs of **May 2026**, the value in tokens for each piece is as follows:\n\n| Piece | Tokens |\n|------|--------|\n| Pawn | 1 |\n| Knight | 3 |\n| Bishop | 3 |\n| Rook | 5 |\n| Queen | 9 |\n| Champion | 8 |\n| Princess | 8 |\n| Amazon | 13 |\n| Baker | 3 |\n| Painter | 2 |\n| Snare | 1 |\n| Wizard | 7 |\n| Archer | 5 |"
-      }
-    ]
-  },
-  "draft": {
-    "title": "...you and what army?",
-    "quote": "",
-    "steps": [
-      {
-        "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games. Simply drag pieces from the pallette onto the first two ranks of the board-- the first rank is for pieces, the second rank is for pawns, painters, and snares.",
-        "image": "/images/draftpage.png"
-      },
-      {
-        "text": "**In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page.** \n This draft, highlighted in green at the top, will be your starting setup when playing a game, and may be changed at any time between games. **Make sure to save any changes made to a draft with the button at the bottom!**",
-        "image": "/images/drafttutorial.png"
-      },
-      {
-        "text": "There are special restrictions on the **quantity** of each piece type in a draft. This is designed to keep things fun and fair by promoting diversity and mitigating 'hordes' of a single piece type. For example, while a single Painter is a formidable foe, eight of them together are...*oppressive.*",
-        "image": "/images/horde.png"
-      },
-      {
-        "text": "Just like token values, these quantity restrictions are a work in progress and may change in response to community feedback.\n\nAs of **January 2026**, the quantity limit for each piece is as follows:\n\n| Max Allowed | Pieces |\n|-------------|--------|\n| **1** | Archer, Painter |\n| **2** | Amazon, Champion, Princess, Queen |\n| **3** | Rook, Wizard |\n| **4** | Bishop, Knight, Baker, Snare |\n\n**Please note:** These limits are **per-piece**. For example, you may include *both* a Painter *and* an Archer in the same draft."
-      }
-    ]
-  },
-  "multiplayer": {
-    "title": "Step into the arena...",
-    "quote": "",
-    "steps": [
-      {
-        "text": "Once you have saved and activated at least one draft, you are ready to play a game of Token! At the top menu, click Play -> Game Lobby. Here you can create a game room with a time control of your liking, or join another player's room by clicking their username.",
-        "image": "/images/gamelobby.png"
-      },
-      {
-        "text": "Each room has a code, so you can alternatively join a friend's game by clicking Play -> Join Game and entering their room code. Once in a room, you can rematch as many times as you like, with the option to switch your active draft in between each game of the match.",
-        "image": "/images/gamepage.png"
-      },
-      {
-        "text": "Multiplayer is currently the **only** supported playing method, as there is no Token Chess AI yet. \n For fans of computer chess - stay tuned!"
-      },
-      {
-        "text": "If your game starts from the default chess position, it means one of two things: **1) you or your opponent do not have a draft set as 'active'**, or **2) you or your opponent are using a draft that became illegal after balance changes**. If the second case happens, check the balance notes at the bottom of this page, then remove and re-add any pieces in your draft that have increased in value.",
-        "image": "/images/defaultgame.png"
-      }
-    ]
-  },
-  "board-editor": {
-    "title": "A chess sandbox...",
-    "quote": "",
-    "steps": [
-      {
-        "text": "Click the 'Board' option at the top menu to use the Board Editor and Analysis feature. Here you can create custom positions by dragging pieces onto the board. You can also copy/edit/paste FEN in the text bar on the bottom. To enter analysis mode, press **Analyze.**",
-        "image": "/images/boardeditor.png"
-      },
-      {
-        "text": "Once in analysis mode, you can freely play moves from both sides. Forward and rewind through moves using the buttons on the side, or with your arrow keys.",
-        "image": "/images/analysisboard.png"
-      }
-    ]
-  },
-  "puzzles": {
-    "title": "Puzzles",
-    "quote": "",
-    "steps": [
-      {
-        "text": "Access puzzles by clicking Play -> Puzzles. This feature is a work in progress, as there are only a few haphazard puzzles currently available. In the future, this will host a collection of community-created puzzles of various difficulties.",
-        "image": "/images/puzzlesboard.png"
-      }
-    ]
-  },
-  "source": {
-    "title": "The secret sauce...",
-    "quote": "",
-    "steps": [
-      {
-        "text": "Token Chess is created and maintained by Nathaniel Clizbe, a software developer and chess enthusiast. \n Source code for the project is available [here.](https://github.com/cliz1/tokenchess)",
-        "image": "/images/coin.png"
-      },
-      {
-        "text": "This project is developed as an experimental chess platform; bugs and unfinished features may exist. \n Issues and suggestions are welcome via GitHub."
-      }
-    ]
-  },
-  "community": {
-    "title": "Community",
-    "quote": "",
-    "steps": [
-      {
-        "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-club)",
-        "image": "/images/tokenclub.png"
-      },
-      {
-        "text": "As this game has some novel aspects, it is strongly encouraged to share your experience or suggest ideas!"
-      }
-    ]
-  },
-  "balance": {
-    "title": "Balance",
-    "quote": "",
-    "steps": [
-      {
-        "text": "May 2026: \n **1) Wizard token cost 4 -> 7**. \n Fairy stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. \n Don't buy it? Give Fairy stockfish a Wizard and find out! \n **2) Archer token cost 7 -> 5** \n While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a rook. But certainly not more than two bishops! \n **3) Snare token cost 2 -> 1** \n The snare cannot capture, and is very weak to attack by pawns. Giving it a valuation of more than a pawn seems unfair for this reason. \n **4) Rolling Snare Movement buff** \n The Rolling Snare now moves like a Queen to make it more comparable to pawn/painter promotions."
-      }
-    ]
+    ],
+    "chapter": 1
   }
 }

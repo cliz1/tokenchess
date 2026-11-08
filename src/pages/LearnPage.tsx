@@ -6,16 +6,15 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import TutorialBoard from "../components/TutorialBoard";
 import lessons from "../assets/lessons.json";
+import chapters from "../assets/chapters.json";
 import { ROLE_DISPLAY_NAMES } from "../utils/chessHelpers";
 
 type LessonStep = { text?: string; note?: string; fen?: string; image?: string; challenge?: React.ComponentProps<typeof TutorialBoard>["challenge"] };
 type Lesson = { title: string; quote?: string; steps: LessonStep[] };
 const LESSONS = lessons as unknown as Record<string, Lesson>;
 
-// the guided track, grouped into chapters, in teaching order
-const CHAPTERS = [
-  { title: "Chapter 1: Basics", lessons: ["Champion", "Princess", "Amazon", "Baker", "Painter", "Snare", "Wizard", "Archer", "General"] },
-];
+// the guided track, grouped into chapters; generated from content/lessons/chapter-N/
+const CHAPTERS = chapters as { chapter: number; title: string; lessons: string[] }[];
 const TRACK = CHAPTERS.flatMap((c) => c.lessons);
 
 const DISPLAY_NAME_TO_ROLE: Record<string, string> = Object.fromEntries(
@@ -191,8 +190,8 @@ export default function LearnPage() {
 
         <div className="learn-copy" style={{ maxWidth: boardFen ? 460 : 620, fontSize: 18, lineHeight: 1.6 }}>
           {beat.first && (
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 34, fontFamily: "Fraunces, Georgia, serif", fontWeight: 600 }}>
+            <div style={{ marginBottom: 14, textAlign: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontSize: 34, fontFamily: "Fraunces, Georgia, serif", fontWeight: 600 }}>
                 {beat.title}
                 <div className={`cg-piece ${beat.role} white`} style={{ width: 44, height: 44, backgroundRepeat: "no-repeat", backgroundPosition: "center", backgroundSize: "44px 44px" }} />
               </div>
