@@ -32,6 +32,7 @@ type Props = {
   showControls?: boolean;
   challenge?: Challenge | null;
   challengeLabel?: string;
+  onSolved?: () => void;
   debugName?: string;
 }
 
@@ -54,6 +55,7 @@ export default function TutorialBoard({
   showControls = false,
   challenge = null,
   challengeLabel = "Challenge",
+  onSolved,
   debugName = "TutorialBoard",
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -333,7 +335,7 @@ const handleMove = (from: string, to: string) => {
 
     //debug("expected move @index", challengeIndexRef.current, { expectedColor, expectedMove });
 
-    const matches = uciEqual(expectedMove, from, to, undefined) || (altExpected ? uciEqual(altExpected, from, to, undefined) : false);
+    const matches = uciEqual(expectedMove, from, to, promotionRole ?? undefined) || (altExpected ? uciEqual(altExpected, from, to, promotionRole ?? undefined) : false);
 
     //debug("uciEqual =", matches);
 
@@ -566,6 +568,10 @@ useEffect(() => {
       //debug("failed to apply internalFen", e);
     }
   }, [internalFen, size]);
+
+  useEffect(() => {
+    if (feedback === "Completed!") onSolved?.();
+  }, [feedback]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // UI
   return (

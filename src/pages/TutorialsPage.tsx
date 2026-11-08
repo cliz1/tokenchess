@@ -21,20 +21,6 @@ export default function TutorialsPage() {
         ],
       },
       {
-        heading: "Fairy Pieces in Token",
-        items: [
-          { key: "Champion", label: "Champion" },
-          { key: "Princess", label: "Princess" },
-          { key: "Amazon", label: "Amazon" },
-          { key: "Baker", label: "Baker" },
-          { key: "Painter", label: "Painter" },
-          { key: "Snare", label: "Snare" },
-          { key: "Wizard", label: "Wizard" },
-          { key: "Archer", label: "Archer" },
-          { key: "General", label: "General" }
-        ],
-      },
-      {
         heading: "Setup & Playing",
         items: [{ key: "token-values", label: "Tokens" },
           { key: "draft", label: "Drafting" },

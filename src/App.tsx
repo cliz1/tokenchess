@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect } from "react";
 import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
+import LearnPage from "./pages/LearnPage";
 import BoardEditor from "./components/BoardEditor";
 import DraftBuilder from "./components/DraftBuilder";
 import AnalysisBoard from "./components/AnalysisBoard";
@@ -87,7 +88,7 @@ export default function App() {
 function AppContent() {
   const location = useLocation();
   // Hide nav + footer on any `/game` route
-  const hideNav = location.pathname === "/game";
+  const hideNav = location.pathname === "/game" || location.pathname === "/learn";
 
   useEffect(() => {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -101,7 +102,8 @@ function AppContent() {
     const isHome = location.pathname === "/";
     const isPuzzle = location.pathname.startsWith("/puzzles");
     const isTutorials = location.pathname.startsWith("/tutorials");
-    const shouldLock = isGame || isComputerGame || isHome || isPuzzle || isTutorials;
+    const isLearn = location.pathname === "/learn";
+    const shouldLock = isLearn || isGame || isComputerGame || isHome || isPuzzle || isTutorials;
 
     if (shouldLock) {
       document.body.style.overflow = "hidden";
@@ -121,6 +123,7 @@ function AppContent() {
           <nav style={{ display: "flex", gap: 12, alignItems: "center", width:"100%" }}>
             <NavLink to="/" end style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>
             <NavLink to="/tutorials" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>About</NavLink>
+            <NavLink to="/learn" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Learn</NavLink>
             <NavLink to="/editor" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Board</NavLink>
             <div style={{ position: "relative" }} className="play-menu">
   <span
@@ -219,6 +222,7 @@ function AppContent() {
           <Route path="/editor" element={<EditorRouteWrapper />} />
           <Route path="/draft" element={<DraftBuilder />} />
           <Route path="/tutorials/*" element={<TutorialsPage />} />
+          <Route path="/learn" element={<LearnPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/drafts" element={<DraftsPage />} />
