@@ -3,6 +3,7 @@ import { Chess } from "chessops/chess";
 import { makeSquare, parseSquare } from "chessops/util";
 import { parseFen } from "chessops/fen";
 import '../App.css';
+import { playSound, packHasSound } from "./sounds";
 
 // Front-end display names for piece roles whose displayed name differs from
 // their internal role slug (which stays as-is to avoid touching fen/chessops/chessground).
@@ -11,32 +12,6 @@ export const ROLE_DISPLAY_NAMES: Record<string, string> = {
   royalpainter: "Royal Painter",
   rollingsnare: "Rolling Snare",
 };
-
-export function playSound(type: "move1" | "move2" | "move3" | "move4" |  "capture1" | "capture2" | "capture3" |"check" | "paint" | "wizard" | "archer" | "x_capture" | "snare" | "win" | "lose" | "draw" | "castle") {
-  const src = {
-    move1: "/sounds/move1.mp3",
-    move2: "/sounds/move2.mp3",
-    move3: "/sounds/move3.mp3",
-    move4: "/sounds/move4.mp3",
-    capture1: "/sounds/capture1.mp3",
-    capture2: "/sounds/capture2.mp3",
-    capture3: "/sounds/capture3.mp3",
-    check: "/sounds/check.mp3",
-    paint: "/sounds/paint.mp3",
-    wizard: "/sounds/wizard.mp3",
-    archer: "/sounds/arrow.mp3",
-    x_capture: "/sounds/x_capture.mp3",
-    snare: "/sounds/snare.mp3",
-    win: "/sounds/GenericNotify.mp3",
-    lose: "/sounds/GenericNotify.mp3",
-    draw:"/sounds/GenericNotify.mp3",
-    castle: "/sounds/castle.mp3"
-  }[type];
-  const audio = new Audio(src);
-  audio.play().catch((err) => {
-    console.warn("Sound playback failed:", err);
-  });
-}
 
 // Converts chess context legal moves to Chessground dests Map
 export function calculateDests(chess: Chess): Dests {
@@ -81,17 +56,8 @@ export function movesEqual(a: any, b: any) {
   return a?.from === b?.from && a?.to === b?.to && (a?.promotion ?? null) === (b?.promotion ?? null);
 }
 
-export function playResultSound(result: string){
-  if (result == 'win'){
-    playSound('win');
-  }
-  else if (result == 'lose'){
-    playSound('lose');
-  }
-  else if (result == 'draw'){
-    playSound('draw');
-  }
-
+export function playResultSound(result: string) {
+  if (result === "win" || result === "lose" || result === "draw") playSound("result");
 }
 
 export function playMoveSound(
@@ -184,38 +150,28 @@ export function playMoveSound(
   const isPawnCapture = 
     ((movingPiece.role === "pawn") && ((fromIdx % 8) !== (toIdx % 8)))
   // --- play sounds ---
-  if (isPawnCapture){
-    const r = Math.floor(Math.random() * 2) + 1; // 1–2
-    playSound(`capture${r}` as "capture1" | "capture2");
-  }
+  // Special-mechanic effects only exist in some packs; others fall back to a plain sound.
+  const role = movingPiece.role as string;
+  const special = (ev: "paint" | "wizard" | "archer", fallback: "move" | "capture" | "castle") =>
+    playSound(packHasSound(ev) ? ev : fallback, { role });
 
-  else if (capturedPiece) {
-    if (movingPiece.role === "painter" || movingPiece.role === "royalpainter") playSound("paint");
-    else if ((movingPiece.role === 'wizard') && (capturedPiece.color===movingPiece.color))
-      playSound("wizard");
-    else if (movingPiece.role === "archer" && Math.abs(toRankIdx - fromRank) > 1) {
-      playSound("archer");
-      playSound("x_capture");
-    }
-    else if (movingPiece.role === "centaur" && Math.abs(toFile - fromFile) === Math.abs(toRankIdx - fromRank)) {
+  if (isPawnCapture) {
+    playSound("capture", { role });
+  } else if (capturedPiece) {
+    if (role === "painter" || role === "royalpainter") special("paint", "capture");
+    else if (role === "wizard" && capturedPiece.color === movingPiece.color)
+      special("wizard", "castle");
+    else if (role === "archer" && Math.abs(toRankIdx - fromRank) > 1) special("archer", "capture");
+    else if (role === "centaur" && Math.abs(toFile - fromFile) === Math.abs(toRankIdx - fromRank)) {
       // centaur's ranged diagonal shot (its knight-move deltas never satisfy file===rank distance)
-      playSound("archer");
-      playSound("x_capture");
+      special("archer", "capture");
     }
-    else if (isCastleMove){
-      playSound("castle");
-    }
-    else {
-      const r = Math.floor(Math.random() * 2) + 1; // 1–2
-      playSound(`capture${r}` as "capture1" | "capture2");
-    }
+    else if (isCastleMove) playSound("castle", { role });
+    else playSound("capture", { role });
 
-    //if (afterChess.isCheck()) playSound("check");
     if (isSnaredMove) playSound("snare");
   } else {
-    //if (afterChess.isCheck()) playSound("check");
-    const r = Math.floor(Math.random() * 4) + 1; // 1–4
-    playSound(`move${r}` as "move1" | "move2" | "move3" | "move4");
+    playSound("move", { role });
     if (isSnaredMove) playSound("snare");
   }
 }

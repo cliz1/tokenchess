@@ -9,6 +9,7 @@ import AnalysisBoard from "./components/AnalysisBoard";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { BoardThemeProvider } from "./BoardThemeContext";
 import BoardThemePicker from "./components/BoardThemePicker";
+import SoundPackPicker from "./components/SoundPackPicker";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DraftsPage from "./pages/DraftsPage";
@@ -206,6 +207,7 @@ function AppContent() {
 </div>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+              <SoundPackPicker />
               <BoardThemePicker />
               <AuthNav />
             </div>
