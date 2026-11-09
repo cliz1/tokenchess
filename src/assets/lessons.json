@@ -39,7 +39,7 @@
         "image": "/images/fairychess.png"
       },
       {
-        "text": "It was popular in some historical chess communities to include fairy pieces in chess compositions. \n The puzzle below was composed in 1911 by [Thomas Rayner Dawson](https://en.wikipedia.org/wiki/Thomas_Rayner_Dawson), a prolific fairy chess composer. \n It involves a fairy piece which combines the movement of a rook and a knight.",
+        "text": "It was popular in some historical chess communities to include fairy pieces in chess compositions. \n The puzzle below was composed in 1911 by [Thomas Rayner Dawson](https://en.wikipedia.org/wiki/Thomas_Rayner_Dawson), a prolific fairy chess composer. \n It involves a fairy piece which combines the movement of a Rook and a Knight.",
         "challenge": {
           "initialFen": "8/7p/6Pp/4P2k/8/p7/B1K5/6C1 w - - 0 1",
           "steps": [
@@ -83,7 +83,7 @@
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
       {
-        "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of pawns. For example, standard chess theory holds that a Knight is worth 3 pawns, a Rook 5 pawns, a Queen 9 pawns, *etc.*  ",
+        "text": "The token is a unit of measurement for a single piece's value in a game. \n The value is used to determine what is allowed in a starting setup or **draft**, described in the next section. \n It is equivalent to evaluating pieces in units of Pawns. For example, standard chess theory holds that a Knight is worth 3 Pawns, a Rook 5 Pawns, a Queen 9 Pawns, *etc.*  ",
         "image": "/images/Coin_of_Kushan.jpg"
       },
       {
@@ -96,7 +96,7 @@
     "quote": "",
     "steps": [
       {
-        "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games. Simply drag pieces from the pallette onto the first two ranks of the board-- the first rank is for pieces, the second rank is for pawns, painters, and snares.",
+        "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games. Simply drag pieces from the pallette onto the first two ranks of the board-- the first rank is for pieces, the second rank is for Pawns, Painters, and Snares.",
         "image": "/images/draftpage.png"
       },
       {
@@ -188,7 +188,7 @@
     "quote": "",
     "steps": [
       {
-        "text": "May 2026: \n **1) Wizard token cost 4 -> 7**. \n Fairy stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. \n Don't buy it? Give Fairy stockfish a Wizard and find out! \n **2) Archer token cost 7 -> 5** \n While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a rook. But certainly not more than two bishops! \n **3) Snare token cost 2 -> 1** \n The snare cannot capture, and is very weak to attack by pawns. Giving it a valuation of more than a pawn seems unfair for this reason. \n **4) Rolling Snare Movement buff** \n The Rolling Snare now moves like a Queen to make it more comparable to pawn/painter promotions."
+        "text": "May 2026: \n **1) Wizard token cost 4 -> 7**. \n Fairy stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. \n Don't buy it? Give Fairy stockfish a Wizard and find out! \n **2) Archer token cost 7 -> 5** \n While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a Rook. But certainly not more than two Bishops! \n **3) Snare token cost 2 -> 1** \n The Snare cannot capture, and is very weak to attack by Pawns. Giving it a valuation of more than a Pawn seems unfair for this reason. \n **4) Rolling Snare Movement buff** \n The Rolling Snare now moves like a Queen to make it more comparable to Pawn/Painter promotions."
       }
     ]
   },
@@ -363,7 +363,7 @@
     "quote": "“Suffer now and live the rest of your life as a champion.” – Muhammad Ali",
     "steps": [
       {
-        "text": "The Rook-knight, an ancient fairy piece, was first called *Campione* by the priest [Pietro Carerra](https://en.wikipedia.org/wiki/Pietro_Carrera).",
+        "text": "The Rook-Knight, an ancient fairy piece, was first called *Campione* by the priest [Pietro Carerra](https://en.wikipedia.org/wiki/Pietro_Carrera).",
         "challenge": {
           "initialFen": "8/6k1/n3p3/2p3P1/2PC2K1/1P6/8/8 w - - 0 1",
           "steps": [
@@ -385,10 +385,10 @@
             }
           ]
         },
-        "note": "Capture the knight in two moves."
+        "note": "Capture the Knight in two moves."
       },
       {
-        "text": "The Champion provides a special haven for the King, just as the rook does.",
+        "text": "The Champion provides a special haven for the King, just as the Rook does.",
         "challenge": {
           "initialFen": "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPP2PPP/RN1QK2C w kKQq - 0 1",
           "steps": [
@@ -462,7 +462,7 @@
     "quote": "“All sorrows are less with bread.” – Sancho Panza",
     "steps": [
       {
-        "text": "The King and the Baker are distinct only by blood. \n\nThe latter's fate has no significance to the game of chess, but don't be fooled - they are no less valuable than a bishop or knight. \n\nUnlike those pieces, the Baker can checkmate solely with the help of their own King.",
+        "text": "The King and the Baker are distinct only by blood. \n\nThe latter's fate has no significance to the game of chess, but don't be fooled - they are no less valuable than a Bishop or Knight. \n\nUnlike those pieces, the Baker can checkmate solely with the help of their own King.",
         "challenge": {
           "initialFen": "4M3/7k/5K2/8/8/8/8/8 w - - 0 1",
           "steps": [
@@ -539,7 +539,7 @@
     "quote": "“I dream my paintings, and then I paint my dreams.” – Vincent van Gogh",
     "steps": [
       {
-        "text": "While similar to a pawn, a Painter is incapable of violence - they are a dreamer, not a fighter. \n\nRather than capture, the Painter *paints* pieces.",
+        "text": "While similar to a Pawn, a Painter is incapable of violence - they are a dreamer, not a fighter. \n\nRather than capture, the Painter *paints* pieces.",
         "challenge": {
           "initialFen": "8/p1k1r1b1/1p4p1/1KPY1pN1/5P2/8/8/8 w - - 0 1",
           "steps": [
@@ -561,7 +561,7 @@
             }
           ]
         },
-        "note": "That rook could use a fresh coat..."
+        "note": "That Rook could use a fresh coat..."
       },
       {
         "text": "Even when [promoting](https://en.wikipedia.org/wiki/Promotion_(chess)), the Painter refuses to pick up a sword. \n \nInstead, they become a *Royal Painter*, moving like a Queen, paintbrush still in hand.",
@@ -601,7 +601,7 @@
         "note": "This race is no tie."
       },
       {
-        "text": "A painter cannot apply a new coat to a piece whose paint is still wet. \n \n **When a piece is painted, it cannot be painted again on the opponent's next move.** The piece may only be painted again once the paint dries one turn later.",
+        "text": "A Painter cannot apply a new coat to a piece whose paint is still wet. \n \n **When a piece is painted, it cannot be painted again on the opponent's next move.** \n \n The piece may only be painted again once the paint dries one turn later.",
         "challenge": {
           "initialFen": "8/4ky2/4a3/5Y2/8/8/8/4K3 w - - 0 1",
           "steps": [
@@ -635,10 +635,10 @@
             }
           ]
         },
-        "note": "Step forward to ensnare the rooks."
+        "note": "Step forward to ensnare the Rooks."
       },
       {
-        "text": "The Snare moves forward one square, \nstraight or diagonally. \n\nIt is worth no more than a single pawn, but even pieces of the highest class may fall into its clutches.",
+        "text": "The Snare moves forward one square, \nstraight or diagonally. \n\nIt is worth no more than a single Pawn, but even pieces of the highest class may fall into its clutches.",
         "challenge": {
           "initialFen": "rnb1kb1r/ppp1pppp/5n2/3q4/8/3S4/PPP2PPP/RNBQKBNR w - - 0 1",
           "steps": [
@@ -670,7 +670,7 @@
             }
           ]
         },
-        "note": "Ensnare the Queen and steal it with a pawn."
+        "note": "Ensnare the Queen and steal it with a Pawn."
       },
       {
         "text": "The Snare poses no threat on its own. \nIt gives no checks.\n\nPutting the enemy in a cage, however, makes checkmate an easy task.",
@@ -854,7 +854,7 @@
             }
           ]
         },
-        "note": "Capture the pawns."
+        "note": "Capture the Pawns."
       },
       {
         "text": "Failed by fate, the Archer chose a new path. They aquired the unthinkable ability to capture without moving. \n\nPieces **2 to 3 diagonal squares away** from the Archer stand no chance.",
@@ -946,7 +946,7 @@
         "note": "Corner the General."
       },
       {
-        "text": "The General has a special [flying style](https://www.xiangqi.com/history), enabling him to *capture* like a rook.",
+        "text": "The General has a special [flying style](https://www.xiangqi.com/history), enabling him to *capture* like a Rook.",
         "challenge": {
           "initialFen": "8/1k6/p7/1p6/3P2P1/8/PP6/G6q w - - 0 1",
           "steps": [
@@ -957,7 +957,8 @@
               }
             }
           ]
-        }
+        },
+        "note": "Employ the General's flying style."
       }
     ],
     "chapter": 1

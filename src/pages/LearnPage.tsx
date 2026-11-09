@@ -67,7 +67,8 @@ export default function LearnPage() {
   const [solved, setSolved] = useState(false);
   const beat = beats[index];
   const last = beats.length - 1;
-  const gated = !!beat.challenge && !solved;
+  // anything before the furthest beat reached was already solved (challenges gate progress), so revisits aren't gated
+  const gated = !!beat.challenge && !solved && index >= furthest;
 
   useEffect(() => {
     setSolved(false);
@@ -197,7 +198,19 @@ export default function LearnPage() {
               </div>
               {beat.quote && (
                 <div style={{ fontStyle: "italic", color: "#8a8171", fontSize: 15, marginTop: 4 }}>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ p: (props) => <span {...props} /> }}>{beat.quote}</ReactMarkdown>
+                  {(() => {
+                    // keep the attribution ("– Vincent van Gogh") together on its own line instead of wrapping mid-name
+                    const m = beat.quote.match(/^([\s\S]*?)\s*[–—]\s*([^–—]+)$/);
+                    const md = (t: string) => (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ p: (props) => <span {...props} /> }}>{t}</ReactMarkdown>
+                    );
+                    return m ? (
+                      <>
+                        <div style={{ textWrap: "balance" }}>{md(m[1])}</div>
+                        <div style={{ whiteSpace: "nowrap", marginTop: 2 }}>– {md(m[2].trim())}</div>
+                      </>
+                    ) : md(beat.quote);
+                  })()}
                 </div>
               )}
             </div>
