@@ -86,6 +86,7 @@ export default function HomePage() {
   const allPieces = [...standardPieces, ...customPieces];
 
   const [showModal, setShowModal] = useState(false);
+  const [showBoard, setShowBoard] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeDraft, setActiveDraft] = useState<ActiveDraft | null | undefined>(undefined);
@@ -326,18 +327,22 @@ export default function HomePage() {
           {/* Leaderboard */}
           <section className="home-board" style={card}>
             <div style={cardHead}>
-              <h2 style={cardTitle}>Leaderboard</h2>
-              <span style={muted}>by wins</span>
+              <h2 style={cardTitle}>Leaderboard - Wins</h2>
+              {board && board.length > 5 && (
+                <button type="button" onClick={() => setShowBoard(true)} style={{ ...cardLink, background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                  Top 20 →
+                </button>
+              )}
             </div>
             {board === null ? (
               <div style={muted}>Loading…</div>
             ) : board.length === 0 ? (
               <div style={muted}>No finished games yet.</div>
             ) : (
-              <ol style={{ ...list, display: "grid", gridAutoFlow: "column", gridTemplateRows: "repeat(5, auto)", columnGap: 20, rowGap: 6 }}>
-                {board.map((p, i) => (
-                  <li key={p.username} title={`${p.games} played`} style={{ display: "flex", gap: 8, alignItems: "baseline", minWidth: 0 }}>
-                    <span style={{ width: 18, color: i === 0 ? "#d4af37" : "#777", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
+              <ol style={list}>
+                {board.slice(0, 5).map((p, i) => (
+                  <li key={p.username} title={`${p.games} played`} style={{ display: "flex", gap: 8, alignItems: "baseline", minWidth: 0, padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <span style={{ width: 22, color: i === 0 ? "#d4af37" : "#777", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
                     <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: i < 3 ? 600 : 400 }}>{p.username}</span>
                     <span style={{ ...muted, fontVariantNumeric: "tabular-nums" }}>{p.wins}</span>
                   </li>
@@ -347,6 +352,34 @@ export default function HomePage() {
           </section>
         </div>
       </div>
+
+      {showBoard && board && (
+        <div
+          onClick={() => setShowBoard(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, backgroundColor: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+        >
+          <div
+            role="dialog"
+            aria-label="Top 20 by wins"
+            onClick={(e) => e.stopPropagation()}
+            style={{ ...card, width: "100%", maxWidth: 420, maxHeight: "85vh", overflowY: "auto", padding: 24, boxShadow: "0 20px 60px rgba(0,0,0,0.6)" }}
+          >
+            <div style={cardHead}>
+              <h2 style={cardTitle}>Top 20 - Wins</h2>
+              <button type="button" onClick={() => setShowBoard(false)} style={{ ...cardLink, background: "none", border: "none", padding: 0, cursor: "pointer" }}>Close</button>
+            </div>
+            <ol style={list}>
+              {board.map((p, i) => (
+                <li key={p.username} title={`${p.games} played`} style={{ display: "flex", gap: 8, alignItems: "baseline", minWidth: 0, padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <span style={{ width: 22, color: i === 0 ? "#d4af37" : "#777", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
+                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: i < 3 ? 600 : 400 }}>{p.username}</span>
+                  <span style={{ ...muted, fontVariantNumeric: "tabular-nums" }}>{p.wins}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
 
       {/* "What's new" button — fixed so it's always visible even with scroll disabled */}
       {!showModal && (

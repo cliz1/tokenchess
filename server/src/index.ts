@@ -684,7 +684,7 @@ app.get("/api/leaderboard", async (_req, res) => {
     const top = [...stats.entries()]
       .filter(([, s]) => s.wins > 0)
       .sort((a, b) => b[1].wins - a[1].wins || a[1].games - b[1].games)
-      .slice(0, 10);
+      .slice(0, 20);
 
     const users = await prisma.user.findMany({
       where: { id: { in: top.map(([id]) => id) } },
