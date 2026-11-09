@@ -14,7 +14,7 @@ import { calculateDests, getCheckHighlights, playMoveSound } from "../utils/ches
 
 const DEBUG = false;
 
-type PromotionRole = "queen" | "rook" | "bishop" | "knight" | "champion" | "princess";
+type PromotionRole = "queen" | "rook" | "bishop" | "knight";
 type UciMove = { from: string; to: string; promotion?: PromotionRole };
 type Challenge = {
   initialFen?: string;
@@ -680,7 +680,7 @@ useEffect(() => {
           }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: "white", border: "2px solid black", borderRadius: 8, padding: 10, display: "flex", gap: 10 }}>
-            {["queen", "rook", "bishop", "knight", "champion", "princess"].map((role) => (
+            {["queen", "rook", "bishop", "knight"].map((role) => (
               <button key={role} onClick={() => promotePawn(role as PromotionRole)} style={{ padding: 0, border: "none", background: "none", cursor: "pointer" }} title={role}>
                 <div className={`cg-piece ${role} ${pendingPromotion?.color}`} style={{ width: 48, height: 48 }} />
               </button>

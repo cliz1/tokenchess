@@ -1,0 +1,9 @@
+node_modules
+server/node_modules
+server/dist
+.git
+dist
+src
+public
+packages
+content

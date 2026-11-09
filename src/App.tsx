@@ -99,11 +99,10 @@ function AppContent() {
 
     const isGame = location.pathname === ("/game");
     const isComputerGame = location.pathname === "/play/computer";
-    const isHome = location.pathname === "/";
     const isPuzzle = location.pathname.startsWith("/puzzles");
     const isTutorials = location.pathname.startsWith("/tutorials");
     const isLearn = location.pathname === "/learn";
-    const shouldLock = isLearn || isGame || isComputerGame || isHome || isPuzzle || isTutorials;
+    const shouldLock = isLearn || isGame || isComputerGame || isPuzzle || isTutorials;
 
     if (shouldLock) {
       document.body.style.overflow = "hidden";
@@ -118,7 +117,7 @@ function AppContent() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {!hideNav && (
-        <header style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <header style={{ padding: "4px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="app-container" style={{ display: "flex", alignItems: "center" }}>
           <nav style={{ display: "flex", gap: 12, alignItems: "center", width:"100%" }}>
             <NavLink to="/" end style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Home</NavLink>

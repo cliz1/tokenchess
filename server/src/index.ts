@@ -660,6 +660,45 @@ app.get("/api/lobby", (_req, res) => {
   res.json(serializeLobby());
 });
 
+// leaderboard: players ranked by number of wins (any result ending 1-0 / 0-1; draws don't count)
+app.get("/api/leaderboard", async (_req, res) => {
+  try {
+    const [whiteWins, blackWins, whiteGames, blackGames] = await Promise.all([
+      prisma.game.groupBy({ by: ["whiteId"], where: { result: { endsWith: "1-0" } }, _count: { _all: true } }),
+      prisma.game.groupBy({ by: ["blackId"], where: { result: { endsWith: "0-1" } }, _count: { _all: true } }),
+      prisma.game.groupBy({ by: ["whiteId"], _count: { _all: true } }),
+      prisma.game.groupBy({ by: ["blackId"], _count: { _all: true } }),
+    ]);
+
+    const stats = new Map<string, { wins: number; games: number }>();
+    const bump = (id: string, key: "wins" | "games", n: number) => {
+      const row = stats.get(id) ?? { wins: 0, games: 0 };
+      row[key] += n;
+      stats.set(id, row);
+    };
+    whiteWins.forEach((g) => bump(g.whiteId, "wins", g._count._all));
+    blackWins.forEach((g) => bump(g.blackId, "wins", g._count._all));
+    whiteGames.forEach((g) => bump(g.whiteId, "games", g._count._all));
+    blackGames.forEach((g) => bump(g.blackId, "games", g._count._all));
+
+    const top = [...stats.entries()]
+      .filter(([, s]) => s.wins > 0)
+      .sort((a, b) => b[1].wins - a[1].wins || a[1].games - b[1].games)
+      .slice(0, 10);
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: top.map(([id]) => id) } },
+      select: { id: true, username: true },
+    });
+    const names = new Map(users.map((u) => [u.id, u.username]));
+
+    res.json(top.map(([id, s]) => ({ username: names.get(id) ?? "Unknown", wins: s.wins, games: s.games })));
+  } catch (e) {
+    console.error("leaderboard failed", e);
+    res.status(500).json({ error: "Could not load leaderboard" });
+  }
+});
+
 // game history
 app.get("/api/games", authMiddleware, async (req: any, res) => {
   const userId = req.user.id;

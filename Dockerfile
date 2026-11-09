@@ -20,11 +20,11 @@ RUN cd server && npx prisma generate
 RUN cd server && npm run build
 
 # ---------- Runtime ----------
-FROM node:20-bullseye AS runtime
+FROM node:20-bookworm AS runtime
 WORKDIR /app
 
 # Minimal runtime deps
-RUN apt-get update -y && apt-get install -y libssl1.1 ca-certificates wget && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y libssl3 ca-certificates wget && rm -rf /var/lib/apt/lists/*
 
 # Copy only server artifacts
 COPY --from=builder /app/server/dist ./server/dist

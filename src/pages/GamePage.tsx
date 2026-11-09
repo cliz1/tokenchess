@@ -969,7 +969,7 @@ if (clock) {
             boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
           }}
         >
-          {["queen", "rook", "bishop", "knight", "champion", "princess"].map((role) => (
+          {["queen", "rook", "bishop", "knight"].map((role) => (
             <button
               key={role}
               onClick={() => promotePawn(role)}
