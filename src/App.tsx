@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect } from "react";
-import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import TutorialsPage from "./pages/TutorialsPage";
 import LearnPage from "./pages/LearnPage";
@@ -18,7 +18,8 @@ import CreateRoomPage from "./pages/CreateRoomPage";
 import JoinRoomPage from "./pages/JoinRoomPage";
 import PuzzlesPage from "./pages/PuzzlesPage";
 import LobbyPage from "./pages/LobbyPage";
-import GamesPage from "./pages/GamesPage";
+import ProfilePage from "./pages/ProfilePage";
+import ProfileMenu from "./components/ProfileMenu";
 import ComputerGamePage from "./pages/ComputerGamePage";
 
 import "./App.css";
@@ -55,6 +56,13 @@ function ComputerGameRouteWrapper() {
 }
 
 
+// old "My Games" URL now lives on the profile page
+function GamesRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return <Navigate to={user ? `/profile/${encodeURIComponent(user.username)}` : "/login"} replace />;
+}
+
 function AuthNav() {
   const { user, logout } = useAuth();
   if (!user) {
@@ -67,7 +75,7 @@ function AuthNav() {
   }
   return (
     <>
-    <NavLink to="/games" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Games</NavLink>
+      <ProfileMenu />
       <NavLink to="/drafts" style={({isActive}) => ({ color: isActive ? "#fff" : "#aaa" })}>My Drafts</NavLink>
       <button onClick={logout} style={{ background: "transparent", border: "none", color: "#aaa", cursor: "pointer" }}>Logout</button>
     </>
@@ -232,7 +240,8 @@ function AppContent() {
           <Route path="/game/join" element={<JoinRoomPage />} />
           <Route path="/puzzles" element={<PuzzlesPage />} />
           <Route path="/lobby" element={<LobbyPage />} />
-          <Route path="/games" element={<GamesPage />} />
+          <Route path="/games" element={<GamesRedirect />} />
+          <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/play/computer" element={<ComputerGameRouteWrapper />} />
         </Routes>
       </main>

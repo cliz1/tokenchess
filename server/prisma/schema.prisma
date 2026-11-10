@@ -14,6 +14,10 @@ model User {
   username   String    @unique
   password   String
   drafts     Draft[]   @relation("owner_drafts")
+  bio           String?
+  flair         String?
+  country       String?
+  favoritePiece String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   gamesAsWhite  Game[]  @relation("white_games")

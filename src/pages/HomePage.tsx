@@ -39,8 +39,8 @@ const cardTitle: React.CSSProperties = { margin: 0, fontSize: 15, letterSpacing:
 const cardLink: React.CSSProperties = { color: "#d4af37", fontSize: 13, textDecoration: "none" };
 const muted: React.CSSProperties = { color: "#888", fontSize: 13 };
 const list: React.CSSProperties = { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 };
-const primaryBtn: React.CSSProperties = { padding: "9px 16px", borderRadius: 6, background: "#d4af37", color: "#1a1408", fontWeight: 600, fontSize: 14, textDecoration: "none" };
 const ghostBtn: React.CSSProperties = { padding: "9px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.18)", color: "#ddd", fontSize: 14, textDecoration: "none" };
+const primaryBtn: React.CSSProperties = { ...ghostBtn, color: "#d4af37" };
 
 
 const homeCss = `

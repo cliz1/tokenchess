@@ -429,6 +429,130 @@ app.get("/api/me", authMiddleware, async (req: any, res) => {
   res.json({ id: user.id, email: user.email, username: user.username });
 });
 
+// ---------- profiles ----------
+const PROFILE_PIECES = new Set([
+  "pawn", "knight", "bishop", "rook", "queen", "king", "champion", "princess", "amazon", "mann",
+  "painter", "royalpainter", "snare", "rollingsnare", "wizard", "archer", "general", "centaur",
+]);
+
+function shapeGame(g: any) {
+  return {
+    id: g.id,
+    whiteId: g.whiteId,
+    blackId: g.blackId,
+    whiteUsername: g.white.username,
+    blackUsername: g.black.username,
+    result: g.result,
+    pgn: g.pgn,
+    startFen: g.startFen,
+    timeControl: g.timeControl,
+    playedAt: g.playedAt.toISOString(),
+    moveCount: g.pgn.split("\n\n")[1]?.split(/\s+/).filter((t: string) => t && !/^\d+\./.test(t) && !["1-0","0-1","1/2-1/2","*"].includes(t)).length ?? 0,
+  };
+}
+
+// public profile: customization fields, W/D/L and the most recent games
+app.get("/api/users/:username/profile", async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username: req.params.username },
+      select: { id: true, username: true, bio: true, flair: true, country: true, favoritePiece: true, createdAt: true },
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const mine = { OR: [{ whiteId: user.id }, { blackId: user.id }] };
+    const [whiteWins, blackWins, whiteLosses, blackLosses, total, recent] = await Promise.all([
+      prisma.game.count({ where: { whiteId: user.id, result: { endsWith: "1-0" } } }),
+      prisma.game.count({ where: { blackId: user.id, result: { endsWith: "0-1" } } }),
+      prisma.game.count({ where: { whiteId: user.id, result: { endsWith: "0-1" } } }),
+      prisma.game.count({ where: { blackId: user.id, result: { endsWith: "1-0" } } }),
+      prisma.game.count({ where: mine }),
+      prisma.game.findMany({
+        where: mine,
+        include: { white: { select: { username: true } }, black: { select: { username: true } } },
+        orderBy: { playedAt: "desc" },
+        take: 10,
+      }),
+    ]);
+    const wins = whiteWins + blackWins;
+    const losses = whiteLosses + blackLosses;
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      bio: user.bio,
+      flair: user.flair,
+      country: user.country,
+      favoritePiece: user.favoritePiece,
+      joinedAt: user.createdAt.toISOString(),
+      stats: { wins, draws: total - wins - losses, losses, total },
+      recentGames: recent.map(shapeGame),
+    });
+  } catch (e) {
+    console.error("profile failed", e);
+    res.status(500).json({ error: "Could not load profile" });
+  }
+});
+
+// all of a user's games (paged), for "see all games"
+app.get("/api/users/:username/games", async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { username: req.params.username }, select: { id: true } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const skip = Math.max(0, Number(req.query.skip) || 0);
+    const take = Math.min(100, Math.max(1, Number(req.query.take) || 50));
+    const games = await prisma.game.findMany({
+      where: { OR: [{ whiteId: user.id }, { blackId: user.id }] },
+      include: { white: { select: { username: true } }, black: { select: { username: true } } },
+      orderBy: { playedAt: "desc" },
+      skip,
+      take,
+    });
+    res.json(games.map(shapeGame));
+  } catch (e) {
+    console.error("user games failed", e);
+    res.status(500).json({ error: "Could not load games" });
+  }
+});
+
+// edit own profile; every field is optional and an empty value clears it
+app.put("/api/me/profile", authMiddleware, async (req: any, res) => {
+  const { bio, flair, country, favoritePiece } = req.body ?? {};
+  const data: Record<string, string | null> = {};
+
+  if (bio !== undefined) {
+    const b = typeof bio === "string" ? bio.trim() : "";
+    if (b.length > 120) return res.status(400).json({ error: "Bio must be 120 characters or fewer" });
+    data.bio = b || null;
+  }
+  if (flair !== undefined) {
+    const f = typeof flair === "string" ? flair.trim() : "";
+    // short and emoji-only (no letters, digits or whitespace); the client picker offers a single emoji
+    if (f.length > 16 || /[A-Za-z0-9\s]/.test(f)) {
+      return res.status(400).json({ error: "Flair must be a single emoji" });
+    }
+    data.flair = f || null;
+  }
+  if (country !== undefined) {
+    const c = typeof country === "string" ? country.trim().toUpperCase() : "";
+    if (c && !/^[A-Z]{2}$/.test(c)) return res.status(400).json({ error: "Invalid country" });
+    data.country = c || null;
+  }
+  if (favoritePiece !== undefined) {
+    const p = typeof favoritePiece === "string" ? favoritePiece.trim().toLowerCase() : "";
+    if (p && !PROFILE_PIECES.has(p)) return res.status(400).json({ error: "Unknown piece" });
+    data.favoritePiece = p || null;
+  }
+
+  try {
+    const u = await prisma.user.update({ where: { id: req.user.id }, data });
+    res.json({ bio: u.bio, flair: u.flair, country: u.country, favoritePiece: u.favoritePiece });
+  } catch (e) {
+    console.error("profile update failed", e);
+    res.status(500).json({ error: "Could not save profile" });
+  }
+});
+
 function expandFenRank(rank: string): string[] {
   const out: string[] = [];
   for (const ch of rank) {
