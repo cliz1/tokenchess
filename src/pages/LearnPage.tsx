@@ -105,6 +105,20 @@ export default function LearnPage() {
   // chessground needs a multiple of 8 px
   const boardSize = Math.max(240, Math.floor(Math.min(vp.h - 190, wide ? vp.w * 0.5 : vp.w - 32) / 8) * 8);
 
+  const resetProgress = () => {
+    if (!window.confirm("Reset all tutorial progress and start over?")) return;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(FURTHEST_KEY);
+    } catch {
+      /* storage unavailable */
+    }
+    setSolved(false);
+    setFurthest(0);
+    setIndex(0);
+    setShowProgress(false);
+  };
+
   const next = () => setIndex((i) => Math.min(last, i + 1));
   const prev = () => setIndex((i) => Math.max(0, i - 1));
 
@@ -251,6 +265,13 @@ export default function LearnPage() {
             style={{ background: "#1a1610", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: 20, width: "100%", maxWidth: 460, maxHeight: "100%", overflowY: "auto", position: "relative" }}
           >
               <button type="button" onClick={() => setShowProgress(false)} aria-label="Close" style={{ background: "none", border: "none", color: "#aaa", fontSize: 22, cursor: "pointer", minWidth: 44, minHeight: 44, position: "absolute", top: 8, right: 8 }}>✕</button>
+            <button
+              type="button"
+              onClick={resetProgress}
+              style={{ background: "none", border: "none", padding: "0 2px", marginBottom: 10, color: "#8a8171", fontSize: 12, textDecoration: "underline", cursor: "pointer" }}
+            >
+              Reset progress
+            </button>
             {CHAPTERS.map((ch) => (
               <div key={ch.title} style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 22, fontFamily: "Fraunces, Georgia, serif", fontWeight: 600, margin: "0 44px 12px 2px" }}>{ch.title}</div>
