@@ -792,7 +792,7 @@ function serializePlayers(room: Room) {
 // helper: broadcast a room update to all clients, computing role/color per-client from room.players
 function sendRoomUpdate(
   room: Room,
-  payload: { fen?: string; lastMove?: [string, string]; result?: RoomResult | string; reason?: string; takebackApplied?: boolean } = {},
+  payload: { fen?: string; lastMove?: [string, string]; result?: RoomResult | string; reason?: string; takebackApplied?: boolean; leftUsername?: string } = {},
   msgType: "update" | "gameOver" | "newGame" | "sync" = "update",
 ) {
   for (const client of room.clients) {
@@ -824,6 +824,7 @@ function sendRoomUpdate(
       drawOffers: room.drawVotes ? Array.from(room.drawVotes) : [],
       takebackOffers: room.takebackVotes ? Array.from(room.takebackVotes) : [],
       takebackApplied: payload.takebackApplied,
+      leftUsername: payload.leftUsername,
       colors: {
         white: room.whitePlayerId,
         black: room.blackPlayerId,
@@ -1390,6 +1391,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.clients.delete(ws);
 
       const uid = (ws as any).playerId;
+      let leftUsername: string | undefined;
+      if (uid && room.players?.includes(uid)) leftUsername = room.usernames?.[uid];
       if (uid && room.players) {
         // explicit leave: remove player from the players list and usernames mapping
         room.players = room.players.filter((p) => p !== uid);
@@ -1403,7 +1406,7 @@ wss.on("connection", (ws: WebSocket, req) => {
           broadcastLobby();
         }, 30_000);
       } else {
-        sendRoomUpdate(room, {}, "update");
+        sendRoomUpdate(room, { leftUsername }, "update");
       }
 
       try {

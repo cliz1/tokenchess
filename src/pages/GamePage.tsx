@@ -55,6 +55,7 @@ export default function GamePage() {
   const [opponentDrawOffered, setOpponentDrawOffered] = useState(false);
   const [opponentRematchOffered, setOpponentRematchOffered] = useState(false);
   const [opponentTakebackOffered, setOpponentTakebackOffered] = useState(false);
+  const [leftNotice, setLeftNotice] = useState<string | null>(null);
 
 
  type ClockState = {
@@ -128,6 +129,8 @@ export default function GamePage() {
   const onGameUpdate = useCallback((update: GameUpdate) => {
     //console.log("[onGameUpdate]", update);
     if (update.players) setPlayers(update.players);
+    if (update.leftUsername) setLeftNotice(`${update.leftUsername} has left the game`);
+    else if (update.type === "newGame" || (update.players && update.players.length >= 2)) setLeftNotice(null);
     if (update.role) setRole(update.role);
     if (update.color) setPlayerColor(update.color);
     if (update.colors) setColors(update.colors);
@@ -210,7 +213,8 @@ export default function GamePage() {
             outcome = "draw";
           }
         }
-        if (outcome) {
+        // a leave rebroadcasts the existing result; don't replay the game-end sound for it
+        if (outcome && !update.leftUsername) {
           playResultSound(outcome);
         }
       setGameResult(update.result as "1-0" | "0-1" | "1/2-1/2" | "ongoing");
@@ -812,6 +816,7 @@ if (clock) {
                 {opponentDrawOffered && <div>Your opponent offers a draw</div>}
                 {opponentRematchOffered && <div>Your opponent offers a rematch</div>}
                 {opponentTakebackOffered && <div>Your opponent requests a takeback</div>}
+                {leftNotice && <div>{leftNotice}</div>}
               </div>
             )}
 

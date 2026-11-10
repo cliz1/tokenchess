@@ -23,6 +23,7 @@ export type GameUpdate = {
   drawOffers?: string[];
   takebackOffers?: string[];
   takebackApplied?: boolean;
+  leftUsername?: string;
   colors?: {white: string ; black: string};
   startFen?: string;
   moves?: string[];
@@ -79,6 +80,7 @@ export function useGameSocket(roomId: string, onUpdate: (update: GameUpdate) => 
           drawOffers: data.drawOffers,
           takebackOffers: data.takebackOffers,
           takebackApplied: data.takebackApplied,
+          leftUsername: data.leftUsername,
           draftWarning: data.draftWarning,
           startFen: data.startFen,
           moves: data.moves,
