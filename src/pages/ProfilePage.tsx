@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
+import Flair from "../components/Flair";
 import GameCard from "../components/GameCard";
-import { FavoritePiece, NameLine, PieceIcon, Record } from "../components/ProfileBadge";
-import { COUNTRIES, FAVORITE_PIECES, FLAIRS, pieceLabel, type Profile, type ProfileGame } from "../utils/profile";
+import { FavoritePiece, Flag, NameLine, PieceIcon, Record } from "../components/ProfileBadge";
+import { COUNTRIES, FAVORITE_PIECES, FLAIRS, countryName, pieceLabel, type Profile, type ProfileGame } from "../utils/profile";
 
 const PAGE = 50;
 
@@ -56,11 +57,15 @@ export default function ProfilePage() {
       {!editing ? (
         <div style={{ background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 10, padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
-              <NameLine p={profile} size={26} />
-              <span style={{ fontSize: 14, color: "#aaa" }}>
-                Joined {new Date(profile.joinedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-              </span>
+            <NameLine p={profile} size={26} />
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-evenly", gap: 12, flexWrap: "wrap", fontSize: 14, color: "#aaa" }}>
+              <span>Joined {new Date(profile.joinedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+              {profile.country && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <Flag code={profile.country} size="14px" />
+                  <span>{countryName(profile.country)}</span>
+                </span>
+              )}
             </div>
             {isMe && <button style={smallBtn} onClick={() => setEditing(true)}>Edit profile</button>}
           </div>
@@ -152,7 +157,7 @@ function ProfileEditor({ profile, onCancel, onSaved }: {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           <button type="button" style={{ ...chip(flair === ""), fontSize: 12, padding: "0 10px", color: "#aaa" }} onClick={() => setFlair("")}>None</button>
           {FLAIRS.map((f) => (
-            <button key={f} type="button" style={chip(flair === f)} onClick={() => setFlair(f)} aria-label={`Flair ${f}`}>{f}</button>
+            <button key={f} type="button" style={chip(flair === f)} onClick={() => setFlair(f)} aria-label={`Flair ${f}`}><Flair emoji={f} size="24px" /></button>
           ))}
         </div>
       </div>

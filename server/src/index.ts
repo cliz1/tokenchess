@@ -812,11 +812,17 @@ app.get("/api/leaderboard", async (_req, res) => {
 
     const users = await prisma.user.findMany({
       where: { id: { in: top.map(([id]) => id) } },
-      select: { id: true, username: true },
+      select: { id: true, username: true, flair: true, country: true },
     });
-    const names = new Map(users.map((u) => [u.id, u.username]));
+    const info = new Map(users.map((u) => [u.id, u]));
 
-    res.json(top.map(([id, s]) => ({ username: names.get(id) ?? "Unknown", wins: s.wins, games: s.games })));
+    res.json(top.map(([id, s]) => ({
+      username: info.get(id)?.username ?? "Unknown",
+      flair: info.get(id)?.flair ?? null,
+      country: info.get(id)?.country ?? null,
+      wins: s.wins,
+      games: s.games,
+    })));
   } catch (e) {
     console.error("leaderboard failed", e);
     res.status(500).json({ error: "Could not load leaderboard" });

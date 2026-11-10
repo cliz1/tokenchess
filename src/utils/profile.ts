@@ -27,10 +27,7 @@ export type ProfileGame = {
   moveCount: number;
 };
 
-export const FLAIRS = [
-  "♟️", "👑", "🔥", "⚡", "🧠", "🎯", "🌟", "💎", "🦉", "🐉", "🦊", "🐺", "🦅", "🐍", "🐙", "🦄",
-  "🏰", "⚔️", "🛡️", "🧙", "🏹", "🎨", "🍞", "🪤", "☕", "🌙", "☀️", "🌊", "🍀", "🎲", "🚀", "🤖",
-];
+export const FLAIRS = ["♟️", "👑", "🔥", "⚡", "🪙", "🦉", "🐉", "🐺", "🐆", "❤️", "🌙", "⭐", "☕", "🍓", "⚔️", "🧙", "🏹", "🍞"];
 
 export const FAVORITE_PIECES = [
   "pawn", "knight", "bishop", "rook", "queen", "king", "champion", "princess", "amazon", "mann",

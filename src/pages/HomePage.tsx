@@ -6,6 +6,7 @@ import { parseBoardFen } from "chessops/fen";
 import chapters from "../assets/chapters.json";
 import lessons from "../assets/lessons.json";
 import "../assets/custom-pieces.css";
+import Flair from "../components/Flair";
 
 const UPDATE_KEY = "seenUpdateNovember2026";
 
@@ -31,6 +32,26 @@ function draftRows(fen?: string): (string | null)[][] | null {
   } catch {
     return null;
   }
+}
+
+type LeaderEntry = { username: string; flair: string | null; country: string | null; wins: number; games: number };
+
+function LeaderRow({ p, rank }: { p: LeaderEntry; rank: number }) {
+  return (
+    <li title={`${p.games} played`} style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0, padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <span style={{ width: 22, color: rank === 0 ? "#d4af37" : "#777", fontVariantNumeric: "tabular-nums" }}>{rank + 1}</span>
+      <span style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8 }}>
+        <Link
+          to={`/profile/${encodeURIComponent(p.username)}`}
+          style={{ color: "inherit", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: rank < 3 ? 600 : 400 }}
+        >
+          {p.username}
+        </Link>
+        {p.flair && <Flair emoji={p.flair} size="16px" />}
+      </span>
+      <span style={{ color: "#d4af37", fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{p.wins}</span>
+    </li>
+  );
 }
 
 const card: React.CSSProperties = { display: "flex", flexDirection: "column", padding: 16, background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 };
@@ -91,7 +112,7 @@ export default function HomePage() {
   const { user } = useAuth();
   const [activeDraft, setActiveDraft] = useState<ActiveDraft | null | undefined>(undefined);
   const [rooms, setRooms] = useState<LobbyRoom[]>([]);
-  const [board, setBoard] = useState<{ username: string; wins: number; games: number }[] | null>(null);
+  const [board, setBoard] = useState<LeaderEntry[] | null>(null);
   const learn = learnProgress();
 
   useEffect(() => {
@@ -340,13 +361,7 @@ export default function HomePage() {
               <div style={muted}>No finished games yet.</div>
             ) : (
               <ol style={list}>
-                {board.slice(0, 5).map((p, i) => (
-                  <li key={p.username} title={`${p.games} played`} style={{ display: "flex", gap: 8, alignItems: "baseline", minWidth: 0, padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                    <span style={{ width: 22, color: i === 0 ? "#d4af37" : "#777", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
-                    <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: i < 3 ? 600 : 400 }}>{p.username}</span>
-                    <span style={{ ...muted, fontVariantNumeric: "tabular-nums" }}>{p.wins}</span>
-                  </li>
-                ))}
+                {board.slice(0, 5).map((p, i) => <LeaderRow key={p.username} p={p} rank={i} />)}
               </ol>
             )}
           </section>
@@ -369,13 +384,7 @@ export default function HomePage() {
               <button type="button" onClick={() => setShowBoard(false)} style={{ ...cardLink, background: "none", border: "none", padding: 0, cursor: "pointer" }}>Close</button>
             </div>
             <ol style={list}>
-              {board.map((p, i) => (
-                <li key={p.username} title={`${p.games} played`} style={{ display: "flex", gap: 8, alignItems: "baseline", minWidth: 0, padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span style={{ width: 22, color: i === 0 ? "#d4af37" : "#777", fontVariantNumeric: "tabular-nums" }}>{i + 1}</span>
-                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: i < 3 ? 600 : 400 }}>{p.username}</span>
-                  <span style={{ ...muted, fontVariantNumeric: "tabular-nums" }}>{p.wins}</span>
-                </li>
-              ))}
+              {board.map((p, i) => <LeaderRow key={p.username} p={p} rank={i} />)}
             </ol>
           </div>
         </div>

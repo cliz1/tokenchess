@@ -1,4 +1,5 @@
 // src/components/ProfileBadge.tsx — flair / flag / favorite piece / W-D-L shared by the popup and the profile page
+import Flair from "./Flair";
 import { countryName, pieceLabel, type Profile } from "../utils/profile";
 
 export function PieceIcon({ role, size = 28 }: { role: string; size?: number }) {
@@ -10,27 +11,32 @@ export function PieceIcon({ role, size = 28 }: { role: string; size?: number }) 
   );
 }
 
-export function NameLine({ p, size = 22 }: { p: Pick<Profile, "username" | "flair" | "country">; size?: number }) {
+export function Flag({ code, size = "0.85em" }: { code: string; size?: string }) {
+  return (
+    <span
+      className={`fi fi-${code.toLowerCase()}`}
+      title={countryName(code)}
+      role="img"
+      aria-label={countryName(code)}
+      style={{ fontSize: size, borderRadius: 2, flex: "0 0 auto" }}
+    />
+  );
+}
+
+// username + flair; the flag is opt-in (the profile page shows it beside "Joined" instead)
+export function NameLine({ p, size = 22, showFlag = false }: { p: Pick<Profile, "username" | "flair" | "country">; size?: number; showFlag?: boolean }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: size, fontWeight: 700, color: "#fff", flexWrap: "wrap" }}>
-      {p.flair && <span>{p.flair}</span>}
       <span>{p.username}</span>
-      {p.country && (
-        <span
-          className={`fi fi-${p.country.toLowerCase()}`}
-          title={countryName(p.country)}
-          role="img"
-          aria-label={countryName(p.country)}
-          style={{ fontSize: "0.85em", borderRadius: 2 }}
-        />
-      )}
+      {showFlag && p.country && <Flag code={p.country} />}
+      {p.flair && <Flair emoji={p.flair} />}
     </div>
   );
 }
 
-export function Record({ stats }: { stats: Profile["stats"] }) {
+export function Record({ stats, size = 20 }: { stats: Profile["stats"]; size?: number }) {
   return (
-    <div style={{ fontSize: 20, fontWeight: 600, color: "#888", fontVariantNumeric: "tabular-nums" }}>
+    <div style={{ fontSize: size, fontWeight: 600, color: "#888", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
       <span style={{ color: "#2a9d5c" }}>{stats.wins} W</span> / <span style={{ color: "#9aa5a6" }}>{stats.draws} D</span> / <span style={{ color: "#c0392b" }}>{stats.losses} L</span>
     </div>
   );

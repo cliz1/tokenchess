@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
 import type { Profile } from "../utils/profile";
-import { NameLine } from "./ProfileBadge";
+import { Flag, NameLine } from "./ProfileBadge";
 
 export default function ProfileMenu() {
   const { user } = useAuth();
@@ -54,7 +54,10 @@ export default function ProfileMenu() {
           {failed && <div style={{ color: "#c98a8a", fontSize: 13 }}>Couldn't load your profile.</div>}
           {!profile && !failed && <div style={{ color: "#888", fontSize: 13 }}>Loading…</div>}
           {profile && (
-            <NameLine p={profile} size={16} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <NameLine p={profile} size={16} />
+              {profile.country && <span style={{ marginLeft: "auto", display: "flex" }}><Flag code={profile.country} size="14px" /></span>}
+            </div>
           )}
           <Link to={href} style={{ textAlign: "center", padding: "5px 10px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.18)", color: "#ddd", fontSize: 13, textDecoration: "none" }}>
             Full profile
