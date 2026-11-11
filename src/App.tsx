@@ -21,6 +21,7 @@ import LobbyPage from "./pages/LobbyPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProfileMenu from "./components/ProfileMenu";
 import ComputerGamePage from "./pages/ComputerGamePage";
+import GameAnalysisPage from "./pages/GameAnalysisPage";
 
 import "./App.css";
 
@@ -230,6 +231,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/analysis" element={<AnalysisRouteWrapper />} />
+          <Route path="/analysis/:gameId" element={<GameAnalysisPage />} />
           <Route path="/editor" element={<EditorRouteWrapper />} />
           <Route path="/draft" element={<DraftBuilder />} />
           <Route path="/tutorials/*" element={<TutorialsPage />} />

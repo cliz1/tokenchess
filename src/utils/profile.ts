@@ -53,3 +53,28 @@ export const countryName = (code: string) => {
 export const COUNTRIES = COUNTRY_CODES.map((code) => ({ code, name: countryName(code) })).sort((a, b) =>
   a.name.localeCompare(b.name)
 );
+
+// GET /games/:id — a ProfileGame plus the players' flairs
+export type SharedGame = ProfileGame & { whiteFlair: string | null; blackFlair: string | null };
+
+// Turn a stored result ("Black Resigns: 1-0", "Checkmate: 0-1", "Agreement: 1/2-1/2", ...) into
+// the winner, a headline and the reason, e.g. { winner: "white", headline: "White wins", reason: "Black resigned" }
+export type ResultSummary = { winner: "white" | "black" | null; score: string; headline: string; reason: string };
+
+export const summarizeResult = (result: string): ResultSummary => {
+  const score = result.endsWith("1/2-1/2") ? "1/2-1/2" : result.endsWith("1-0") ? "1-0" : result.endsWith("0-1") ? "0-1" : "*";
+  const winner = score === "1-0" ? "white" : score === "0-1" ? "black" : null;
+  const kind = result.split(":")[0].trim().toLowerCase();
+
+  let reason: string;
+  if (kind.includes("resign")) reason = kind.startsWith("white") ? "White resigned" : "Black resigned";
+  else if (kind.includes("flag")) reason = kind.startsWith("white") ? "White ran out of time" : "Black ran out of time";
+  else if (kind.startsWith("checkmate")) reason = "Checkmate";
+  else if (kind.startsWith("stalemate")) reason = "Stalemate";
+  else if (kind.startsWith("agreement")) reason = "Draw by agreement";
+  else if (kind.startsWith("insufficient")) reason = "Insufficient material";
+  else reason = kind.charAt(0).toUpperCase() + kind.slice(1);
+
+  const headline = winner === "white" ? "White wins" : winner === "black" ? "Black wins" : "Draw";
+  return { winner, score, headline, reason };
+};

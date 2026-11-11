@@ -32,11 +32,6 @@ function outcomeScore(result: string): string {
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-function extractMoves(pgn: string): string[] {
-  const moveSection = pgn.split("\n\n")[1] ?? "";
-  return moveSection.trim().split(/\s+/).filter((t) => t && !/^\d+\./.test(t) && !["1-0", "0-1", "1/2-1/2", "*"].includes(t));
-}
-
 const outcomeColor = (o: Outcome) => (o === "win" ? "#2a9d5c" : o === "loss" ? "#c0392b" : "#7f8c8d");
 
 export default function GameCard({ game, perspectiveId }: { game: ProfileGame; perspectiveId: string }) {
@@ -47,16 +42,7 @@ export default function GameCard({ game, perspectiveId }: { game: ProfileGame; p
   return (
     <div
       style={{ display: "flex", background: "#1a1a1a", borderRadius: 8, overflow: "hidden", border: "1px solid #2a2a2a", cursor: "pointer" }}
-      onClick={() =>
-        navigate("/analysis", {
-          state: {
-            initialFen: game.startFen,
-            initialMoves: extractMoves(game.pgn),
-            initialUci: game.moves ? game.moves.split(" ").filter(Boolean) : undefined,
-            orientation: game.whiteId === perspectiveId ? "white" : "black",
-          },
-        })
-      }
+      onClick={() => navigate(`/analysis/${game.id}`, { state: { orientation: game.whiteId === perspectiveId ? "white" : "black" } })}
     >
       <div style={{ width: 4, flexShrink: 0, background: outcomeColor(outcome) }} />
       <div style={{ flex: 1, padding: "12px 16px", display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>

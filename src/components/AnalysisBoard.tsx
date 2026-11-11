@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
 import { Chess } from "chessops/chess";
@@ -26,6 +26,10 @@ type AnalysisBoardProps = {
   onMove?: (from: string, to: string) => void;
   initialMoves?: string[]; // SAN strings e.g. ["e4", "e5", "Nf3"]
   initialUci?: string[]; // exact UCI moves (preferred over initialMoves when present)
+  // optional slots used when reviewing a saved game
+  players?: { white: ReactNode; black: ReactNode }; // shown above/below the board, following the board orientation
+  movesFooter?: ReactNode;   // shown under the move list (e.g. the result)
+  extraActions?: ReactNode;  // extra buttons in the toolbar
 };
 
 export default function AnalysisBoard({
@@ -34,6 +38,9 @@ export default function AnalysisBoard({
   onMove,
   initialMoves = EMPTY_MOVES,
   initialUci = EMPTY_MOVES,
+  players,
+  movesFooter,
+  extraActions,
 }: AnalysisBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<any>(null);
@@ -536,179 +543,184 @@ function buildMainlineRows() {
   return rows;
 }
 
-/** produce condensed text for a variation by following first-child chain */
-function variationText(startNode: CNode<MyNodeData> | PNode<MyNodeData>, maxPly = 8) {
-  const parts: string[] = [];
-  let node: any = startNode;
-  let count = 0;
-  while (node && count < maxPly) {
-    parts.push(getSan(node));
-    node = node.children[0];
-    count++;
-  }
-  return parts.join(" ");
+/** A clickable move "button". `small` is used inside variations. */
+function moveButton(node: CNode<MyNodeData>, path: Array<PNode<MyNodeData> | CNode<MyNodeData>>, small = false) {
+  const current = node === currentNodeRef.current;
+  return (
+    <button
+      key={`m-${path.length}-${getSan(node)}`}
+      className={`ab-move${small ? " ab-vmove" : ""}${current ? " ab-move-current" : ""}`}
+      onClick={() => goToNode(node, path)}
+    >
+      {getSan(node)}
+    </button>
+  );
 }
 
-/** Render a single variation line */
-function renderVariation(v: { node: CNode<MyNodeData> | PNode<MyNodeData>; path: Array<any> }, keySuffix: string) {
-  const text = variationText(v.node, 10);
+/**
+ * One variation as a run of clickable moves with its own numbering ("2. Nf3 Nc6 3. Bb5"),
+ * followed by any sub-variations nested one level deeper.
+ */
+function renderVariation(startNode: CNode<MyNodeData>, startPath: Array<PNode<MyNodeData> | CNode<MyNodeData>>, depth: number, key: string): ReactNode {
+  const tokens: ReactNode[] = [];
+  const subs: ReactNode[] = [];
+  let node: CNode<MyNodeData> | undefined = startNode;
+  let path = startPath;
+  let first = true;
+  while (node) {
+    const ply = path.length - 1; // 1-based ply of this move
+    const white = ply % 2 === 1;
+    const num = Math.ceil(ply / 2);
+    if (white) tokens.push(<span key={`n-${ply}`} className="ab-vnum">{num}.</span>);
+    else if (first) tokens.push(<span key={`n-${ply}`} className="ab-vnum">{num}…</span>);
+    tokens.push(moveButton(node, path, true));
+    if (!first) {
+      // alternatives to this ply (siblings of a non-first move in the line)
+      const parent = path[path.length - 2] as PNode<MyNodeData> | CNode<MyNodeData>;
+      parent.children.slice(1).forEach((sib, i) => {
+        subs.push(renderVariation(sib, [...path.slice(0, -1), sib], depth + 1, `${key}-${ply}-${i}`));
+      });
+    }
+    first = false;
+    const next: CNode<MyNodeData> | undefined = node.children[0];
+    if (!next) break;
+    node = next;
+    path = [...path, next];
+  }
   return (
-    <div
-      key={`var-${keySuffix}-${text}`}
-      onClick={() => goToNode(v.node as any, v.path)}
-      style={{
-        fontSize: 12,
-        color: "#cfcfcf",
-        marginLeft: 8,
-        marginTop: 2,
-        cursor: "pointer",
-      }}
-      title={text}
-    >
-      ({text})
+    <div key={key} className="ab-var" style={{ marginLeft: depth > 0 ? 10 : 0 }}>
+      <div className="ab-var-line">{tokens}</div>
+      {subs}
     </div>
   );
 }
 
-/** Render the whole move list as lines */
+/** Render the whole move list: shaded full-move rows, variations nested right under their row */
 function renderMoveList() {
   const rows = buildMainlineRows();
+  if (rows.length === 0) return <div className="ab-empty">No moves yet. Drag a piece to start analysing.</div>;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      {rows.map((row) => {
-        const whiteLabel = getSan(row.whiteNode);
-        const blackLabel = row.blackNode ? getSan(row.blackNode) : null;
-
-        return (
-          <div key={`row-${row.moveNum}`} style={{ display: "flex", flexDirection: "column" }}>
-            {/* Mainline row: "1. e4 e5" */}
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-                lineHeight: "1.4",
-                fontSize: 14,
-              }}
-            >
-              <div style={{ minWidth: 28, textAlign: "right", color: "#ddd" }}>
-                {row.moveNum}.
-              </div>
-
-              <div
-                onClick={() => goToNode(row.whiteNode, row.whitePath)}
-                style={{ cursor: "pointer", fontWeight: row.whiteNode === currentNodeRef.current ? "bold" : "normal" }}
-                title={whiteLabel}
-              >
-                {whiteLabel}
-              </div>
-
-              {blackLabel ? (
-                <div
-                  onClick={() => row.blackNode && goToNode(row.blackNode, row.blackPath)}
-                  style={{ cursor: "pointer", fontWeight: row.blackNode === currentNodeRef.current ? "bold" : "normal" }}
-                  title={blackLabel}
-                >
-                  {blackLabel}
-                </div>
-              ) : (
-                <div style={{ color: "#777" }} />
-              )}
-            </div>
-
-            {/* Variations for the white ply (small) */}
-            <div style={{ display: "flex", gap: 8, marginLeft: 36, flexWrap: "wrap" }}>
-              {row.whiteVariations.map((v: any, idx: number) => renderVariation(v, `w-${row.moveNum}-${idx}`))}
-            </div>
-
-            {/* Variations for the black ply (small) */}
-            <div style={{ display: "flex", gap: 8, marginLeft: 36, marginTop: 2, flexWrap: "wrap" }}>
-              {row.blackVariations.map((v: any, idx: number) => renderVariation(v, `b-${row.moveNum}-${idx}`))}
-            </div>
+    <div>
+      {rows.map((row) => (
+        <div key={`row-${row.moveNum}`} className={`ab-fullmove ${row.moveNum % 2 === 1 ? "ab-odd" : "ab-even"}`}>
+          <div className="ab-row">
+            <div className="ab-num">{row.moveNum}</div>
+            {moveButton(row.whiteNode, row.whitePath)}
+            {row.blackNode ? moveButton(row.blackNode, row.blackPath) : <div />}
           </div>
-        );
-      })}
+          {[...row.whiteVariations, ...row.blackVariations].map((v: any, idx: number) =>
+            renderVariation(v.node, v.path, 0, `v-${row.moveNum}-${idx}`)
+          )}
+        </div>
+      ))}
     </div>
   );
 }
 
-  return (
-<div
-    style={{
-      minHeight: "100%",
-      display: "flex",
-      justifyContent: "center",
-      padding: 24,
-    }}
-  >
-    <div
-      style={{
-        position: "relative",
-        display: "flex",
-        gap: 32,
-        alignItems: "flex-start",
-      }}
-    >
-  {/* Board Section */}
-  <div>
-    <div
-      ref={containerRef}
-      className="cg-wrap"
-      style={{ width: 600, height: 600, boxShadow: "0 6px 18px rgba(0,0,0,0.35)", borderRadius: 8, overflow: "hidden",}}
-    />
-    <div style={{ marginTop: 10, fontFamily: "monospace" }}>
-      FEN: {fen}
-    </div>
-    {chess && (
-      <div style={{ marginTop: 5, fontFamily: "monospace" }}>
-        Turn: {chess.turn === "white" ? "White" : "Black"}
-        {chess.isCheck() && " (Check!)"}
-        {chess.isCheckmate() && " (Checkmate!)"}
-        {chess.isStalemate() && " (Stalemate!)"}
-        {chess.isInsufficientMaterial() && " (Insufficient Material!)"}
-      </div>
-    )}
-  </div>
+  const [analysisOn, setAnalysisOn] = useState(false);
+  const [fenCopied, setFenCopied] = useState(false);
 
-  {/* PGN & Controls Section */}
-  <div style={{ width: 320, fontFamily: "monospace" }}>
-    <div style={{ marginBottom: 8, fontWeight: "bold" }}>Move List:</div>
-    <div
-      className="pgn-tree"
-      style={{
-        padding: 8,
-        border: "1px solid #ccc",
-        borderRadius: 6,
-        maxHeight: 500,
-        overflowY: "auto",
-        fontSize: 14,
-        backgroundColor: "#151515ff",
-        whiteSpace: "normal",
-      }}
-    >
-      {renderMoveList()}
+  // keep the current move visible inside the list (scroll the list only, never the page)
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    const el = list?.querySelector<HTMLElement>(".ab-move-current");
+    if (!list) return;
+    if (!el) { list.scrollTop = 0; return; }
+    const top = el.offsetTop - list.offsetTop;
+    if (top < list.scrollTop) list.scrollTop = top - 8;
+    else if (top + el.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = top + el.offsetHeight - list.clientHeight + 8;
+  });
+
+  const topSide = currentOrientation === "white" ? "black" : "white";
+  const bottomSide = currentOrientation;
+  const status = chess
+    ? chess.isCheckmate() ? "Checkmate"
+      : chess.isStalemate() ? "Stalemate"
+      : chess.isInsufficientMaterial() ? "Insufficient material"
+      : chess.isCheck() ? "Check"
+      : null
+    : null;
+
+  return (
+<div className="ab-page">
+  <style>{AB_CSS}</style>
+  <div className="ab-layout">
+    {/* Board column: player strip, board, player strip (strips follow the board orientation) */}
+    <div className="ab-board-col">
+      {players && <div className="ab-strip">{players[topSide]}</div>}
+      <div
+        ref={containerRef}
+        className="cg-wrap"
+        style={{ width: 600, height: 600, boxShadow: "0 6px 18px rgba(0,0,0,0.35)", borderRadius: 8, overflow: "hidden" }}
+      />
+      {players && <div className="ab-strip">{players[bottomSide]}</div>}
     </div>
-    <div style={{ marginTop: 10 }}>
-       <button onClick={() => goToFirst()} style={{ marginRight: 10 }}>&lt;&lt;</button>
-      <button onClick={() => goToPrev()} style={{ marginRight: 10 }}>&lt;</button>
-      <button onClick={() => goToNext()}>&gt;</button>
-      <button onClick={() => goToLast()} style={{ marginRight: 10 }}>&gt;&gt;</button>
-  </div>
-      <div style={{ marginTop: 10 }}>
-      <button onClick={resetBoard} style={{ marginTop: 10, marginRight: 10, }}>
-        Reset
-      </button>
-      <button onClick={flipBoard} style={{ marginRight: 10 }}>
-        Flip
-      </button>
-      <button
-    onClick={() =>
-      navigate("/editor", { state: { initialFen: fen } })
-    }
-  >
-    Edit Board
-  </button>
-    </div>
+
+    {/* Side panel: exactly as tall as the board column (the inner box is absolutely sized to it) */}
+    <div className="ab-panel">
+      <div className="ab-panel-inner">
+        <div className="ab-top">
+          <button
+            className={`ab-toggle${analysisOn ? " on" : ""}`}
+            role="switch"
+            aria-checked={analysisOn}
+            onClick={() => setAnalysisOn((v) => !v)}
+            title="Engine analysis (Fairy-Stockfish)"
+          >
+            <span className="ab-switch"><span className="ab-knob" /></span>
+            Analysis
+          </button>
+          {chess && (
+            <span className="ab-turn">
+              {status ? <b>{status} · </b> : null}
+              {chess.turn === "white" ? "White" : "Black"} to move
+            </span>
+          )}
+        </div>
+        {analysisOn && <div className="ab-engine">Fairy-Stockfish analysis is coming soon.</div>}
+
+        <div className="pgn-tree ab-list" ref={listRef}>{renderMoveList()}</div>
+        {movesFooter && <div className="ab-footer">{movesFooter}</div>}
+
+        <div className="ab-nav">
+          <button onClick={() => goToFirst()} title="First move" aria-label="First move">«</button>
+          <button onClick={() => goToPrev()} title="Previous move (←)" aria-label="Previous move">‹</button>
+          <button onClick={() => goToNext()} title="Next move (→)" aria-label="Next move">›</button>
+          <button onClick={() => goToLast()} title="Last move" aria-label="Last move">»</button>
+        </div>
+
+        <div className="ab-tools">
+          <button onClick={flipBoard} title="Flip board" aria-label="Flip board" className="ab-icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+          </button>
+          <button onClick={resetBoard} title="Clear all moves and start over" aria-label="Reset" className="ab-icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
+          </button>
+          <button onClick={() => navigate("/editor", { state: { initialFen: fen } })} title="Edit this position in the board editor" aria-label="Edit board" className="ab-icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => { navigator.clipboard?.writeText(fen).then(() => { setFenCopied(true); setTimeout(() => setFenCopied(false), 1200); }).catch(() => {}); }}
+            title={fenCopied ? "FEN copied" : `Copy FEN: ${fen}`}
+            aria-label="Copy FEN"
+            className="ab-icon-btn"
+            style={fenCopied ? { color: "#7be0a3" } : undefined}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          {extraActions}
+        </div>
+      </div>
     </div>
 
   {/* Promotion Modal */}
@@ -786,7 +798,47 @@ function renderMoveList() {
       </div>
     </div>
   )}
-</div>
+  </div>
 </div>
   );
 }
+
+const AB_CSS = `
+.ab-page { min-height: 100%; display: flex; justify-content: center; padding: 20px 16px 32px; }
+.ab-layout { position: relative; display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap; justify-content: center; }
+.ab-board-col { width: 600px; max-width: 100%; display: flex; flex-direction: column; }
+.ab-strip { height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 4px; font-size: 15px; min-width: 0; }
+.ab-panel { width: 340px; max-width: 100%; position: relative; min-height: 440px; }
+.ab-panel-inner { position: absolute; inset: 0; display: flex; flex-direction: column; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; }
+.ab-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; flex: 0 0 auto; }
+.ab-toggle { display: inline-flex; align-items: center; gap: 9px; background: none; border: none; color: #ddd; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; }
+.ab-switch { width: 34px; height: 19px; border-radius: 10px; background: #3a3a3a; position: relative; transition: background .15s; }
+.ab-knob { position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #bbb; transition: left .15s; }
+.ab-toggle.on .ab-switch { background: #5b9a3c; }
+.ab-toggle.on .ab-knob { left: 17px; background: #fff; }
+.ab-turn { font-size: 12px; color: #888; }
+.ab-turn b { color: #e8b04a; font-weight: 600; }
+.ab-engine { padding: 8px 12px; font-size: 12px; color: #999; background: #151515; border-bottom: 1px solid #2a2a2a; flex: 0 0 auto; }
+.ab-list { flex: 1 1 0; min-height: 0; overflow-y: auto; position: relative; }
+.ab-fullmove.ab-odd { background: #1c1c1c; }
+.ab-fullmove.ab-even { background: #262626; }
+.ab-row { display: grid; grid-template-columns: 38px 1fr 1fr; align-items: center; padding: 1px 6px 1px 0; }
+.ab-num { text-align: center; color: #777; font-size: 13px; }
+.ab-move { font: inherit; font-size: 16px; text-align: left; background: transparent; color: #ddd; border: none; border-radius: 4px; padding: 6px 8px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ab-move:hover { background: rgba(255,255,255,0.08); }
+.ab-move-current, .ab-move-current:hover { background: #6a6a6a; color: #fff; font-weight: 600; }
+.ab-var { margin: 0 6px 6px 38px; padding: 2px 0 2px 8px; border-left: 2px solid #444; }
+.ab-var .ab-var { margin: 2px 0 2px 4px; }
+.ab-var-line { display: flex; flex-wrap: wrap; align-items: center; gap: 1px 2px; }
+.ab-vnum { color: #777; font-size: 12px; padding: 0 1px 0 4px; }
+.ab-vmove { font-size: 14px; padding: 2px 5px; color: #bbb; }
+.ab-empty { color: #777; font-size: 13px; padding: 16px 12px; text-align: center; }
+.ab-footer { padding: 10px 14px; border-top: 1px solid #2a2a2a; background: #161616; font-size: 14px; flex: 0 0 auto; }
+.ab-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px; border-top: 1px solid #2a2a2a; flex: 0 0 auto; }
+.ab-nav button { font-size: 26px; line-height: 1; padding: 8px 0 10px; background: #2c2c2c; color: #ddd; border: none; border-radius: 6px; cursor: pointer; }
+.ab-nav button:hover { background: #3a3a3a; }
+.ab-nav button:active { background: #444; }
+.ab-tools { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 4px 6px 8px; flex: 0 0 auto; }
+.ab-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 28px; padding: 0; background: transparent; color: #999; border: none; border-radius: 5px; cursor: pointer; }
+.ab-icon-btn:hover { background: #2c2c2c; color: #fff; }
+`;

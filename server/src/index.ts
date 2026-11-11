@@ -832,6 +832,24 @@ app.get("/api/leaderboard", async (_req, res) => {
   }
 });
 
+// a single finished game, public so links can be shared (the UUID is the only access control)
+app.get("/api/games/:id", async (req, res) => {
+  try {
+    const g = await prisma.game.findUnique({
+      where: { id: req.params.id },
+      include: {
+        white: { select: { username: true, flair: true } },
+        black: { select: { username: true, flair: true } },
+      },
+    });
+    if (!g) return res.status(404).json({ error: "Game not found" });
+    res.json({ ...shapeGame(g), whiteFlair: g.white.flair, blackFlair: g.black.flair });
+  } catch (e) {
+    console.error("game lookup failed", e);
+    res.status(500).json({ error: "Could not load game" });
+  }
+});
+
 // game history
 app.get("/api/games", authMiddleware, async (req: any, res) => {
   const userId = req.user.id;
