@@ -388,6 +388,14 @@
                 "to": "g1"
               }
             }
+          ],
+          "alt_steps": [
+            {
+              "white": {
+                "from": "e1",
+                "to": "h1"
+              }
+            }
           ]
         },
         "note": "Castle with the Champion."
