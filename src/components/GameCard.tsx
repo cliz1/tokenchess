@@ -37,6 +37,7 @@ const outcomeColor = (o: Outcome) => (o === "win" ? "#2a9d5c" : o === "loss" ? "
 export default function GameCard({ game, perspectiveId }: { game: ProfileGame; perspectiveId: string }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const outcome = outcomeFor(game.result, perspectiveId, game.whiteId);
 
   return (
@@ -76,9 +77,14 @@ export default function GameCard({ game, perspectiveId }: { game: ProfileGame; p
             <pre style={{ margin: 0, fontSize: 12, color: "#aaa", whiteSpace: "pre-wrap", fontFamily: "monospace", lineHeight: 1.6 }}>{game.pgn}</pre>
             <button
               style={{ marginTop: 10, background: "#2a2a2a", border: "1px solid #3a3a3a", color: "#aaa", fontSize: 11, padding: "4px 10px", borderRadius: 4, cursor: "pointer" }}
-              onClick={() => navigator.clipboard.writeText(game.pgn)}
+              onClick={() =>
+                navigator.clipboard.writeText(game.pgn).then(() => {
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                }).catch(() => {})
+              }
             >
-              Copy PGN
+              {copied ? "Copied!" : "Copy PGN"}
             </button>
           </div>
         )}
