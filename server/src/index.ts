@@ -191,7 +191,6 @@ setInterval(() => {
 
     room.concluded = true;
     room.status = "finished";
-    saveGame(room).catch(console.error) // safer PGN save attempt
 
     room.result =
       flaggedSide === "white"
@@ -200,6 +199,8 @@ setInterval(() => {
 
 
     applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
+    // must run after room.result is set, otherwise saveGame bails out
+    saveGame(room).catch(console.error);
     broadcastLobby();
 
     sendRoomUpdate(
@@ -1246,6 +1247,10 @@ wss.on("connection", (ws: WebSocket, req) => {
         room.drawVotes = new Set();
         room.rematchVotes = new Set();
         room.takebackVotes = new Set();
+
+        // the flagging move was still played, so record it before saving the PGN
+        room.moves = room.moves ?? [];
+        room.moves.push(san);
 
         applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
         await saveGame(room); // attempt to save PGN
