@@ -29,12 +29,14 @@ function AnalysisRouteWrapper() {
   const state = location.state as any;
   const initialFen = state?.initialFen ?? "4k3/8/2b3l1/8/8/2S3N1/8/4K3";
   const initialMoves = state?.initialMoves ?? [];
+  const initialUci = state?.initialUci ?? undefined;
   const orientation = state?.orientation ?? "white";
 
   return (
     <AnalysisBoard
       initialFen={initialFen}
       initialMoves={initialMoves}
+      initialUci={initialUci}
       orientation={orientation}
     />
   );

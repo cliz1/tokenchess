@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { WebSocketServer, WebSocket } from "ws";
 import http from "http";
-import { parseSquare } from "chessops/util";
+import { parseSquare, makeUci } from "chessops/util";
 import { parseFen, makeFen } from "chessops/fen";
 import { Chess } from "chessops";
 import path from "path";
@@ -110,6 +110,7 @@ export type Room = {
   moves?: string[];   // SAN strings e.g. ["e4", "e5", "Nf3"]
   fenHistory?: string[];      // fen after each ply in `moves`, same length/index as `moves`
   moveSquares?: [string, string][]; // [from, to] after each ply in `moves`
+  uciMoves?: string[];        // UCI (incl. promotion role) per ply in `moves`, same index; saved to Game.moves
   startFen?: string;  // snapshot the FEN when the game begins
   draftWarning?: string; // set when a draft fails budget validation
 
@@ -445,6 +446,7 @@ function shapeGame(g: any) {
     blackUsername: g.black.username,
     result: g.result,
     pgn: g.pgn,
+    moves: g.moves ?? null,
     startFen: g.startFen,
     timeControl: g.timeControl,
     playedAt: g.playedAt.toISOString(),
@@ -852,6 +854,7 @@ app.get("/api/games", authMiddleware, async (req: any, res) => {
     blackUsername: g.black.username,
     result: g.result,
     pgn: g.pgn,
+    moves: g.moves ?? null,
     startFen: g.startFen,
     timeControl: g.timeControl,
     playedAt: g.playedAt.toISOString(),
@@ -1095,6 +1098,7 @@ wss.on("connection", (ws: WebSocket, req) => {
               room.moves = [];
               room.fenHistory = [];
               room.moveSquares = [];
+              room.uciMoves = [];
               room.draftWarning = buildDraftWarning(room, defaultedPlayerIds);
 
             } catch (err) {
@@ -1228,6 +1232,7 @@ wss.on("connection", (ws: WebSocket, req) => {
 
       // capture SAN before making the move
       const san = makeSan(chess, moveObj);
+      const uci = makeUci(moveObj);
 
       chess.play(moveObj);
       // ----- CLOCK UPDATE -----
@@ -1251,6 +1256,8 @@ wss.on("connection", (ws: WebSocket, req) => {
         // the flagging move was still played, so record it before saving the PGN
         room.moves = room.moves ?? [];
         room.moves.push(san);
+        room.uciMoves = room.uciMoves ?? [];
+        room.uciMoves.push(uci);
 
         applyResultToScores(room, room.result, room.whitePlayerId, room.blackPlayerId);
         await saveGame(room); // attempt to save PGN
@@ -1291,6 +1298,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.fenHistory.push(room.fen);
       room.moveSquares = room.moveSquares ?? [];
       room.moveSquares.push([fromStr, toStr]);
+      room.uciMoves = room.uciMoves ?? [];
+      room.uciMoves.push(uci);
       room.wetPaintHistory = room.wetPaintHistory ?? [];
       room.wetPaintHistory.push(room.wetPaintSquare);
 
@@ -1363,6 +1372,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.moves = [];
       room.fenHistory = [];
       room.moveSquares = [];
+      room.uciMoves = [];
       room.wetPaintSquare = undefined;
       room.wetPaintHistory = [];
 
@@ -1501,6 +1511,7 @@ wss.on("connection", (ws: WebSocket, req) => {
       room.moves = (room.moves ?? []).slice(0, newMoveCount);
       room.fenHistory = room.fenHistory.slice(0, newMoveCount);
       room.moveSquares = room.moveSquares.slice(0, newMoveCount);
+      room.uciMoves = (room.uciMoves ?? []).slice(0, newMoveCount);
       room.wetPaintHistory = room.wetPaintHistory.slice(0, newMoveCount);
 
       room.takebackVotes = new Set();
@@ -1777,6 +1788,8 @@ async function saveGame(room: Room) {
         blackId: room.blackPlayerId,
         result: room.result,
         pgn,
+        // UCI list is only trusted if it lines up with the SAN list (it always should)
+        moves: room.uciMoves && room.uciMoves.length === room.moves.length ? room.uciMoves.join(" ") : null,
         startFen: room.startFen ?? "",
         timeControl: timeControlStr,
       },

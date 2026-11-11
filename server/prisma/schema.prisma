@@ -47,6 +47,7 @@ model Game {
   black       User     @relation("black_games", fields: [blackId], references: [id])
   result      String   // e.g. "Checkmate: 1-0"
   pgn         String
+  moves       String?  // UCI moves, space-separated; null for games saved before this column existed
   startFen    String
   timeControl String   // e.g. "10+0"
   playedAt    DateTime @default(now())

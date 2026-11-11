@@ -3,7 +3,7 @@ import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
 import { Chess } from "chessops/chess";
 import { parseFen, makeFen } from "chessops/fen";
-import { parseSquare, makeSquare  } from "chessops/util";
+import { parseSquare, makeSquare, parseUci, charToRole } from "chessops/util";
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
@@ -16,6 +16,8 @@ import { makeSan } from 'chessops/san';
 import '../App.css';
 import { useNavigate } from "react-router-dom";
  
+const EMPTY_MOVES: string[] = []; // stable identity so the replay effect only reruns on real changes
+
 type MyNodeData = PgnNodeData & { move: any; color: "white" | "black";};
 
 type AnalysisBoardProps = {
@@ -23,13 +25,15 @@ type AnalysisBoardProps = {
   orientation?: "white" | "black";
   onMove?: (from: string, to: string) => void;
   initialMoves?: string[]; // SAN strings e.g. ["e4", "e5", "Nf3"]
+  initialUci?: string[]; // exact UCI moves (preferred over initialMoves when present)
 };
 
 export default function AnalysisBoard({
   initialFen = "start",
   orientation = "white",
   onMove,
-  initialMoves = [],
+  initialMoves = EMPTY_MOVES,
+  initialUci = EMPTY_MOVES,
 }: AnalysisBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<any>(null);
@@ -243,9 +247,9 @@ export default function AnalysisBoard({
   }, [goToNext, goToPrev]);
 
   useEffect(() => {
-  if (initialMoves.length === 0) return;
+  if (initialMoves.length === 0 && initialUci.length === 0) return;
 
-  // replay each SAN move into the pgn tree
+  // replay each move into the pgn tree
   const replayChess = initialFen === "start"
     ? Chess.default()
     : Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
@@ -255,50 +259,49 @@ export default function AnalysisBoard({
   currentNodeRef.current = pgnRef.current.moves;
   pathRef.current = [pgnRef.current.moves];
 
-  for (const san of initialMoves) {
-    // find the move object from SAN
+  // Resolve the next move. Prefer exact UCI (unambiguous, carries the promotion role);
+  // fall back to matching SAN for games saved before UCI was stored.
+  const resolve = (i: number): { move: any; san: string } | null => {
+    if (initialUci.length > 0) {
+      const mv: any = parseUci(initialUci[i]);
+      if (!mv || !replayChess.isLegal(mv)) return null;
+      let san: string;
+      try { san = makeSan(replayChess, mv); } catch { san = initialUci[i]; }
+      return { move: mv, san };
+    }
+    const san = initialMoves[i];
+    // the SAN names the promotion piece ("e8=O"), including fairy promotions
+    const promoChar = san.match(/=([A-Za-z])/)?.[1]?.toLowerCase();
+    const promotion = promoChar ? charToRole(promoChar) : undefined;
     const ctx = replayChess.ctx();
-    let matched: any = null;
     for (const [from, targets] of replayChess.allDests(ctx)) {
       for (const to of targets) {
-        const candidate: any = { from, to };
+        const candidate: any = promotion ? { from, to, promotion } : { from, to };
         try {
-          if (makeSan(replayChess, candidate) === san) {
-            matched = candidate;
-            break;
-          }
+          if (makeSan(replayChess, candidate) === san) return { move: candidate, san };
         } catch {}
-        // try promotions
-        for (const role of ["queen", "rook", "bishop", "knight"] as const) {
-          const withPromo = { from, to, promotion: role };
-          try {
-            if (makeSan(replayChess, withPromo) === san) {
-              matched = withPromo;
-              break;
-            }
-          } catch {}
-        }
-        if (matched) break;
       }
-      if (matched) break;
     }
+    return null;
+  };
 
-    if (!matched) break; // unrecognized SAN, stop replaying
+  const total = initialUci.length > 0 ? initialUci.length : initialMoves.length;
+  for (let i = 0; i < total; i++) {
+    const r = resolve(i);
+    if (!r) break; // unrecognized move, stop replaying
 
     const color = replayChess.turn;
-    extend(currentNodeRef.current, [{ san, move: matched, color } as any]);
+    extend(currentNodeRef.current, [{ san: r.san, move: r.move, color } as any]);
     const nextNode = currentNodeRef.current.children.find(
-      (c) => c.data.san === san
+      (c) => c.data.san === r.san
     )!;
     currentNodeRef.current = nextNode;
     pathRef.current = [...pathRef.current, nextNode];
-    replayChess.play(matched);
+    replayChess.play(r.move);
   }
 
   // after replaying, go back to the start position for analysis
   // (user can navigate forward with arrow keys / move list)
-  pgnRef.current.moves; // tree is built
-  // reset view to start
   const startChess = initialFen === "start"
     ? Chess.default()
     : Chess.fromSetup(parseFen(initialFen).unwrap()).unwrap();
@@ -308,7 +311,7 @@ export default function AnalysisBoard({
   forceUpdate(n => n + 1); // trigger move list re-render
   setChess(startChess);
 
-}, [initialMoves]);
+}, [initialMoves, initialUci]);
 
 
   const resetBoard = () => {

@@ -21,6 +21,7 @@ export type ProfileGame = {
   blackUsername: string;
   result: string;
   pgn: string;
+  moves: string | null; // UCI, space-separated; null for older games
   startFen: string;
   timeControl: string;
   playedAt: string;

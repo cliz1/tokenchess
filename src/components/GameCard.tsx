@@ -52,6 +52,7 @@ export default function GameCard({ game, perspectiveId }: { game: ProfileGame; p
           state: {
             initialFen: game.startFen,
             initialMoves: extractMoves(game.pgn),
+            initialUci: game.moves ? game.moves.split(" ").filter(Boolean) : undefined,
             orientation: game.whiteId === perspectiveId ? "white" : "black",
           },
         })
