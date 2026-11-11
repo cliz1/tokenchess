@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
-import { parseBoardFen } from "chessops/fen";
 import chapters from "../assets/chapters.json";
 import lessons from "../assets/lessons.json";
 import "../assets/custom-pieces.css";
 import Flair from "../components/Flair";
+import { draftRows, DraftRows } from "../components/DraftPreview";
+import { card, cardHead, cardTitle, cardLink, muted, list, ghostBtn, primaryBtn } from "../components/homeCards";
 
 const UPDATE_KEY = "seenUpdateNovember2026";
 
@@ -20,19 +21,6 @@ const UPDATE_LINES = [
 type LobbyRoom = { roomId: string; owner: string; status: string; players?: string[]; timeControl?: { length: number; increment: number }; anythingGoes?: boolean };
 
 type ActiveDraft = { id: string; name: string; isActive: boolean; data?: { fen?: string } };
-
-// a draft's FEN holds white's home ranks at the bottom: returns [rank 2 (front), rank 1 (back)] as role names (null = empty)
-function draftRows(fen?: string): (string | null)[][] | null {
-  if (!fen) return null;
-  try {
-    const board = parseBoardFen(fen.split(" ")[0]).unwrap();
-    return [1, 0].map((rank) =>
-      Array.from({ length: 8 }, (_, file) => board.get(file + 8 * rank)?.role ?? null)
-    );
-  } catch {
-    return null;
-  }
-}
 
 type LeaderEntry = { username: string; flair: string | null; country: string | null; wins: number; games: number };
 
@@ -53,16 +41,6 @@ function LeaderRow({ p, rank }: { p: LeaderEntry; rank: number }) {
     </li>
   );
 }
-
-const card: React.CSSProperties = { display: "flex", flexDirection: "column", padding: 16, background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12 };
-const cardHead: React.CSSProperties = { display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10, paddingBottom: 6, borderBottom: "1px solid rgba(212,175,55,0.25)" };
-const cardTitle: React.CSSProperties = { margin: 0, fontSize: 15, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600, color: "#e8dcc0" };
-const cardLink: React.CSSProperties = { color: "#d4af37", fontSize: 13, textDecoration: "none" };
-const muted: React.CSSProperties = { color: "#888", fontSize: 13 };
-const list: React.CSSProperties = { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 };
-const ghostBtn: React.CSSProperties = { padding: "9px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.18)", color: "#ddd", fontSize: 14, textDecoration: "none" };
-const primaryBtn: React.CSSProperties = { ...ghostBtn, color: "#d4af37" };
-
 
 const homeCss = `
 /* narrow: columns dissolve into one stack ordered hero, about, play, drafts, leaderboard */
@@ -284,7 +262,7 @@ export default function HomePage() {
           <section className="home-play" style={card}>
             <div style={cardHead}>
               <h2 style={cardTitle}>Play</h2>
-              <Link to="/lobby" style={cardLink}>Game lobby →</Link>
+              <Link to="/play" style={cardLink}>Game lobby →</Link>
             </div>
             {rooms.length === 0 ? (
               <div style={muted}>No open games right now. Be the first to start one.</div>
@@ -303,13 +281,13 @@ export default function HomePage() {
                 ))}
                 {rooms.length > 3 && (
                   <li style={{ ...muted, textAlign: "center" }}>
-                    <Link to="/lobby" style={{ color: "inherit" }}>+{rooms.length - 3} more in the lobby</Link>
+                    <Link to="/play" style={{ color: "inherit" }}>+{rooms.length - 3} more in the lobby</Link>
                   </li>
                 )}
               </ul>
             )}
             <div style={{ display: "flex", gap: 10, marginTop: "auto", paddingTop: 12, flexWrap: "wrap" }}>
-              <Link to="/lobby" style={primaryBtn}>Create a game</Link>
+              <Link to="/play" style={primaryBtn}>Create a game</Link>
               <Link to="/play/computer" style={ghostBtn}>vs Computer</Link>
             </div>
           </section>
@@ -328,17 +306,7 @@ export default function HomePage() {
                 return (
                   <>
                     <div style={{ ...muted, marginBottom: 8 }}>Active: {activeDraft.name}</div>
-                    {rows.map((row, r) => (
-                      <div key={r} style={{ display: "flex" }}>
-                        {row.map((role, f) => (
-                          <div
-                            key={f}
-                            className={role ? `cg-piece ${role} white` : undefined}
-                            style={{ flex: "1 1 0", aspectRatio: "1", maxWidth: 36, backgroundRepeat: "no-repeat", backgroundPosition: "center", backgroundSize: "contain" }}
-                          />
-                        ))}
-                      </div>
-                    ))}
+                    <DraftRows rows={rows} />
                   </>
                 );
               })()}

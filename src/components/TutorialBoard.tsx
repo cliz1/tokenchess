@@ -30,6 +30,7 @@ type Props = {
   size?: number;
   onMove?: (from: string, to: string) => void;
   showControls?: boolean;
+  showReset?: boolean; // a lone Reset button above the board (for free-play demo boards)
   challenge?: Challenge | null;
   challengeLabel?: string;
   onSolved?: () => void;
@@ -53,6 +54,7 @@ export default function TutorialBoard({
   size = 420,
   onMove,
   showControls = false,
+  showReset = false,
   challenge = null,
   challengeLabel = "Challenge",
   onSolved,
@@ -615,6 +617,27 @@ useEffect(() => {
             title="Try again"
           >
             Try again
+          </button>
+        )}
+
+        {showReset && !challenge && (
+          <button
+            onClick={() => resetChallengeAndBoard(null, "reset-demo")}
+            style={{
+              padding: "4px 8px",
+              fontSize: 12,
+              borderRadius: 6,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "transparent",
+              color: "#ddd",
+              cursor: "pointer",
+            }}
+            aria-label="Reset the board"
+            title="Reset the board"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}>
+              <polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
           </button>
         )}
       </div>

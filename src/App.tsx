@@ -136,86 +136,7 @@ function AppContent() {
             <NavLink to="/tutorials" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>About</NavLink>
             <NavLink to="/learn" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Learn</NavLink>
             <NavLink to="/editor" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Board</NavLink>
-            <div style={{ position: "relative" }} className="play-menu">
-  <span
-    style={{
-      color: location.pathname.startsWith("/game") ? "#fff" : "#aaa",
-      cursor: "pointer",
-      userSelect: "none",
-    }}
-    onClick={() => {
-      const menu = document.querySelector(".play-dropdown") as HTMLElement | null;
-      if (menu) menu.style.display = menu.style.display === "block" ? "none" : "block";
-    }}
-  >
-    Play ▾
-  </span>
-  <div
-    className="play-dropdown"
-    style={{
-      position: "absolute",
-      top: "100%",
-      left: 0,
-      background: "rgba(30,30,30,0.95)",
-      border: "1px solid rgba(255,255,255,0.05)",
-      borderRadius: 6,
-      display: "none",
-      flexDirection: "column",
-      padding: 4,
-      minWidth: 130,
-      zIndex: 100,
-    }}
-  >
-    <NavLink
-      to="/lobby"
-      style={({ isActive }) => ({
-        color: isActive ? "#fff" : "#aaa",
-        textDecoration: "none",
-        padding: "6px 10px",
-        display: "block",
-      })}
-      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
-    >
-      Game Lobby
-    </NavLink>
-    <NavLink
-      to="/game/join"
-      style={({ isActive }) => ({
-        color: isActive ? "#fff" : "#aaa",
-        textDecoration: "none",
-        padding: "6px 10px",
-        display: "block",
-      })}
-      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
-    >
-      Join by Code
-    </NavLink>
-        <NavLink
-      to="/play/computer"
-      style={({ isActive }) => ({
-        color: isActive ? "#fff" : "#aaa",
-        textDecoration: "none",
-        padding: "6px 10px",
-        display: "block",
-      })}
-      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
-    >
-      vs Computer
-    </NavLink>
-    <NavLink
-      to="/puzzles"
-      style={({ isActive }) => ({
-        color: isActive ? "#fff" : "#aaa",
-        textDecoration: "none",
-        padding: "6px 10px",
-        display: "block",
-      })}
-      onClick={() => (document.querySelector(".play-dropdown") as HTMLElement | null)?.style.setProperty("display", "none")}
-    >
-      Puzzles
-    </NavLink>
-  </div>
-</div>
+            <NavLink to="/play" style={({ isActive }) => ({ color: isActive ? "#fff" : "#aaa" })}>Play</NavLink>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
               <SoundPackPicker />
@@ -243,7 +164,8 @@ function AppContent() {
           <Route path="/game/create" element={<CreateRoomPage />} />
           <Route path="/game/join" element={<JoinRoomPage />} />
           <Route path="/puzzles" element={<PuzzlesPage />} />
-          <Route path="/lobby" element={<LobbyPage />} />
+          <Route path="/play" element={<LobbyPage />} />
+          <Route path="/lobby" element={<Navigate to="/play" replace />} />
           <Route path="/games" element={<GamesRedirect />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/play/computer" element={<ComputerGameRouteWrapper />} />

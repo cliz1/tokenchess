@@ -17,13 +17,12 @@ export default function TutorialsPage() {
           { key: "welcome", label: "Welcome" },
           { key: "standard-rules", label: "Chess" },
           { key: "fairy-chess", label: "Fairy Pieces" },
-          { key: "token-chess", label: "Token" },
         ],
       },
       {
         heading: "Setup & Playing",
-        items: [{ key: "token-values", label: "Tokens" },
-          { key: "draft", label: "Drafting" },
+        items: [{ key: "token", label: "Token Chess" },
+          { key: "draft", label: "Drafts" },
           { key: "multiplayer", label: "Playing" }
         ],
       },
@@ -153,7 +152,7 @@ export default function TutorialsPage() {
           maxHeight: "100%",
         }}
       >
-        <TutorialLesson title={lesson.title} steps={lesson.steps} quote={lesson.quote} />
+        <TutorialLesson title={lesson.title} steps={lesson.steps} quote={lesson.quote} onNavigate={(slug) => slug in LESSONS && setSelected(slug as LessonKey)} />
       </section>
     </div>
   );

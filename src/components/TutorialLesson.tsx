@@ -4,6 +4,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { ROLE_DISPLAY_NAMES } from "../utils/chessHelpers";
+import { useEffect, useState, type MouseEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../AuthContext";
+
+// In-app routes a lesson can link to that are useless without an account: guests get a notice
+// (with log in / sign up) instead of being sent there. Everything else just navigates.
+const LOGIN_REQUIRED: Record<string, string> = {
+  "/drafts": "Making a draft needs an account. Log in or sign up to build and save your own.",
+};
 
 // reverse of ROLE_DISPLAY_NAMES: displayed lesson title -> role slug used for piece CSS/asset lookup
 const DISPLAY_NAME_TO_ROLE: Record<string, string> = Object.fromEntries(
@@ -24,15 +33,58 @@ type Props = {
   title: string;
   steps: Step[];
   quote?: string;
+  onNavigate?: (slug: string) => void; // in-app links like /tutorials/token switch lessons instead of opening a tab
 };
 
-export default function TutorialLesson({ title, steps, quote }: Props) {
+export default function TutorialLesson({ title, steps, quote, onNavigate }: Props) {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const [notice, setNotice] = useState<string | null>(null);
+  // a notice belongs to the lesson it was raised on
+  useEffect(() => { setNotice(null); }, [title]);
+
+  // Links starting with "/" stay in the app (same tab); anything else (wikipedia, etc.) opens a new tab.
+  // Modified clicks (cmd/ctrl/shift/middle) are left to the browser so "open in new tab" still works.
+  const handleInternalClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+
+    const path = href.split(/[?#]/)[0];
+    if (path.startsWith("/tutorials/") && onNavigate) {
+      setNotice(null);
+      onNavigate(path.slice("/tutorials/".length));
+      return;
+    }
+
+    if (LOGIN_REQUIRED[path] && !user && !authLoading) {
+      setNotice(LOGIN_REQUIRED[path]);
+      return;
+    }
+    setNotice(null);
+    navigate(href);
+  };
   const availablePieces = ["champion", "princess", "amazon", "mann", "painter", "snare", "wizard", "archer", "general"];
   const lessonPiece = DISPLAY_NAME_TO_ROLE[title.toLowerCase()] ?? title.toLowerCase();
   const showPiece = availablePieces.includes(lessonPiece);
 
   return (
     <div style={{ padding: 16, maxWidth: 980, margin: "0 auto", marginBottom: 32}}>
+      {notice && (
+        <div
+          role="alert"
+          style={{
+            position: "sticky", top: 0, zIndex: 5, marginBottom: 12, padding: "12px 14px", borderRadius: 8,
+            background: "#2a2418", border: "1px solid #6b5a2a", color: "#e8d9a8", fontSize: 14,
+            display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10,
+          }}
+        >
+          <span style={{ flex: "1 1 260px" }}>{notice}</span>
+          <button onClick={() => navigate("/login")} style={noticeBtn}>Log in</button>
+          <button onClick={() => navigate("/register")} style={noticeBtn}>Sign up</button>
+          <button onClick={() => setNotice(null)} aria-label="Dismiss" style={{ ...noticeBtn, border: "none", color: "#aaa" }}>✕</button>
+        </div>
+      )}
+
       <h2 style={{ marginTop: 6, fontSize: 35, marginBottom:0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
         {title}
           {showPiece && (
@@ -87,9 +139,13 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
             remarkPlugins={[remarkGfm, remarkBreaks]}
             skipHtml
             components={{
-              a: ({ node, ...props }) => (
-                <a {...props} target="_blank" rel="noopener noreferrer" />
-              ),
+              a: ({ node, ...props }) => {
+                const href = props.href ?? "";
+                if (href.startsWith("/")) {
+                  return <a {...props} onClick={(e) => handleInternalClick(e, href)} />;
+                }
+                return <a {...props} target="_blank" rel="noopener noreferrer" />;
+              },
               br: () => <br />,
               p: ({ node, ...props }) => <p {...props} />,
               em: ({ children }) => <i>{children}</i>,
@@ -154,6 +210,7 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
                   size={s.boardSize ?? 460}
                   challenge={s.challenge ?? null}
                   showControls={false}
+                  showReset={!isChallenge}
                   challengeLabel={isChallenge ? "Exercise" : "Demo"}
                 />
 
@@ -173,3 +230,8 @@ export default function TutorialLesson({ title, steps, quote }: Props) {
     </div>
   );
 }
+
+const noticeBtn: React.CSSProperties = {
+  padding: "5px 12px", fontSize: 13, borderRadius: 6, cursor: "pointer",
+  background: "transparent", border: "1px solid #6b5a2a", color: "#e8d9a8",
+};

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import TutorialBoard from "../components/TutorialBoard";
 import puzzlesData from '../assets/puzzles.json';
 
@@ -12,7 +13,11 @@ type Puzzle = {
 
 export default function PuzzlesPage() {
   const [puzzles] = useState<Puzzle[]>(puzzlesData as unknown as Puzzle[]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const location = useLocation();
+  const startIndex = (location.state as { index?: number } | null)?.index; // set by the Play page preview
+  const [currentIndex, setCurrentIndex] = useState(
+    typeof startIndex === "number" && startIndex >= 0 && startIndex < puzzlesData.length ? startIndex : 0
+  );
 
   const nextPuzzle = () => {
     setCurrentIndex((i) => (i + 1) % puzzles.length);

@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../api";
 
-export default function JoinRoomPage() {
+// the code-entry form, shared by the /game/join page and the Play page
+export function JoinForm({ compact = false }: { compact?: boolean } = {}) {
   const navigate = useNavigate();
   const [roomId, setRoomId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,47 @@ async function handleJoin(e?: React.FormEvent) {
 }
 
   return (
+    <>
+      {compact ? (
+        // inline: code field plus a small forward-arrow button
+        <form onSubmit={handleJoin} style={{ display: "flex", gap: 8 }}>
+          <input
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            style={{ flex: 1, minWidth: 0, textTransform: "uppercase" }}
+            placeholder="Room code"
+            aria-label="Room code"
+          />
+          <button type="submit" disabled={loading} title="Join room" aria-label="Join room" style={{ padding: "6px 12px", fontSize: 18, lineHeight: 1, cursor: "pointer" }}>
+            {loading ? "…" : "→"}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleJoin}>
+          <label>
+            Room code:
+            <input
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value)}
+              style={{ marginLeft: 8, textTransform: "uppercase" }}
+              placeholder="Enter room code"
+            />
+          </label>
+          <div style={{ marginTop: 12 }}>
+            <button type="submit" disabled={loading}>
+              {loading ? "Checking…" : "Join Room"}
+            </button>
+          </div>
+        </form>
+      )}
+      {error && <div style={{ color: "salmon", marginTop: 12 }}>{error}</div>}
+    </>
+  );
+}
+
+export default function JoinRoomPage() {
+  const navigate = useNavigate();
+  return (
     <div style={{ padding: 20 }}>
       <button
         onClick={() => navigate("/")}
@@ -49,23 +91,7 @@ async function handleJoin(e?: React.FormEvent) {
       </button>
 
       <h2>Join Game Room</h2>
-      <form onSubmit={handleJoin}>
-        <label>
-          Room code:
-          <input
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-            style={{ marginLeft: 8, textTransform: "uppercase" }}
-            placeholder="Enter room code"
-          />
-        </label>
-        <div style={{ marginTop: 12 }}>
-          <button type="submit" disabled={loading}>
-            {loading ? "Checking…" : "Join Room"}
-          </button>
-        </div>
-      </form>
-      {error && <div style={{ color: "salmon", marginTop: 12 }}>{error}</div>}
+      <JoinForm />
     </div>
   );
 }
