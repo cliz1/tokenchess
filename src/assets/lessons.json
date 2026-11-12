@@ -74,7 +74,7 @@
     "steps": [
       {
         "text": "this variant adds a peculiar collection of fairy pieces and a **draft system** to the normal rules of chess.\n\nbefore the game begins, each player chooses their starting setup, oblivious to their opponent's choices. every piece has a price, and players have 39 tokens to spend.",
-        "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w k - 0 1"
+        "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w KQkq - 0 1"
       },
       {
         "text": "you can learn about the pieces in token chess [here](/learn).\n\nyou can use the built-in drafts to [play a game](/play), or sign up to make your own. \n\nfor the rules of drafting, see the [next section](/tutorials/draft)."
@@ -87,7 +87,7 @@
     "steps": [
       {
         "text": "the two rows of pieces a player starts with are called a \"draft.\" \n\nthe main rule is that the total cost of the pieces cannot exceed 39 tokens.",
-        "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w k - 0 1"
+        "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w KQkq - 0 1"
       },
       {
         "text": "there are a few other rules for drafts. the king is fixed on the e1 square. the upper row is reserved for pawns, and the bottom one for pieces. a player can place **no more than one Painter and no more than one Archer** in a draft.\n\nto create a draft, sign up and log in to an account. then click the 'my drafts' button in the top right corner."

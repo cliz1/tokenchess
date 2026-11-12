@@ -15,7 +15,8 @@ const UPDATE_TITLE = "November 2026 Patch Notes";
 const UPDATE_LINES = [
   "New king variant: the General, who brings Xiangqi's flying style into Token Chess.",
   // "Game mode: Anything Goes. Look for the AG tag on your drafts.", // disabled
-  "A new tutorial experience is now in beta. Feedback is welcome.",
+  "The Archer now promotes to a Centaur when it reaches the back rank. The Centaur moves like a Knight and keeps the Archer's ranged shot.",
+  "A new tutorial experience.",
 ];
 
 type LobbyRoom = { roomId: string; owner: string; status: string; players?: string[]; timeControl?: { length: number; increment: number }; anythingGoes?: boolean };
