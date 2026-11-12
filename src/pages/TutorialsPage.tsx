@@ -3,8 +3,15 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import TutorialLesson from "../components/TutorialLesson";
 import lessons from '../assets/lessons.json';
+import balanceChanges from '../assets/balance-changes.json';
 
 const LESSONS = lessons as Record<string, { title: string; quote: string; steps: { text: string }[] }>;
+
+// The Balance page is hand-written in balance-changes.json (not generated from content/lessons/balance.md).
+// Add a new { heading, changes: [{ piece, title, text }] } entry at the TOP of that file for each balance patch.
+const BALANCE_STEPS = (balanceChanges as { heading: string; changes: { piece: string; title: string; text: string }[] }[]).map(
+  (s) => ({ text: s.heading, changes: s.changes })
+);
 
 type LessonKey = keyof typeof LESSONS;
 
@@ -48,7 +55,7 @@ export default function TutorialsPage() {
   const [selected, setSelected] = useState<LessonKey>(
     lessonSlug && lessonSlug in LESSONS ? lessonSlug as LessonKey : "welcome"
   );
-  const lesson = LESSONS[selected];
+  const lesson = selected === "balance" ? { ...LESSONS.balance, steps: BALANCE_STEPS } : LESSONS[selected];
 
   // measure header height so we can size the tutorials container to exactly the viewport leftover
   const [headerHeight, setHeaderHeight] = useState<number>(0);

@@ -1,0 +1,27 @@
+[
+  {
+    "heading": "May 2026:",
+    "changes": [
+      {
+        "piece": "wizard",
+        "title": "Wizard token cost 4 → 7",
+        "text": "Fairy Stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. Don't buy it? Give Fairy Stockfish a Wizard and find out!"
+      },
+      {
+        "piece": "archer",
+        "title": "Archer token cost 7 → 5",
+        "text": "While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a Rook. But certainly not more than two Bishops!"
+      },
+      {
+        "piece": "snare",
+        "title": "Snare token cost 2 → 1",
+        "text": "The Snare cannot capture, and is very weak to attack by Pawns. Giving it a valuation of more than a Pawn seems unfair for this reason."
+      },
+      {
+        "piece": "rollingsnare",
+        "title": "Rolling Snare movement buff",
+        "text": "The Rolling Snare now moves like a Queen to make it more comparable to Pawn/Painter promotions."
+      }
+    ]
+  }
+]
