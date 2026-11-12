@@ -7,7 +7,7 @@ export default function CreateRoomPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [length] = useState<number>(6);
-  const [anythingGoes, setAnythingGoes] = useState(false);
+  const [anythingGoes] = useState(false) /* setAnythingGoes: restore with the checkbox */;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

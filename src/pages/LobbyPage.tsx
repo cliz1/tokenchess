@@ -16,7 +16,7 @@ export default function LobbyPage() {
   const [minutes, setMinutes] = useState(10); // default 10 min
   const [increment, setIncrement] = useState(0); // default 0 sec increment
   const [isPrivate, setIsPrivate] = useState(false); // default to public
-  const [anythingGoes, setAnythingGoes] = useState(false); // default horde restrictions on
+  const [anythingGoes] = useState(false) /* setAnythingGoes: restore with the checkbox */; // default horde restrictions on
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 

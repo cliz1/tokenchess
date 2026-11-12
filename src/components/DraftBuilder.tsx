@@ -83,16 +83,17 @@ export default function DraftBuilder({
     }
   }
 
-  function handleToggleAnythingGoes(e: React.ChangeEvent<HTMLInputElement>) {
-    const next = e.target.checked;
-    if (next) {
-      flashWarning(
-        "Anything Goes drafts ignore piece quantity limits. This draft won't be usable in standard (non-Anything Goes) games unless it also satisfies the normal limits.",
-        5000,
-      );
-    }
-    setAnythingGoes(next);
-  }
+  // Anything Goes disabled; uncomment with the checkbox to re-enable:
+  // function handleToggleAnythingGoes(e: React.ChangeEvent<HTMLInputElement>) {
+  //   const next = e.target.checked;
+  //   if (next) {
+  //     flashWarning(
+  //       "Anything Goes drafts ignore piece quantity limits. This draft won't be usable in standard (non-Anything Goes) games unless it also satisfies the normal limits.",
+  //       5000,
+  //     );
+  //   }
+  //   setAnythingGoes(next);
+  // }
 
   function handleToggleUseGeneral(e: React.ChangeEvent<HTMLInputElement>) {
     const next = e.target.checked;
