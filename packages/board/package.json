@@ -7,6 +7,6 @@
   "types": "src/index.ts",
   "dependencies": {
     "chessground": "github:cliz1/chessground#931e04aab850549d025ab4eb65b6ea35905ee8bb",
-    "chessops": "github:cliz1/chessops#6bf2e9b5bededc5347b55fe29c0eabbf904eef22"
+    "chessops": "github:cliz1/chessops#4d7edf090c9f5fbeb62e068c96b128b2f128727a"
   }
 }
