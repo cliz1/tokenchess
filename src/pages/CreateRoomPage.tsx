@@ -53,6 +53,7 @@ export default function CreateRoomPage() {
 
       <h2>Create Game Room</h2>
       <form onSubmit={handleCreate}>
+        {/* Anything Goes mode disabled — uncomment to re-enable
         <label
           title="Disables piece quantity (horde) limits for both players' drafts. Token budget still applies."
         >
@@ -64,6 +65,7 @@ export default function CreateRoomPage() {
             style={{ marginLeft: 5 }}
           />
         </label>
+        */}
         <div style={{ marginTop: 12 }}>
           <button type="submit" disabled={loading}>
             {loading ? "Creating…" : "Create Room"}

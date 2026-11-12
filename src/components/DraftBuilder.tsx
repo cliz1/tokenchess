@@ -539,7 +539,7 @@ useEffect(() => {
         return;
       }
 
-      // --- HORDE RESTRICTIONS: up to 2 of one piece type, exception only 1 archer  ---
+      // --- HORDE RESTRICTIONS: only 1 archer and 1 painter (other limits disabled below) ---
       if (piece.color === perspective && !anythingGoesRef.current) {
         const countOfRole = Array.from(baseMap.values())
           .filter(p => p.color === perspective && p.role === piece.role).length;
@@ -552,18 +552,19 @@ useEffect(() => {
           flashWarning(`You can only place one ${piece.role}.`);
           return;
         }
-        else if (!isReplacingSame && ( piece.role == "amazon" || piece.role === "queen" || piece.role === "champion" || piece.role === "princess") && countOfRole >= 2) {
-          flashWarning(`You can only place two ${piece.role}s.`);
-          return;
-        }
-        else if (!isReplacingSame && ( piece.role == "rook" || piece.role === "wizard") && countOfRole >= 3) {
-          flashWarning(`You can only place three ${piece.role}s.`);
-          return;
-        }
-        else if (!isReplacingSame && ( piece.role == "knight" || piece.role === "bishop" || piece.role === "snare" || piece.role === "mann") && countOfRole >= 4) {
-          flashWarning(`You can only place four ${piece.role}s.`);
-          return;
-        }
+        // Limits on other pieces disabled (only archer and painter are capped); uncomment to restore:
+        // else if (!isReplacingSame && ( piece.role == "amazon" || piece.role === "queen" || piece.role === "champion" || piece.role === "princess") && countOfRole >= 2) {
+        //   flashWarning(`You can only place two ${piece.role}s.`);
+        //   return;
+        // }
+        // else if (!isReplacingSame && ( piece.role == "rook" || piece.role === "wizard") && countOfRole >= 3) {
+        //   flashWarning(`You can only place three ${piece.role}s.`);
+        //   return;
+        // }
+        // else if (!isReplacingSame && ( piece.role == "knight" || piece.role === "bishop" || piece.role === "snare" || piece.role === "mann") && countOfRole >= 4) {
+        //   flashWarning(`You can only place four ${piece.role}s.`);
+        //   return;
+        // }
       }
 
       // OK to place:
@@ -714,7 +715,8 @@ useEffect(() => {
     "snare",
     "wizard",
     "archer",
-    ...(anythingGoes ? ["centaur", "royalpainter", "rollingsnare"] : []),
+    // Royal painter, centaur and rolling snare disabled; uncomment to re-enable:
+    // ...(anythingGoes ? ["centaur", "royalpainter", "rollingsnare"] : []),
   ];
 
   const paletteColor: "white" | "black" = perspective;
@@ -891,6 +893,7 @@ useEffect(() => {
             Placing pieces consumes tokens. If a placement would make tokens go below 0 it will be blocked.
           </div>
 
+          {/* Anything Goes mode disabled — uncomment to re-enable
           <label
             style={{
               display: "flex",
@@ -913,6 +916,7 @@ useEffect(() => {
               Piece limits are disabled. This draft can only be used in Anything Goes games.
             </div>
           )}
+          */}
 
           <label
             style={{

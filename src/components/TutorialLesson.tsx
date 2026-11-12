@@ -134,7 +134,7 @@ export default function TutorialLesson({ title, steps, quote, onNavigate }: Prop
         const isChallenge = !!s.challenge;
 
         return (
-          <div key={`${title}-${i}`} style={{ marginTop: 16 }}>
+          <div key={`${title}-${i}`} style={{ marginTop: 16, fontSize: 18, lineHeight: 1.55 }}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkBreaks]}
             skipHtml

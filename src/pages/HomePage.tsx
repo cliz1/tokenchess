@@ -14,7 +14,7 @@ const UPDATE_KEY = "seenUpdateNovember2026";
 const UPDATE_TITLE = "November 2026 Patch Notes";
 const UPDATE_LINES = [
   "New king variant: the General, who brings Xiangqi's flying style into Token Chess.",
-  "Game mode: Anything Goes. Look for the AG tag on your drafts.",
+  // "Game mode: Anything Goes. Look for the AG tag on your drafts.", // disabled
   "A new tutorial experience is now in beta. Feedback is welcome.",
 ];
 

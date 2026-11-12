@@ -73,32 +73,24 @@
     "quote": "“The ~~pawn~~ token is the soul of chess.” – François-André Danican Philidor",
     "steps": [
       {
-        "text": "this variant adds a peculiar collection of fairy pieces and a **draft system** to the normal rules of chess.",
+        "text": "this variant adds a peculiar collection of fairy pieces and a **draft system** to the normal rules of chess.\n\nbefore the game begins, each player chooses their starting setup, oblivious to their opponent's choices. every piece has a price, and players have 39 tokens to spend.",
         "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w k - 0 1"
       },
       {
-        "text": "before the game begins, each player chooses their starting setup, oblivious to their opponent's choices. every piece has a price, and players have 39 tokens to spend.\n\nyou can use the built-in drafts to [play a game](/play), or sign up to make your own. \n\nfor the rules of drafting, see the [next section](/tutorials/draft)."
+        "text": "you can use the built-in drafts to [play a game](/play), or sign up to make your own. \n\nfor the rules of drafting, see the [next section](/tutorials/draft)."
       }
     ]
   },
   "draft": {
-    "title": "...you and what army?",
+    "title": "Rules of Drafting",
     "quote": "",
     "steps": [
       {
-        "text": "To create a draft, sign up and log in to a Token Chess account. Then click on the 'My Drafts' button in the top right corner. Here you can create and save up to 5 drafts for playing games. Simply drag pieces from the pallette onto the first two ranks of the board-- the first rank is for pieces, the second rank is for Pawns, Painters, and Snares.",
-        "image": "/images/draftpage.png"
+        "text": "the two rows of pieces a player starts with are called a \"draft.\" \n\nthe main rule is that the total cost of the pieces cannot exceed 39 tokens.",
+        "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w k - 0 1"
       },
       {
-        "text": "**In order to play a multiplayer game, one of your drafts must be set as 'Active' using the button on the drafts page.** \n This draft, highlighted in green at the top, will be your starting setup when playing a game, and may be changed at any time between games. **Make sure to save any changes made to a draft with the button at the bottom!**",
-        "image": "/images/drafttutorial.png"
-      },
-      {
-        "text": "There are special restrictions on the **quantity** of each piece type in a draft. This is designed to keep things fun and fair by promoting diversity and mitigating 'hordes' of a single piece type. For example, while a single Painter is a formidable foe, eight of them together are...*oppressive.*",
-        "image": "/images/horde.png"
-      },
-      {
-        "text": "Just like token values, these quantity restrictions are a work in progress and may change in response to community feedback.\n\nAs of **January 2026**, the quantity limit for each piece is as follows:\n\n| Max Allowed | Pieces |\n|-------------|--------|\n| **1** | Archer, Painter |\n| **2** | Amazon, Champion, Princess, Queen |\n| **3** | Rook, Wizard |\n| **4** | Bishop, Knight, Baker, Snare |\n\n**Please note:** These limits are **per-piece**. For example, you may include *both* a Painter *and* an Archer in the same draft."
+        "text": "there are a few other rules for drafts. the king is fixed on the e1 square. the upper row is reserved for pawns, and the bottom one for pieces. a player can place **no more than one painter and no more than one archer** in a draft.\n\nto create a draft, sign up and log in to an account. then click the 'my drafts' button in the top right corner."
       }
     ]
   },

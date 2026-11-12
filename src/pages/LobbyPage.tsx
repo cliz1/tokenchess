@@ -122,10 +122,12 @@ export default function LobbyPage() {
               Private:
               <input type="checkbox" checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} style={{ marginLeft: 5 }} />
             </label>
+            {/* Anything Goes mode disabled — uncomment to re-enable
             <label title="Disables piece quantity (horde) limits for both players' drafts. Token budget still applies.">
               Anything Goes:
               <input type="checkbox" checked={anythingGoes} onChange={(e) => setAnythingGoes(e.target.checked)} style={{ marginLeft: 5 }} />
             </label>
+            */}
             <button onClick={createGame} style={{ ...primaryBtn, background: "transparent", cursor: "pointer" }}>Create game</button>
           </div>
           {increment < 0 || increment > 10 ? (

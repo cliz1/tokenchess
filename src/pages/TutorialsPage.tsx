@@ -23,15 +23,16 @@ export default function TutorialsPage() {
         heading: "Setup & Playing",
         items: [{ key: "token", label: "Token Chess" },
           { key: "draft", label: "Drafts" },
-          { key: "multiplayer", label: "Playing" }
+          // { key: "multiplayer", label: "Playing" }, // chapter hidden; uncomment to restore
         ],
       },
-      {
-        heading: "Other Features",
-        items: [{ key: "board-editor", label: "Board Editor" },
-          { key: "puzzles", label: "Puzzles" }
-        ],
-      },
+      // Temporarily disabled; uncomment to restore:
+      // {
+      //   heading: "Other Features",
+      //   items: [{ key: "board-editor", label: "Board Editor" },
+      //     { key: "puzzles", label: "Puzzles" }
+      //   ],
+      // },
       {
         heading: "More Info",
         items: [{ key: "source", label: "Source" },
@@ -115,7 +116,7 @@ export default function TutorialsPage() {
         <h3 style={{ marginTop: 4 }}>Contents</h3>
         {groups.map((g) => (
           <div key={g.heading} style={{ marginTop: 12 }}>
-            <div style={{ color: "#bbb", fontSize: 13, marginBottom: 8 }}>{g.heading}</div>
+            <div style={{ color: "#bbb", fontSize: 15, marginBottom: 8 }}>{g.heading}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {g.items.map((it) => (
                 <button
@@ -130,6 +131,7 @@ export default function TutorialsPage() {
                     background: selected === it.key ? "rgba(255,255,255,0.06)" : "transparent",
                     border: "none",
                     color: selected === it.key ? "#fff" : "#ccc",
+                    fontSize: 16,
                     cursor: "pointer",
                   }}
                 >

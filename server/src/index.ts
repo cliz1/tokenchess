@@ -136,9 +136,10 @@ const PIECE_TOKEN_COST: Record<string, number> = {
   w: 7, 
   x: 5,
   g: 0,
-  o: 21, 
-  u: 9,
-  l: 5 
+  // Disabled pieces (not allowed in drafts); uncomment to re-enable:
+  // o: 21, // royal painter
+  // u: 9, // centaur
+  // l: 5, // rolling snare
 };
 
 const MAX_TOKENS = 39;
@@ -148,16 +149,17 @@ const MAX_TOKENS = 39;
 const HORDE_LIMITS: Record<string, number> = {
   x: 1, // archer
   y: 1, // painter
-  a: 2, // amazon
-  q: 2, // queen
-  c: 2, // champion
-  i: 2, // princess
-  r: 3, // rook
-  w: 3, // wizard
-  n: 4, // knight
-  b: 4, // bishop
-  s: 4, // snare
-  m: 4, // mann (baker)
+  // Limits on other pieces disabled (only archer and painter are capped); uncomment to restore:
+  // a: 2, // amazon
+  // q: 2, // queen
+  // c: 2, // champion
+  // i: 2, // princess
+  // r: 3, // rook
+  // w: 3, // wizard
+  // n: 4, // knight
+  // b: 4, // bishop
+  // s: 4, // snare
+  // m: 4, // mann (baker)
 };
 
 
@@ -767,7 +769,7 @@ app.post("/api/rooms", authMiddleware, async (req: any, res) => {
       drawVotes: new Set(),
       takebackVotes: new Set(),
       private: req.body.isPrivate ?? false,
-      anythingGoes: !!req.body.anythingGoes,
+      anythingGoes: false, // Anything Goes disabled; restore to `!!req.body.anythingGoes` to re-enable
     };
 
     rooms.set(roomId, room);
