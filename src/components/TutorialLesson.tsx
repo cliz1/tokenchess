@@ -27,6 +27,7 @@ type Step = {
   boardSize?: number;
   challenge?: any;
   image?: string;
+  changes?: { piece: string; title: string; text: string }[]; // balance-style list: piece icon + heading + blurb
 };
 
 type Props = {
@@ -186,6 +187,20 @@ export default function TutorialLesson({ title, steps, quote, onNavigate }: Prop
           >
             {s.text}
           </ReactMarkdown>
+
+            {s.changes && (
+              <div className="tl-changes">
+                {s.changes.map((c, ci) => (
+                  <div key={ci} className={`tl-change ${ci % 2 ? "tl-even" : "tl-odd"}`}>
+                    <span className={`cg-piece ${c.piece} white tl-piece`} aria-hidden="true" />
+                    <div>
+                      <div className="tl-change-title">{c.title}</div>
+                      <div className="tl-change-text">{c.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {s.image && (
               <div style={{ marginTop: 8, textAlign: "center" }}>

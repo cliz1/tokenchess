@@ -204,3 +204,12 @@ button.btn-primary:hover {
   color: #241c00;
 }
 
+
+/* ---- Tutorials: balance change list (alternating rows like the analysis move list) ---- */
+.tl-changes { margin-top: 12px; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; }
+.tl-change { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; }
+.tl-change.tl-odd { background: #1c1c1c; }
+.tl-change.tl-even { background: #262626; }
+.tl-piece { flex: 0 0 auto; width: 48px; height: 48px; display: block; background-repeat: no-repeat; background-position: center; background-size: 48px 48px; }
+.tl-change-title { font-weight: 700; color: #fff; margin-bottom: 4px; }
+.tl-change-text { color: #bbb; }
