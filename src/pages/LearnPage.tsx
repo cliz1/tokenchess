@@ -14,13 +14,20 @@ type Lesson = { title: string; quote?: string; steps: LessonStep[] };
 const LESSONS = lessons as unknown as Record<string, Lesson>;
 
 // the guided track, grouped into chapters; generated from content/lessons/chapter-N/
-// Intro and Outro bookend the generated chapters (placeholder lessons: content/lessons/learn-{intro,outro}.md)
-const CHAPTERS = [
-  { chapter: 0, title: "Intro", lessons: ["learn-intro"] },
-  ...(chapters as { chapter: number; title: string; lessons: string[] }[]),
-  { chapter: 999, title: "Outro", lessons: ["learn-outro"] },
+// Progress-panel sections. The generated chapter 1 is shown as "Fairy Pieces of Token Chess"; its heading
+// opens `intro` (content/lessons/learn-intro.md) and has no row of its own. "Basic Strategies" is a
+// placeholder section (content/lessons/learn-outro.md).
+type Section = { title: string; intro?: string; lessons: string[] };
+const CHAPTER_TITLES: Record<number, string> = { 1: "Fairy Pieces" };
+const CHAPTERS: Section[] = [
+  ...(chapters as { chapter: number; title: string; lessons: string[] }[]).map((c, i) => ({
+    title: CHAPTER_TITLES[c.chapter] ?? c.title,
+    intro: i === 0 ? "learn-intro" : undefined,
+    lessons: c.lessons,
+  })),
+  { title: "Basic Strategies", lessons: ["learn-outro"] },
 ];
-const TRACK = CHAPTERS.flatMap((c) => c.lessons);
+const TRACK = CHAPTERS.flatMap((c) => (c.intro ? [c.intro, ...c.lessons] : c.lessons));
 
 const DISPLAY_NAME_TO_ROLE: Record<string, string> = Object.fromEntries(
   Object.entries(ROLE_DISPLAY_NAMES).map(([role, name]) => [name.toLowerCase(), role])
@@ -279,7 +286,17 @@ export default function LearnPage() {
             </button>
             {CHAPTERS.map((ch) => (
               <div key={ch.title} style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 22, fontFamily: "Fraunces, Georgia, serif", fontWeight: 600, margin: "0 44px 12px 2px" }}>{ch.title}</div>
+                {ch.intro ? (
+                  <button
+                    type="button"
+                    onClick={() => { setIndex(beats.findIndex((b) => b.lesson === ch.intro)); setShowProgress(false); }}
+                    style={{ display: "block", textAlign: "left", background: "none", border: "none", padding: 0, cursor: "pointer", color: "inherit", fontSize: 22, fontFamily: "Fraunces, Georgia, serif", fontWeight: 600, margin: "0 44px 12px 2px" }}
+                  >
+                    {ch.title}
+                  </button>
+                ) : (
+                  <div style={{ fontSize: 22, fontFamily: "Fraunces, Georgia, serif", fontWeight: 600, margin: "0 44px 12px 2px" }}>{ch.title}</div>
+                )}
                 {lessonRows.filter((r) => ch.lessons.includes(r.key)).map((r) => {
               const done = Math.min(r.count, Math.max(0, furthest - r.start));
               const unlocked = r.start <= furthest;

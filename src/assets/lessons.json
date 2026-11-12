@@ -90,7 +90,7 @@
         "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w k - 0 1"
       },
       {
-        "text": "there are a few other rules for drafts. the king is fixed on the e1 square. the upper row is reserved for pawns, and the bottom one for pieces. a player can place **no more than one painter and no more than one archer** in a draft.\n\nto create a draft, sign up and log in to an account. then click the 'my drafts' button in the top right corner."
+        "text": "there are a few other rules for drafts. the king is fixed on the e1 square. the upper row is reserved for pawns, and the bottom one for pieces. a player can place **no more than one Painter and no more than one Archer** in a draft.\n\nto create a draft, sign up and log in to an account. then click the 'my drafts' button in the top right corner."
       }
     ]
   },
@@ -157,11 +157,8 @@
     "quote": "",
     "steps": [
       {
-        "text": "This platform itself does not yet host any social features. To discuss the game or find opponents, join our [lichess team!](https://lichess.org/team/token-club)",
+        "text": "this platform does not host any social features. to discuss the game or find opponents, consider joining this [lichess team].(https://lichess.org/team/token-club)",
         "image": "/images/tokenclub.png"
-      },
-      {
-        "text": "As this game has some novel aspects, it is strongly encouraged to share your experience or suggest ideas!"
       }
     ]
   },
@@ -170,29 +167,26 @@
     "quote": "",
     "steps": [
       {
-        "text": "May 2026:",
-        "changes": [
-          {
-            "piece": "wizard",
-            "title": "Wizard token cost 4 → 7",
-            "text": "Fairy Stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. Don't buy it? Give Fairy Stockfish a Wizard and find out!"
-          },
-          {
-            "piece": "archer",
-            "title": "Archer token cost 7 → 5",
-            "text": "While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a Rook. But certainly not more than two Bishops!"
-          },
-          {
-            "piece": "snare",
-            "title": "Snare token cost 2 → 1",
-            "text": "The Snare cannot capture, and is very weak to attack by Pawns. Giving it a valuation of more than a Pawn seems unfair for this reason."
-          },
-          {
-            "piece": "rollingsnare",
-            "title": "Rolling Snare movement buff",
-            "text": "The Rolling Snare now moves like a Queen to make it more comparable to Pawn/Painter promotions."
-          }
-        ]
+        "text": "May 2026: \n **1) Wizard token cost 4 -> 7**. \n Fairy stockfish has revealed the tactical potency of this piece, and will consistently favor it over a Rook and Pawn. \n Don't buy it? Give Fairy stockfish a Wizard and find out! \n **2) Archer token cost 7 -> 5** \n While this piece seems unbeatable at first glance, it takes some effort to prove its value. In an endgame, this piece becomes a lot worse, and due to its low range it is likely worth no more than a Rook. But certainly not more than two Bishops! \n **3) Snare token cost 2 -> 1** \n The Snare cannot capture, and is very weak to attack by Pawns. Giving it a valuation of more than a Pawn seems unfair for this reason. \n **4) Rolling Snare Movement buff** \n The Rolling Snare now moves like a Queen to make it more comparable to Pawn/Painter promotions."
+      }
+    ]
+  },
+  "learn-intro": {
+    "title": "Fairy Pieces in Token Chess",
+    "quote": "",
+    "steps": [
+      {
+        "text": "",
+        "image": "/images/Coin_of_Kushan.png"
+      }
+    ]
+  },
+  "learn-outro": {
+    "title": "Basic Strategies",
+    "quote": "",
+    "steps": [
+      {
+        "text": "Coming soon."
       }
     ]
   },
@@ -910,6 +904,49 @@
           ]
         },
         "note": "Go ahead, shoot some things."
+      },
+      {
+        "text": "If the Archer reaches the back rank, it becomes a Centaur.",
+        "challenge": {
+          "initialFen": "4K3/1k2X3/2p5/rp6/5p2/2P2P2/1P3P2/8 w - - 0 1",
+          "steps": [
+            {
+              "white": {
+                "from": "e7",
+                "to": "d8"
+              },
+              "black": {
+                "from": "b7",
+                "to": "c8"
+              }
+            },
+            {
+              "white": {
+                "from": "e7",
+                "to": "a5"
+              }
+            }
+          ],
+          "alt_steps": [
+            {
+              "white": {
+                "from": "e4",
+                "to": "h7"
+              },
+              "black": {
+                "from": "e8",
+                "to": "d8"
+              }
+            },
+            {
+              "white": {
+                "from": "e4",
+                "to": "g2"
+              }
+            }
+          ]
+        },
+        "note": "Witness the metamorphosis."
       }
     ],
     "chapter": 1
@@ -974,23 +1011,5 @@
       }
     ],
     "chapter": 1
-  },
-  "learn-intro": {
-    "title": "Intro",
-    "quote": "",
-    "steps": [
-      {
-        "text": "Placeholder: intro lesson for the Learn page. Replace this text."
-      }
-    ]
-  },
-  "learn-outro": {
-    "title": "Outro",
-    "quote": "",
-    "steps": [
-      {
-        "text": "Placeholder: outro lesson for the Learn page. Replace this text."
-      }
-    ]
   }
 }
