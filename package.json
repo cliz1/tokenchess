@@ -21,7 +21,7 @@
   "dependencies": {
     "@badrap/result": "^0.2.13",
     "chessground": "github:cliz1/chessground#931e04aab850549d025ab4eb65b6ea35905ee8bb",
-    "chessops": "github:cliz1/chessops#4d7edf090c9f5fbeb62e068c96b128b2f128727a",
+    "chessops": "github:cliz1/chessops#13c986c6be7497cde3724b0c8626714b0e05f246",
     "flag-icons": "^7.6.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
