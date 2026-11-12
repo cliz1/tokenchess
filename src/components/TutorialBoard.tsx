@@ -10,7 +10,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import type { Dests } from "chessground/types";
-import { calculateDests, getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
+import { archerAutoPromotion, calculateDests, getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
 
 const DEBUG = false;
 
@@ -303,6 +303,8 @@ const handleMove = (from: string, to: string) => {
       promotionRole = "royalpainter";
     } else if ((piece?.role === "snare") && (Math.floor(toSq / 8) === 0 || Math.floor(toSq / 8) === 7)) {
       promotionRole = "rollingsnare";
+    } else {
+      promotionRole = archerAutoPromotion(piece, fromSq, toSq); // archer step to far rank -> centaur
     }
 
     const move: any = promotionRole

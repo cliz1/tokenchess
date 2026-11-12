@@ -5,7 +5,7 @@ import { Chess } from "chessops/chess";
 import { parseFen, makeFen } from "chessops/fen";
 import { parseSquare, makeSquare, parseUci, makeUci } from "chessops/util";
 import { makeSan } from "chessops/san";
-import { calculateDests, getCheckHighlights, playMoveSound, playResultSound } from "../utils/chessHelpers";
+import { archerAutoPromotion, calculateDests, getCheckHighlights, playMoveSound, playResultSound } from "../utils/chessHelpers";
 import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -388,6 +388,9 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     ) {
       autoPromo = "rollingsnare";
     }
+
+    // Archer stepping onto the far rank auto-promotes to Centaur
+    if (!autoPromo) autoPromo = archerAutoPromotion(fromPiece, fromSq, toSq);
 
     if (autoPromo) { executeMove(from, to, autoPromo); return; }
 

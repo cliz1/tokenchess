@@ -974,5 +974,23 @@
       }
     ],
     "chapter": 1
+  },
+  "learn-intro": {
+    "title": "Intro",
+    "quote": "",
+    "steps": [
+      {
+        "text": "Placeholder: intro lesson for the Learn page. Replace this text."
+      }
+    ]
+  },
+  "learn-outro": {
+    "title": "Outro",
+    "quote": "",
+    "steps": [
+      {
+        "text": "Placeholder: outro lesson for the Learn page. Replace this text."
+      }
+    ]
   }
 }

@@ -14,7 +14,12 @@ type Lesson = { title: string; quote?: string; steps: LessonStep[] };
 const LESSONS = lessons as unknown as Record<string, Lesson>;
 
 // the guided track, grouped into chapters; generated from content/lessons/chapter-N/
-const CHAPTERS = chapters as { chapter: number; title: string; lessons: string[] }[];
+// Intro and Outro bookend the generated chapters (placeholder lessons: content/lessons/learn-{intro,outro}.md)
+const CHAPTERS = [
+  { chapter: 0, title: "Intro", lessons: ["learn-intro"] },
+  ...(chapters as { chapter: number; title: string; lessons: string[] }[]),
+  { chapter: 999, title: "Outro", lessons: ["learn-outro"] },
+];
 const TRACK = CHAPTERS.flatMap((c) => c.lessons);
 
 const DISPLAY_NAME_TO_ROLE: Record<string, string> = Object.fromEntries(

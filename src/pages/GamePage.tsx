@@ -5,7 +5,7 @@ import { Chessground } from "chessground";
 import type { Config } from "chessground/config";
 import { Chess } from "chessops/chess";
 import { parseFen, makeFen } from "chessops/fen";
-import { calculateDests, playResultSound } from "../utils/chessHelpers";
+import { archerAutoPromotion, calculateDests, playResultSound } from "../utils/chessHelpers";
 import { useGameSocket } from "../hooks/useGameSocket";
 import type { GameUpdate } from "../hooks/useGameSocket";
 import { parseSquare } from "chessops/util";
@@ -410,7 +410,9 @@ export default function GamePage() {
             else if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'snare' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'snare' && fromRank === 0))) {
               promotionRole = "rollingsnare";
             }
-            
+            // Archer stepping onto the far rank auto-promotes to Centaur
+            if (!promotionRole) promotionRole = archerAutoPromotion(fromPiece, fromSq, toSq);
+
             const move: any = promotionRole
               ? { from: fromSq, to: toSq, promotion: promotionRole }
               : { from: fromSq, to: toSq };

@@ -5,6 +5,20 @@ import { parseFen } from "chessops/fen";
 import '../App.css';
 import { playSound, packHasSound } from "./sounds";
 
+// An archer that STEPS (doesn't shoot) onto its far rank auto-promotes to a centaur.
+// Mirrors the rule in chessops' isLegal, which rejects the move without promotion: "centaur".
+export function archerAutoPromotion(
+  piece: { role: string; color: string } | undefined | null,
+  fromSq: number,
+  toSq: number,
+): "centaur" | null {
+  if (piece?.role !== "archer") return null;
+  const fd = Math.abs((toSq & 7) - (fromSq & 7));
+  const rd = Math.abs((toSq >> 3) - (fromSq >> 3));
+  const isShot = Math.max(fd, rd) > 1 && fd === rd;
+  return !isShot && (toSq >> 3) === (piece.color === "white" ? 7 : 0) ? "centaur" : null;
+}
+
 // Front-end display names for piece roles whose displayed name differs from
 // their internal role slug (which stays as-is to avoid touching fen/chessops/chessground).
 export const ROLE_DISPLAY_NAMES: Record<string, string> = {

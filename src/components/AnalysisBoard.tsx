@@ -9,7 +9,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import type { Dests } from "chessground/types";
-import { calculateDests, getCheckHighlights, moveToUci, movesEqual, playMoveSound } from "../utils/chessHelpers";
+import { archerAutoPromotion, calculateDests, getCheckHighlights, moveToUci, movesEqual, playMoveSound } from "../utils/chessHelpers";
 import { defaultGame, extend } from 'chessops/pgn';
 import type { PgnNodeData, Game, Node as PNode, ChildNode as CNode } from 'chessops/pgn';
 import { makeSan } from 'chessops/san';
@@ -84,6 +84,9 @@ export default function AnalysisBoard({
     else if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7) || (fromPiece?.role === "wizard" && fromPiece?.color === 'white' && toPiece?.role === 'snare' && fromRank === 7) || ((fromPiece?.role === "wizard" && fromPiece?.color === 'black' && toPiece?.role === 'snare' && fromRank === 0))) {
       promotionRole = "rollingsnare";
     }
+
+    // Archer stepping onto the far rank auto-promotes to Centaur
+    if (!promotionRole) promotionRole = archerAutoPromotion(fromPiece, fromSquare, toSquare);
 
     // If it’s one of those, skip modal entirely
     if (promotionRole) {
