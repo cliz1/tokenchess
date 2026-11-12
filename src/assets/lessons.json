@@ -144,11 +144,11 @@
     "quote": "",
     "steps": [
       {
-        "text": "Token Chess is created and maintained by Nathaniel Clizbe, a software developer and chess enthusiast. \n Source code for the project is available [here.](https://github.com/cliz1/tokenchess)",
+        "text": "token chess is created and maintained by an independent software developer and chess enthusiast. \nsource code for the project is available [here.](https://github.com/cliz1/tokenchess)",
         "image": "/images/coin.png"
       },
       {
-        "text": "This project is developed as an experimental chess platform; bugs and unfinished features may exist. \n Issues and suggestions are welcome via GitHub."
+        "text": "this project is developed as an experimental chess platform. bugs and unfinished features may exist. \nissues and suggestions are welcome via GitHub."
       }
     ]
   },
