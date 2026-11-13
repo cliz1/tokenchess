@@ -19,7 +19,7 @@
   "dependencies": {
     "@prisma/client": "^4.16.2",
     "bcrypt": "^6.0.0",
-    "chessops": "github:cliz1/chessops#13c986c6be7497cde3724b0c8626714b0e05f246",
+    "chessops": "github:cliz1/chessops",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
