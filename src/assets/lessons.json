@@ -13,7 +13,7 @@
     ]
   },
   "standard-rules": {
-    "title": "The game of chess...",
+    "title": "Chess",
     "quote": "“The game of chess is a lake in which a mosquito can bathe and an elephant can drown.” – Indian Proverb",
     "steps": [
       {
@@ -21,14 +21,14 @@
         "image": "/images/chess_in_the_park.JPG"
       },
       {
-        "text": "In understanding the concept of chess *variants*, it helps to know that chess itself is a European *variation* of a type of board game that has existed for around 1,000 years longer than modern chess. The original game, [Chaturanga](https://en.wikipedia.org/wiki/Chaturanga), spread to other regions and evolved into [Makruk](https://en.wikipedia.org/wiki/Makruk), [Shogi](https://en.wikipedia.org/wiki/Shogi), and many other variations. These variations have different pieces and rules, but share the concept of a coordinate system and a set of movable figures, one of which must be protected. \n Below is a game of [Xiangqi.](https://en.wikipedia.org/wiki/Xiangqi)",
+        "text": "In understanding the concept of chess *variants*, it helps to know that chess itself is a European *variation* of a type of board game that has existed for around 1,000 years longer than modern chess. The original game, [Chaturanga](https://en.wikipedia.org/wiki/Chaturanga), spread to other regions and evolved into [Makruk](https://en.wikipedia.org/wiki/Makruk), [Shogi](https://en.wikipedia.org/wiki/Shogi), and many other variations. These have different pieces and rules, but share the concept of a coordinate system and a set of movable figures, one of which must be protected. \n Below is a game of [Xiangqi.](https://en.wikipedia.org/wiki/Xiangqi)",
         "image": "/images/xiangqi.jpg"
       }
     ]
   },
   "fairy-chess": {
-    "title": "Strange characters...",
-    "quote": "“We do these things for ourselves alone.” – Thomas Rayner Dawson, fairy chess composer",
+    "title": "Fairy Pieces",
+    "quote": "",
     "steps": [
       {
         "text": "“Fairy Chess“ is a general term for a chess variant that includes nonstandard piece types, or “fairy pieces.“",
@@ -74,7 +74,7 @@
         "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w KQkq - 0 1"
       },
       {
-        "text": "you can learn about the pieces in token chess through an [interactive tutorial](/learn) or the [piece wiki](/tutorials/wiki/champion)\n\nyou can use the built-in drafts to [play a game](/play), or sign up to make your own. \n\nfor the rules of drafting, see the [next section](/tutorials/draft)."
+        "text": "you can learn about the pieces in token chess through an [interactive tutorial](/learn) or the [piece wiki](/tutorials/wiki/champion).\n\nyou can use the built-in drafts to [play a game](/play), or sign up to make your own. \n\nfor the rules of drafting, see the [next section](/tutorials/draft)."
       }
     ]
   },
@@ -137,8 +137,8 @@
     ]
   },
   "source": {
-    "title": "The secret sauce...",
-    "quote": "",
+    "title": "Source Code",
+    "quote": "“We do these things for ourselves alone.” – Thomas Rayner Dawson, fairy chess composer",
     "steps": [
       {
         "text": "token chess is created and maintained by an independent software developer and chess enthusiast. \nsource code for the project is available [here.](https://github.com/cliz1/tokenchess)",
