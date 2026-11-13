@@ -10,6 +10,7 @@ import { useGameSocket } from "../hooks/useGameSocket";
 import type { GameUpdate } from "../hooks/useGameSocket";
 import { parseSquare } from "chessops/util";
 import { getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
+import WikiModal from "../components/WikiModal";
 import { apiFetch } from "../api";
 import { useAuth } from "../AuthContext";
 
@@ -30,6 +31,7 @@ export default function GamePage() {
   const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
   const [fen, setFen] = useState<string>(startFen);
+  const [wikiOpen, setWikiOpen] = useState(false); // piece guide popup
   const fenRef = useRef<string>(startFen);
   // wet paint rule state: not encoded in fen, so it's tracked alongside it and
   // reapplied onto any Chess object rebuilt from fen (mirrors server room state).
@@ -821,6 +823,12 @@ if (clock) {
                 {leftNotice && <div>{leftNotice}</div>}
               </div>
             )}
+
+            {/* Piece guide (wiki popup) */}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+              <button onClick={() => setWikiOpen(true)} title="Piece guide" aria-label="Open piece guide">? Pieces</button>
+            </div>
+            <WikiModal open={wikiOpen} onClose={() => setWikiOpen(false)} />
 
             {/* Action buttons */}
             {role === "player" && !gameResult && (

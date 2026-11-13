@@ -8,9 +8,6 @@
         "image": "/images/tokenchess.png"
       },
       {
-        "text": "this tutorial explains the concept of the game, and contains instructions for using available features."
-      },
-      {
         "text": "if you're familiar with chess variants, [start here](/tutorials/token)."
       }
     ]
@@ -77,7 +74,7 @@
         "fen": "2nakbqr/3pyppp/8/8/8/8/PSSYPPSP/1MXWGI1R w KQkq - 0 1"
       },
       {
-        "text": "you can learn about the pieces in token chess [here](/learn).\n\nyou can use the built-in drafts to [play a game](/play), or sign up to make your own. \n\nfor the rules of drafting, see the [next section](/tutorials/draft)."
+        "text": "you can learn about the pieces in token chess through an [interactive tutorial](/learn) or the [piece wiki](/tutorials/wiki/champion)\n\nyou can use the built-in drafts to [play a game](/play), or sign up to make your own. \n\nfor the rules of drafting, see the [next section](/tutorials/draft)."
       }
     ]
   },

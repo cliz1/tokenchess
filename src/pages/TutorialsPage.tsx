@@ -4,6 +4,8 @@ import { useParams } from "react-router-dom";
 import TutorialLesson from "../components/TutorialLesson";
 import lessons from '../assets/lessons.json';
 import balanceChanges from '../assets/balance-changes.json';
+import WikiPiece from "../components/WikiPiece";
+import { WIKI_PIECES, wikiBySlug } from "../wiki/pieces";
 
 const LESSONS = lessons as Record<string, { title: string; quote: string; steps: { text: string }[] }>;
 
@@ -52,10 +54,15 @@ export default function TutorialsPage() {
   );
 
   const { "*": lessonSlug } = useParams();
-  const [selected, setSelected] = useState<LessonKey>(
-    lessonSlug && lessonSlug in LESSONS ? lessonSlug as LessonKey : "welcome"
+  // a lesson key, or "wiki/<piece slug>" for a piece-wiki page
+  const [selected, setSelected] = useState<string>(
+    lessonSlug && (lessonSlug in LESSONS || (lessonSlug.startsWith("wiki/") && wikiBySlug(lessonSlug.slice(5))))
+      ? lessonSlug
+      : "welcome"
   );
-  const lesson = selected === "balance" ? { ...LESSONS.balance, steps: BALANCE_STEPS } : LESSONS[selected];
+  const wikiEntry = selected.startsWith("wiki/") ? wikiBySlug(selected.slice(5)) : undefined;
+  const [wikiOpen, setWikiOpen] = useState<boolean>(!!wikiEntry);
+  const lesson = selected === "balance" ? { ...LESSONS.balance, steps: BALANCE_STEPS } : LESSONS[selected as LessonKey] ?? LESSONS.welcome;
 
   // measure header height so we can size the tutorials container to exactly the viewport leftover
   const [headerHeight, setHeaderHeight] = useState<number>(0);
@@ -93,6 +100,18 @@ export default function TutorialsPage() {
     }
   }, [selected]);
 
+  const itemStyle = (active: boolean): React.CSSProperties => ({
+    display: "block",
+    textAlign: "left",
+    padding: "8px 10px",
+    borderRadius: 6,
+    background: active ? "rgba(255,255,255,0.06)" : "transparent",
+    border: "none",
+    color: active ? "#fff" : "#ccc",
+    fontSize: 16,
+    cursor: "pointer",
+  });
+
   const containerStyle: React.CSSProperties = {
     display: "flex",
     gap: 18,
@@ -126,25 +145,28 @@ export default function TutorialsPage() {
             <div style={{ color: "#bbb", fontSize: 15, marginBottom: 8 }}>{g.heading}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {g.items.map((it) => (
-                <button
-                  key={it.key}
-                  aria-current={selected === it.key ? "true" : undefined}
-                  onClick={() => setSelected(it.key as LessonKey)}
-                  style={{
-                    display: "block",
-                    textAlign: "left",
-                    padding: "8px 10px",
-                    borderRadius: 6,
-                    background: selected === it.key ? "rgba(255,255,255,0.06)" : "transparent",
-                    border: "none",
-                    color: selected === it.key ? "#fff" : "#ccc",
-                    fontSize: 16,
-                    cursor: "pointer",
-                  }}
-                >
+                <button key={it.key} aria-current={selected === it.key ? "true" : undefined} onClick={() => setSelected(it.key)} style={itemStyle(selected === it.key)}>
                   {it.label}
                 </button>
               ))}
+
+              {/* Piece Wiki: a chapter like the others, expanding into one page per piece */}
+              {g.heading === "Setup & Playing" && (
+                <>
+                  <button onClick={() => setWikiOpen((o) => !o)} aria-expanded={wikiOpen} style={{ ...itemStyle(false), display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>Piece Wiki</span>
+                    <span aria-hidden="true" style={{ fontSize: 13, color: "#999" }}>{wikiOpen ? "▾" : "▸"}</span>
+                  </button>
+                  {wikiOpen && WIKI_PIECES.map((p) => {
+                    const key = `wiki/${p.slug}`;
+                    return (
+                      <button key={key} aria-current={selected === key ? "true" : undefined} onClick={() => setSelected(key)} style={{ ...itemStyle(selected === key), paddingLeft: 24 }}>
+                        {p.name}
+                      </button>
+                    );
+                  })}
+                </>
+              )}
             </div>
           </div>
         ))}
@@ -161,7 +183,15 @@ export default function TutorialsPage() {
           maxHeight: "100%",
         }}
       >
-        <TutorialLesson title={lesson.title} steps={lesson.steps} quote={lesson.quote} onNavigate={(slug) => slug in LESSONS && setSelected(slug as LessonKey)} />
+        {wikiEntry ? (
+          <WikiPiece entry={wikiEntry} />
+        ) : (
+          <TutorialLesson title={lesson.title} steps={lesson.steps} quote={lesson.quote} onNavigate={(slug) => {
+            // lesson keys, or wiki/<piece slug> (also expands the Piece Wiki dropdown)
+            if (slug in LESSONS) setSelected(slug);
+            else if (slug.startsWith("wiki/") && wikiBySlug(slug.slice(5))) { setSelected(slug); setWikiOpen(true); }
+          }} />
+        )}
       </section>
     </div>
   );

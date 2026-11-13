@@ -10,6 +10,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import type { Dests } from "chessground/types";
+import type { DrawShape } from "chessground/draw";
 import { archerAutoPromotion, calculateDests, getCheckHighlights, playMoveSound } from "../utils/chessHelpers";
 
 const DEBUG = false;
@@ -31,6 +32,7 @@ type Props = {
   onMove?: (from: string, to: string) => void;
   showControls?: boolean;
   showReset?: boolean; // a lone Reset button above the board (for free-play demo boards)
+  hints?: DrawShape[]; // built-in arrows/highlights; shown at first, cleared on the first move, restored by Reset
   challenge?: Challenge | null;
   challengeLabel?: string;
   onSolved?: () => void;
@@ -55,6 +57,7 @@ export default function TutorialBoard({
   onMove,
   showControls = false,
   showReset = false,
+  hints,
   challenge = null,
   challengeLabel = "Challenge",
   onSolved,
@@ -74,6 +77,7 @@ export default function TutorialBoard({
   const [challengeIndex, setChallengeIndex] = useState<number>(0);
   const prevChallengeIndexRef = useRef<number>(0);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [hintsOn, setHintsOn] = useState(true);
   const blackMoveTimeoutRef = useRef<number | null>(null);
   const lastMoveRef = useRef<[string, string] | undefined>(undefined);
   const waitingForBlackRef = useRef<boolean>(false);
@@ -148,6 +152,7 @@ export default function TutorialBoard({
       setInternalFen(fen);
       setChallengeIndex(0);
       setFeedback(feedbackText);
+      setHintsOn(true);
 
       if (groundRef.current) {
         const dests = makeDestsFromChess(newChess);
@@ -251,6 +256,7 @@ const playMove = (move: any, fromAlg?: string, toAlg?: string, isAutomated = fal
     playMoveSound(ch, move, from, to, preCaptured);
 
     ch.play(move);
+    setHintsOn(false); // first move clears the built-in hints
 
     const newFen = makeFen(ch.toSetup());
     setInternalFen(newFen);
@@ -572,6 +578,11 @@ useEffect(() => {
       //debug("failed to apply internalFen", e);
     }
   }, [internalFen, size]);
+
+  // built-in hints (arrows / highlights)
+  useEffect(() => {
+    groundRef.current?.setAutoShapes(hintsOn && hints ? hints : []);
+  }, [hintsOn, hints]);
 
   useEffect(() => {
     if (feedback === "Completed!") onSolved?.();
