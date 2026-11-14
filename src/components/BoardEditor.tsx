@@ -11,6 +11,8 @@ import { parseFen } from "chessops/fen";
 import { Chess } from "chessops/chess";
 import { attacks } from "chessops/attacks";
 import { SquareSet } from "chessops";
+import { apiFetch } from "../api";
+import { useAuth } from "../AuthContext";
 
 
 const FILES = "abcdefgh";
@@ -28,6 +30,11 @@ export default function BoardEditor({ initialFen }: BoardEditorProps) {
   const [orientation] = useState<"white" | "black">("white");
   const [sideToMove, setSideToMove] = useState<"white" | "black">("white");
   const navigate = useNavigate();
+  const { user } = useAuth();
+  type DraftOpt = { id: string; name: string; data?: { fen?: string } };
+  const [drafts, setDrafts] = useState<DraftOpt[]>([]);
+  const [whiteDraftId, setWhiteDraftId] = useState("");
+  const [blackDraftId, setBlackDraftId] = useState("");
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -670,6 +677,25 @@ function handleWatchEngineVsEngine() {
 }
 
 
+  useEffect(() => {
+    if (!user) { setDrafts([]); return; }
+    apiFetch("/drafts").then((res: DraftOpt[]) => setDrafts(res ?? [])).catch(() => setDrafts([]));
+  }, [user]);
+
+  // Rebuild the board from the chosen drafts ("" = standard setup).
+  function applyDrafts(whiteId: string, blackId: string) {
+    const homeRows = (id: string): string[] => {
+      const fen = drafts.find((d) => d.id === id)?.data?.fen;
+      const rows = fen?.split(" ")[0].split("/");
+      return rows && rows.length === 8 ? rows.slice(-2) : ["PPPPPPPP", "RNBQKBNR"];
+    };
+    const black = homeRows(blackId).slice().reverse().map((r) => r.toLowerCase());
+    const next = [...black, "8", "8", "8", "8", ...homeRows(whiteId)].join("/") + " w KQkq - 0 1";
+    setFen(next);
+    setSideToMove("white");
+    try { groundRef.current?.set?.({ fen: next }); } catch {}
+  }
+
     function handleSetStartPosition() {
     setFen(START_FEN);
     try { groundRef.current?.set?.({ fen: START_FEN }); } catch {}
@@ -841,6 +867,31 @@ function EditorButton({
   <EditorButton onClick={handleSetEmptyPosition}>
     Only Kings
   </EditorButton>
+
+  {user && drafts.length > 0 && (
+    <>
+      {([["White's draft", whiteDraftId, setWhiteDraftId, true], ["Black's draft", blackDraftId, setBlackDraftId, false]] as const).map(
+        ([label, value, setter, isWhite]) => (
+          <label key={label} style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#aaa" }}>
+            {label}
+            <select
+              value={value}
+              onChange={(e) => {
+                setter(e.target.value);
+                applyDrafts(isWhite ? e.target.value : whiteDraftId, isWhite ? blackDraftId : e.target.value);
+              }}
+              style={{ padding: "6px 8px", borderRadius: 6, background: "rgba(255,255,255,0.05)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)" }}
+            >
+              <option value="">Standard</option>
+              {drafts.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </label>
+        )
+      )}
+    </>
+  )}
 
   <EditorButton
     onClick={() => {
