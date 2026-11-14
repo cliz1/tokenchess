@@ -46,7 +46,14 @@ function chessopsMoves(fen) {
   if (pos.isErr) return { err: `position: ${pos.error.message}` };
   const moves = new Set();
   for (const [from, dests] of pos.value.allDests()) {
-    for (const to of dests) moves.add(makeSquare(from) + makeSquare(to));
+    const mover = pos.value.board.get(from);
+    const royal = mover && (mover.role === 'king' || mover.role === 'general');
+    for (const to of dests) {
+      // chessops also offers castling as "royal takes own rook"; the engine reports only
+      // the king-destination form (e1g1), which chessops lists too — drop the duplicate.
+      if (royal && pos.value.board.get(to)?.color === mover.color) continue;
+      moves.add(makeSquare(from) + makeSquare(to));
+    }
   }
   return { moves: [...moves].sort() };
 }
@@ -106,6 +113,7 @@ async function startEngine() {
         if (buf.some(l => /Nodes searched/i.test(l))) break;
       }
       await sleep(20);
+      this.raw = buf.map(l => l.trim()).filter(l => /^[a-h][1-8][a-h][1-8]/.test(l)).map(l => l.split(/[:\s]/)[0]).sort();
       const moves = new Set(
         buf
           .map(l => l.trim())
@@ -142,7 +150,9 @@ for (const fen of fens) {
   if (!engineOnly.length && !chessopsOnly.length) {
     agree++;
     if (VERBOSE) console.log(`  ok   ${fen}  [${sfMoves.length}]`);
+    if (process.env.VERBOSE === '2') console.log(`         raw: ${engine.raw.join(' ')}`);
   } else {
+    if (process.env.VERBOSE === '2') console.log(`         raw: ${engine.raw.join(' ')}`);
     failures.push({
       fen,
       msg: `engine-only: ${engineOnly.join(',') || '—'}   chessops-only: ${chessopsOnly.join(',') || '—'}`,

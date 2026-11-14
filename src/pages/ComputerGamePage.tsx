@@ -57,6 +57,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
   const containerRef = useRef<HTMLDivElement>(null);
   const groundRef = useRef<any>(null);
   const gameMovesRef = useRef<string[]>([]);   // SAN strings for review
+  const gameUciRef = useRef<string[]>([]);     // exact UCI moves (unambiguous replay)
   const gameStartFenRef = useRef<string>(initialFen ?? DEFAULT_START_FEN);
   const chessRef = useRef<Chess>((() => {
     if (initialFen) {
@@ -182,6 +183,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
       try {
         chess.play(move as any);
         gameMovesRef.current.push(locusSan);
+        gameUciRef.current.push(makeUci(move as any));
         applied = true;
       } catch { /* fall through */ }
 
@@ -195,6 +197,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
           try {
             chess.play(candidate);
             gameMovesRef.current.push(candidateSan);
+            gameUciRef.current.push(makeUci(candidate));
             to = makeSquare(targetSq);
             found = true;
             break;
@@ -216,7 +219,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
         movePiece?.role === 'wizard' &&
         (destPiece?.role === 'pawn' || destPiece?.role === 'painter' || destPiece?.role === 'snare') &&
         destPiece?.color === chess.turn &&
-        (fromRank === 0 || fromRank === 7) &&
+        fromRank === (movePiece.color === 'white' ? 7 : 0) &&
         !(move as any).promotion
       ) {
         const promoMap: Record<string, string> = {
@@ -233,6 +236,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
       try {
         chess.play(move as any);
         gameMovesRef.current.push(san);
+        gameUciRef.current.push(makeUci(move as any));
       } catch {
         engineThinkingRef.current = false;
         setEngineThinking(false);
@@ -427,6 +431,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     }
 
     try { gameMovesRef.current.push(makeSan(chess, move)); } catch { gameMovesRef.current.push(makeUci(move)); }
+    gameUciRef.current.push(makeUci(move));
 
     const preCaptured = chess.board.get(toSq) ?? null;
     playMoveSound(chess, move, from, to, preCaptured);
@@ -476,6 +481,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     setFen(resetFen);
     setLastMove(null);
     gameMovesRef.current = [];
+    gameUciRef.current = [];
     try { chessRef.current = Chess.fromSetup(parseFen(resetFen).unwrap()).unwrap(); } catch { chessRef.current = Chess.default(); }
   }
 
@@ -496,6 +502,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     phaseRef.current = "playing";
     engineThinkingRef.current = false;
     gameMovesRef.current = [];
+    gameUciRef.current = [];
     gameStartFenRef.current = startFen;
 
     setFen(startFen);
@@ -852,6 +859,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
                     state: {
                       initialFen: gameStartFenRef.current,
                       initialMoves: gameMovesRef.current,
+                      initialUci: gameUciRef.current,
                       orientation: watchModeRef.current ? "white" : playerColorRef.current,
                     },
                   })

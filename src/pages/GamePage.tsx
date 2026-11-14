@@ -932,7 +932,7 @@ if (clock) {
                     if (
                       fromPiece?.role === "wizard" &&
                       toPiece?.role === "pawn" &&
-                      (fromRank === 0 || fromRank === 7)
+                      fromRank === (fromPiece.color === "white" ? 7 : 0)
                     ) {
                       setPendingPromotion({ from, to, color: chess.turn });
                       return;

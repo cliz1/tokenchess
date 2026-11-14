@@ -22,7 +22,7 @@ export interface BoardThemeColors {
 export const boardThemes: BoardThemeColors[] = [
   {
     id: "jade",
-    label: "Jade Marble",
+    label: "Jade",
     light: "#93ab91",
     dark: "#3f5f3d",
     lastMove: "rgba(0, 155, 199, 0.41)",
