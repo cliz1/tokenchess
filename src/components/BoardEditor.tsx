@@ -870,7 +870,7 @@ function EditorButton({
 
   {user && drafts.length > 0 && (
     <>
-      {([["White's draft", whiteDraftId, setWhiteDraftId, true], ["Black's draft", blackDraftId, setBlackDraftId, false]] as const).map(
+      {([["Black's draft", blackDraftId, setBlackDraftId, false], ["White's draft", whiteDraftId, setWhiteDraftId, true]] as const).map(
         ([label, value, setter, isWhite]) => (
           <label key={label} style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, color: "#aaa" }}>
             {label}
