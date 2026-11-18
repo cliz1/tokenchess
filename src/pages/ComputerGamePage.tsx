@@ -75,6 +75,9 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
 
   const [fen, setFen] = useState(initialFen ?? DEFAULT_START_FEN);
   const fenRef = useRef(initialFen ?? DEFAULT_START_FEN);
+  // FEN before the last move, plus that move. The wet-paint rule (no repainting a square the
+  // opponent just painted) is not representable in FEN, so the engine must replay the move itself.
+  const lastStepRef = useRef<{ fen: string; uci: string } | null>(null);
   const [lastMove, setLastMove] = useState<[string, string] | null>(null);
 
   const [playerColor, setPlayerColor] = useState<"white" | "black">("white");
@@ -158,7 +161,12 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     if (!engineReadyRef.current || engineThinkingRef.current) return;
     engineThinkingRef.current = true;
     setEngineThinking(true);
-    sendToEngine(`position fen ${fenRef.current}`);
+    const last = lastStepRef.current;
+    sendToEngine(
+      chessRef.current.wetPaintSquare !== undefined && last
+        ? `position fen ${last.fen} moves ${last.uci}`
+        : `position fen ${fenRef.current}`,
+    );
     sendToEngine(`go movetime ${movetimeRef.current}`);
   }
 
@@ -245,6 +253,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     }
 
     const newFen = makeFen(chess.toSetup());
+    lastStepRef.current = { fen: fenRef.current, uci: gameUciRef.current[gameUciRef.current.length - 1] };
     fenRef.current = newFen;
     setFen(newFen);
     setLastMove([from, to]);
@@ -438,6 +447,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     chess.play(move);
 
     const newFen = makeFen(chess.toSetup());
+    lastStepRef.current = { fen: fenRef.current, uci: gameUciRef.current[gameUciRef.current.length - 1] };
     fenRef.current = newFen;
     setFen(newFen);
     setLastMove([from, to]);
@@ -482,6 +492,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     setLastMove(null);
     gameMovesRef.current = [];
     gameUciRef.current = [];
+    lastStepRef.current = null;
     try { chessRef.current = Chess.fromSetup(parseFen(resetFen).unwrap()).unwrap(); } catch { chessRef.current = Chess.default(); }
   }
 
@@ -503,6 +514,7 @@ export default function ComputerGamePage({ initialFen, watchMode }: { initialFen
     engineThinkingRef.current = false;
     gameMovesRef.current = [];
     gameUciRef.current = [];
+    lastStepRef.current = null;
     gameStartFenRef.current = startFen;
 
     setFen(startFen);
