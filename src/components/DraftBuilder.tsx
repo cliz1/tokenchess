@@ -540,33 +540,17 @@ useEffect(() => {
         return;
       }
 
-      // --- HORDE RESTRICTIONS: only 1 archer and 1 painter (other limits disabled below) ---
-      if (piece.color === perspective && !anythingGoesRef.current) {
-        const countOfRole = Array.from(baseMap.values())
-          .filter(p => p.color === perspective && p.role === piece.role).length;
-
-        // replacing same role on same square
-        const isReplacingSame =
-          existing && existing.role === piece.role && existing.color === perspective;
-
-        if (!isReplacingSame && (piece.role === "archer" || piece.role == "painter") && countOfRole >= 1) {
-          flashWarning(`You can only place one ${piece.role}.`);
-          return;
-        }
-        // Limits on other pieces disabled (only archer and painter are capped); uncomment to restore:
-        // else if (!isReplacingSame && ( piece.role == "amazon" || piece.role === "queen" || piece.role === "champion" || piece.role === "princess") && countOfRole >= 2) {
-        //   flashWarning(`You can only place two ${piece.role}s.`);
-        //   return;
-        // }
-        // else if (!isReplacingSame && ( piece.role == "rook" || piece.role === "wizard") && countOfRole >= 3) {
-        //   flashWarning(`You can only place three ${piece.role}s.`);
-        //   return;
-        // }
-        // else if (!isReplacingSame && ( piece.role == "knight" || piece.role === "bishop" || piece.role === "snare" || piece.role === "mann") && countOfRole >= 4) {
-        //   flashWarning(`You can only place four ${piece.role}s.`);
-        //   return;
-        // }
-      }
+      // --- HORDE RESTRICTIONS: all quantity limits currently disabled (archer/painter were previously capped at 1) ---
+      // Uncomment to restore:
+      // if (piece.color === perspective && !anythingGoesRef.current) {
+      //   const countOfRole = Array.from(baseMap.values())
+      //     .filter(p => p.color === perspective && p.role === piece.role).length;
+      //   const isReplacingSame = existing && existing.role === piece.role && existing.color === perspective;
+      //   if (!isReplacingSame && (piece.role === "archer" || piece.role === "painter") && countOfRole >= 1) {
+      //     flashWarning(`You can only place one ${piece.role}.`);
+      //     return;
+      //   }
+      // }
 
       // OK to place:
       if (typeof groundRef.current.newPiece === "function") {

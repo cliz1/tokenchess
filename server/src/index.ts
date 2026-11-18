@@ -147,9 +147,9 @@ const MAX_TOKENS = 39;
 // Per-piece quantity ("horde") limits, keyed by the same single-letter codes as PIECE_TOKEN_COST.
 // Skipped entirely for "anything goes" games; token budget is enforced separately and always applies.
 const HORDE_LIMITS: Record<string, number> = {
-  x: 1, // archer
-  y: 1, // painter
-  // Limits on other pieces disabled (only archer and painter are capped); uncomment to restore:
+  // All quantity limits are currently disabled (archer/painter were previously capped at 1); uncomment to restore:
+  // x: 1, // archer
+  // y: 1, // painter
   // a: 2, // amazon
   // q: 2, // queen
   // c: 2, // champion
