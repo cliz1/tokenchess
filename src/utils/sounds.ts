@@ -8,6 +8,10 @@
 //
 // Playback uses Web Audio with decoded, cached buffers (low latency, and it behaves
 // better than `new Audio()` inside the iOS WebView).
+//
+// Sound files live in src/assets/sounds/ and are imported through Vite, so every build gives
+// each file a content-hashed URL. Replacing a recording changes its URL, which means clients
+// can never keep playing a stale cached copy.
 
 export type SoundPackId = "smooth" | "homegrown";
 
@@ -23,6 +27,20 @@ export type SoundEvent =
 
 type Role = string; // chessops role name, e.g. "pawn", "knight", "painter"
 
+const SOUND_URLS = import.meta.glob("../assets/sounds/**/*.mp3", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+/** Hashed URL for a file under src/assets/sounds/, e.g. sound("special/snare.mp3"). */
+function sound(path: string): string {
+  const url = SOUND_URLS[`../assets/sounds/${path}`];
+  // fail at startup rather than going silently quiet on a typo or a moved file
+  if (!url) throw new Error(`Missing sound file: src/assets/sounds/${path}`);
+  return url;
+}
+
 type Pack = {
   id: SoundPackId;
   label: string;
@@ -31,18 +49,18 @@ type Pack = {
   events: Partial<Record<SoundEvent, string[]>>;
   /**
    * Per-piece overrides for move / capture. Falls back to `events.move` / `events.capture`.
-   * Drop recordings in public/sounds/homegrown/ and list them here, e.g.
-   *   moveByRole: { knight: ["/sounds/homegrown/knight-move1.mp3", ...] }
+   * Drop recordings in src/assets/sounds/homegrown/ and list them here, e.g.
+   *   moveByRole: { knight: [sound("homegrown/knight-move1.mp3"), ...] }
    */
   moveByRole?: Record<Role, string[]>;
   captureByRole?: Record<Role, string[]>;
 };
 
 const SPECIAL = {
-  paint: ["/sounds/special/paint.mp3"],
-  wizard: ["/sounds/special/wizard.mp3"],
-  archer: ["/sounds/special/arrow.mp3", "/sounds/special/x_capture.mp3"], // layered
-  snare: ["/sounds/special/snare.mp3"],
+  paint: [sound("special/paint.mp3")],
+  wizard: [sound("special/wizard.mp3")],
+  archer: [sound("special/arrow.mp3"), sound("special/x_capture.mp3")], // layered
+  snare: [sound("special/snare.mp3")],
 };
 
 export const SOUND_PACKS: Record<SoundPackId, Pack> = {
@@ -51,10 +69,10 @@ export const SOUND_PACKS: Record<SoundPackId, Pack> = {
     label: "Smooth",
     description: "Polished digital sounds, with special effects",
     events: {
-      move: ["/sounds/smooth/Move.mp3"],
-      capture: ["/sounds/smooth/Capture.mp3"],
-      castle: ["/sounds/smooth/Move.mp3"],
-      result: ["/sounds/smooth/GenericNotify.mp3"],
+      move: [sound("smooth/Move.mp3")],
+      capture: [sound("smooth/Capture.mp3")],
+      castle: [sound("smooth/Move.mp3")],
+      result: [sound("smooth/GenericNotify.mp3")],
       ...SPECIAL,
     },
   },
@@ -63,10 +81,10 @@ export const SOUND_PACKS: Record<SoundPackId, Pack> = {
     label: "Homegrown",
     description: "Real chess board recordings, by piece",
     events: {
-      move: [1, 2, 3, 4].map((n) => `/sounds/homegrown/move${n}.mp3`),
-      capture: [1, 2, 3].map((n) => `/sounds/homegrown/capture${n}.mp3`),
-      castle: ["/sounds/homegrown/castle.mp3"],
-      result: ["/sounds/homegrown/GenericNotify.mp3"],
+      move: [1, 2, 3, 4].map((n) => sound(`homegrown/move${n}.mp3`)),
+      capture: [1, 2, 3].map((n) => sound(`homegrown/capture${n}.mp3`)),
+      castle: [sound("homegrown/castle.mp3")],
+      result: [sound("homegrown/GenericNotify.mp3")],
     },
     // TODO(recordings): per-piece files go here as they are recorded.
     moveByRole: {},
