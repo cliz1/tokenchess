@@ -191,3 +191,38 @@ export function playMoveSound(
 }
 
 
+
+// How a move from `fromSq` to `toSq` promotes, if at all (same rules as ComputerGamePage):
+// `auto` is a forced promotion (painter, snare, wizard swaps, archer), `choose` means the
+// player must pick a piece (pawn or wizard-pawn swap reaching the far rank).
+export function promotionForMove(
+  chess: Chess,
+  fromSq: number,
+  toSq: number,
+): { auto: string | null; choose: boolean } {
+  const fromPiece = chess.board.get(fromSq);
+  const toPiece = chess.board.get(toSq);
+  const toRank = Math.floor(toSq / 8);
+  const fromRank = Math.floor(fromSq / 8);
+
+  if (fromPiece?.role === "painter" && (toRank === 0 || toRank === 7)) return { auto: "royalpainter", choose: false };
+  if (fromPiece?.role === "snare" && (toRank === 0 || toRank === 7)) return { auto: "rollingsnare", choose: false };
+  if (fromPiece?.role === "wizard") {
+    const backRank = fromPiece.color === "white" ? 7 : 0;
+    if (fromRank === backRank && toPiece?.role === "painter") return { auto: "royalpainter", choose: false };
+    if (fromRank === backRank && toPiece?.role === "snare") return { auto: "rollingsnare", choose: false };
+  }
+  const archer = archerAutoPromotion(fromPiece, fromSq, toSq);
+  if (archer) return { auto: archer, choose: false };
+
+  const isPawnPromo = fromPiece?.role === "pawn" && (toRank === 0 || toRank === 7);
+  const isWizardPawnPromo =
+    fromPiece?.role === "wizard" && toPiece?.role === "pawn" && (fromRank === 0 || fromRank === 7);
+  if (isPawnPromo || isWizardPawnPromo) {
+    const wrongDir =
+      (fromPiece?.color === "white" && fromRank === 0) ||
+      (fromPiece?.color === "black" && fromRank === 7);
+    if (!wrongDir) return { auto: null, choose: true };
+  }
+  return { auto: null, choose: false };
+}

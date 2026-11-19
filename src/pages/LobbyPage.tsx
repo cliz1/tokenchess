@@ -205,6 +205,15 @@ export default function LobbyPage() {
             </div>
           </section>
 
+          {/* Pass & play on one device */}
+          <section style={card}>
+            <div style={{ ...cardHead, marginBottom: 0, paddingBottom: 0, borderBottom: "none" }}>
+              <h2 style={cardTitle}>Pass &amp; Play</h2>
+              <Link to="/play/local" style={cardLink}>Play local →</Link>
+            </div>
+            <div style={{ ...muted, marginTop: 8 }}>Two players, one device. Choose your own token budget.</div>
+          </section>
+
           {/* Join room */}
           <section style={card}>
             <div style={cardHead}>

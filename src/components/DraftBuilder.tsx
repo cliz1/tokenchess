@@ -7,6 +7,7 @@ import "chessground/assets/chessground.brown.css";
 import "chessground/assets/chessground.cburnett.css";
 import "../assets/custom-pieces.css";
 import { ROLE_DISPLAY_NAMES } from "../utils/chessHelpers";
+import { STANDARD_BUDGET, computeCostOfColorFromFen, getCost } from "../utils/draftCost";
 //import "images/coin-svg-repo.svg";
 
 const FILES = "abcdefgh";
@@ -18,12 +19,18 @@ export default function DraftBuilder({
   initialAnythingGoes,
   onRegisterSave,
   onSavedChange,
+  budget,
+  saveLabel = "Save Draft",
 }: {
   onSave?: (fen: string, anythingGoes: boolean) => void;
   initialFen?: string;
   initialAnythingGoes?: boolean;
   onRegisterSave?: (fn: () => void) => void;
   onSavedChange?: (saved: boolean) => void;
+  // token budget for this draft (local games pick their own; saved drafts use the standard 39)
+  budget?: number;
+  // name of the parent's save button, for the tip under the board
+  saveLabel?: string;
 }) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const groundRef = useRef<any>(null);
@@ -31,7 +38,10 @@ export default function DraftBuilder({
   const START_FEN = "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   const EMPTY_FEN = "4k3/8/8/8/8/8/8/4K3 w - - 0 1";
   const PAWNS_FEN = "4k3/8/8/8/8/8/PPPPPPPP/4K3 w - - 0 1"
-  const INITIAL_TOKENS = 39;
+  const INITIAL_TOKENS = budget ?? STANDARD_BUDGET;
+  // the standard army costs the full standard budget, so it only fits budgets at least that big
+  const startFits = computeCostOfColorFromFen(START_FEN, "white") <= INITIAL_TOKENS;
+  const pawnsFit = computeCostOfColorFromFen(PAWNS_FEN, "white") <= INITIAL_TOKENS;
 
   const [fen, setFen] = useState<string>(initialFen ?? EMPTY_FEN);
   const [orientation, _setOrientation] = useState<"white" | "black">("white");
@@ -166,28 +176,6 @@ useEffect(() => {
   useEffect(() => {
     onRegisterSave?.(() => saveFnRef.current());
   }, [onRegisterSave]);
-
-  function getCost(role: string) {
-    const r = role.toLowerCase();
-    if (r.includes("pawn")) return 1;
-    if (r.includes("knight") || r === "n") return 3;
-    if (r.includes("bishop")) return 3;
-    if (r.includes("rook")) return 5;
-    if (r.includes("queen")) return 9;
-    if (r.includes("champion")) return 8;
-    if (r.includes("king") || r.includes("general")) return 0;
-    if (r.includes("princess")) return 8;
-    if (r.includes("amazon")) return 13;
-    if (r.includes("mann")) return 3;
-    if (r.includes("royalpainter")) return 21;
-    if (r.includes("rollingsnare")) return 5;
-    if (r.includes("centaur")) return 9;
-    if (r.includes("painter")) return 2;
-    if (r.includes("snare")) return 1;
-    if (r.includes("wizard")) return 7;
-    if (r.includes("archer")) return 5;
-    return 2;
-  }
 
   function squareFromClientPos(x: number, y: number, rect: DOMRect, orientationLocal: "white" | "black") {
     const relX = x - rect.left;
@@ -324,80 +312,6 @@ useEffect(() => {
     for (const k of Object.keys(statePieces)) {
       const p = (statePieces as any)[k];
       if (p && p.color === color) total += getCost(p.role);
-    }
-    return total;
-  }
-
-  function computeCostOfColorFromFen(fenStr: string, color: "white" | "black") {
-    const parts = fenStr.split(" ");
-    const placement = parts[0] ?? fenStr;
-    let total = 0;
-    for (const ch of placement) {
-      if (ch === "/" || (ch >= "1" && ch <= "8")) continue;
-      const isWhite = ch >= "A" && ch <= "Z";
-      const letter = ch.toUpperCase();
-      let role = "pawn";
-      switch (letter) {
-        case "P":
-          role = "pawn";
-          break;
-        case "N":
-          role = "knight";
-          break;
-        case "B":
-          role = "bishop";
-          break;
-        case "R":
-          role = "rook";
-          break;
-        case "Q":
-          role = "queen";
-          break;
-        case "K":
-          role = "king";
-          break;
-        case "G":
-          role = "general";
-          break;
-        case "C":
-          role = "champion";
-          break;
-        case "I":
-          role = "princess";
-          break;
-        case "A":
-          role = "amazon";  
-          break;
-        case "M":
-          role = "mann";
-          break;
-        case "S":
-          role = "snare"; 
-          break;
-        case "Y":
-          role = "painter";
-          break;
-        case "W":
-          role = "wizard";
-          break;
-        case"X":
-          role = "archer";
-          break;
-        case "O":
-          role = "royalpainter";
-          break;
-        case "L":
-          role = "rollingsnare";
-          break;
-        case "U":
-          role = "centaur";
-          break;
-        default:
-          role = "pawn";
-      }
-      if ((color === "white" && isWhite) || (color === "black" && !isWhite)) {
-        total += getCost(role);
-      }
     }
     return total;
   }
@@ -841,13 +755,22 @@ useEffect(() => {
         >
           {/* START / EMPTY buttons */}
           <div style={{ display: "flex", gap: 6 }}>
-            <button className="btn-ghost" style={{ flex: 1, padding: "6px 6px", fontSize: 12 }} onClick={handleSetStartPosition}>
+            <button
+              className="btn-ghost"
+              style={{ flex: 1, padding: "6px 6px", fontSize: 12 }}
+              onClick={handleSetStartPosition}
+              disabled={!startFits}
+              title={startFits ? undefined : `The standard army costs ${STANDARD_BUDGET} tokens, more than this budget.`}
+            >
               Start
             </button>
             <button className="btn-ghost" style={{ flex: 1, padding: "6px 6px", fontSize: 12 }} onClick={handleSetEmptyPosition}>
               Empty
             </button>
-            <button className="btn-ghost" style={{ flex: 1, padding: "6px 6px", fontSize: 12 }} onClick={handleSetPawnsPosition}>
+            <button className="btn-ghost" style={{ flex: 1, padding: "6px 6px", fontSize: 12 }} onClick={handleSetPawnsPosition}
+              disabled={!pawnsFit}
+              title={pawnsFit ? undefined : "A full row of pawns costs more than this budget."}
+            >
               Pawns
             </button>
           </div>
@@ -971,7 +894,7 @@ useEffect(() => {
           <div style={{ marginTop: 10, fontFamily: "monospace", fontSize: 12, color: "#888" }}>FEN: {fen}</div>
 
           <div style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
-            Tip: Alt+click or right-click a square to remove a piece. Use the Save Draft button above to save your changes.
+            Tip: Alt+click or right-click a square to remove a piece. Use the {saveLabel} button above to save your changes.
           </div>
         </div>
 

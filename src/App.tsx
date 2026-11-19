@@ -21,6 +21,7 @@ import LobbyPage from "./pages/LobbyPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProfileMenu from "./components/ProfileMenu";
 import ComputerGamePage from "./pages/ComputerGamePage";
+import LocalGamePage from "./pages/LocalGamePage";
 import GameAnalysisPage from "./pages/GameAnalysisPage";
 
 import "./App.css";
@@ -169,6 +170,7 @@ function AppContent() {
           <Route path="/games" element={<GamesRedirect />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/play/computer" element={<ComputerGameRouteWrapper />} />
+          <Route path="/play/local" element={<LocalGamePage />} />
         </Routes>
       </main>
     </div>
