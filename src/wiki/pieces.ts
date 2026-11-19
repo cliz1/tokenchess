@@ -54,7 +54,7 @@ export const WIKI_PIECES: WikiEntry[] = [
     fen: lone("M"), hints: arrows("d4", ["c3", "d3", "e3", "c4", "e4", "c5", "d5", "e5"]),
   },
   {
-    slug: "archer", role: "archer", name: "Archer", cost: 5,
+    slug: "archer", role: "archer", name: "Archer", cost: 3,
     summary: "Steps a single square diagonally and shoots pieces 2–3 squares away on a diagonal without moving.",
     notes: ["On reaching the far rank by a step, the Archer promotes to a Centaur."],
     fen: lone("X"), hints: [...arrows("d4", DIAG_STEPS_FROM_D4), ...marks(DIAG_SHOTS_FROM_D4)],

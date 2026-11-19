@@ -134,7 +134,7 @@ const PIECE_TOKEN_COST: Record<string, number> = {
   y: 2,
   s: 1,
   w: 7, 
-  x: 5,
+  x: 3,
   g: 0,
   // Disabled pieces (not allowed in drafts); uncomment to re-enable:
   // o: 21, // royal painter

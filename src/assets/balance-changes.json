@@ -1,5 +1,20 @@
 [
   {
+    "heading": "November 2026:",
+    "changes": [
+      {
+        "piece": "archer",
+        "title": "Archer token cost 5 → 3, quantity limit removed",
+        "text": "Further testing with Fairy Stockfish has shown that an Archer is all too frequently outmatched by a minor piece. The special capture is very powerful, but if it never happens, the Archer is more like a half-Bishop."
+      },
+      {
+        "piece": "painter",
+        "title": "Painter quantity limit removed",
+        "text": "There was originally a fear that these special-capture pieces would break the game if they dominated too much of the board. But aren't their token prices enough to balance this? This update allows the players to find that out themselves."
+      }
+    ]
+  },
+  {
     "heading": "May 2026:",
     "changes": [
       {
