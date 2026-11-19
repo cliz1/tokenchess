@@ -147,16 +147,13 @@ export function playMoveSound(
   );
 
   const hasEnemyAdjacent = neighbors.some((n) => n !== null && n.color !== movingPiece.color);
-  const hasEnemySnareAdjacent = neighbors.some(
-    (n) => n !== null && n.color !== movingPiece.color && (n.role === "snare")
-  );
-
   const RShasEnemyAdjacent = RSneighbors.some((n) => n !== null && n.color !== movingPiece.color);
-  const hasEnemyRSAdjacent = RSneighbors.some(
-    (n) => n !== null && n.color !== movingPiece.color && (n.role === "rollingsnare")
-  );
+
+  // The snare effect is only for a snare (or rolling snare) that moves next to an enemy.
+  // A piece moving into an enemy snare's reach just gets the plain move/capture sound.
   const isSnaredMove =
-    (((movingPiece.role === "snare" && hasEnemyAdjacent) || hasEnemySnareAdjacent) || ((movingPiece.role === "rollingsnare" && RShasEnemyAdjacent) || hasEnemyRSAdjacent));
+    (movingPiece.role === "snare" && hasEnemyAdjacent) ||
+    (movingPiece.role === "rollingsnare" && RShasEnemyAdjacent);
 
   const isCastleMove = 
     ((capturedPiece) && (capturedPiece.color === movingPiece.color && movingPiece.role !== "wizard"));
