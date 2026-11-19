@@ -60,29 +60,15 @@ export default function DraftsPage() {
     const draft = drafts[index];
     if (!draft) return;
 
+    // A pending name in the toolbar input is applied as part of Save.
+    const newName = renaming.trim();
     try {
       const updated = await apiFetch(`/drafts/${draft.id}`, {
         method: "PUT",
-        body: JSON.stringify({ data: { fen, anythingGoes } }),
-      });
-
-      const copy = [...drafts];
-      copy[index] = updated;
-      setDrafts(copy);
-    } catch (err: any) {
-      console.error("Failed to update draft FEN", err);
-      alert(err.message ?? "Failed to save draft");
-    }
-  }
-
-  async function renameDraft(index: number) {
-    const draft = drafts[index];
-    if (!draft) return;
-
-    try {
-      const updated = await apiFetch(`/drafts/${draft.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ name: renaming }),
+        body: JSON.stringify({
+          data: { fen, anythingGoes },
+          ...(newName && newName !== draft.name ? { name: newName } : {}),
+        }),
       });
 
       const copy = [...drafts];
@@ -90,7 +76,8 @@ export default function DraftsPage() {
       setDrafts(copy);
       setRenaming("");
     } catch (err: any) {
-      alert(err.message);
+      console.error("Failed to update draft FEN", err);
+      alert(err.message ?? "Failed to save draft");
     }
   }
 
@@ -139,18 +126,18 @@ export default function DraftsPage() {
             ))}
           </div>
 
-          {/* Consolidated action toolbar: rename, activate, save */}
+          {/* Consolidated action toolbar: name, activate, save (save applies a pending rename) */}
           {current && (
             <div className="draft-toolbar">
               <input
                 type="text"
                 value={renaming}
                 onChange={(e) => setRenaming(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveFnRef.current();
+                }}
                 placeholder={`Rename "${current.name}"`}
               />
-              <button className="btn-ghost" onClick={() => renameDraft(selected)}>
-                Rename
-              </button>
 
               <div className="toolbar-divider" />
 
