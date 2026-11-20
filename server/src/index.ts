@@ -1548,6 +1548,27 @@ wss.on("connection", (ws: WebSocket, req) => {
       return;
     }
 
+    // ---------- CANCEL SEEK ----------
+    // a seated player withdraws an open room before anyone joins: delete it right away
+    // (no 30s grace) so it disappears from the lobby immediately.
+    if (data.type === "cancel" && roomId) {
+      const room = rooms.get(roomId);
+      if (!room || room.status !== "open") return;
+      const uid = (ws as any).playerId;
+      if (!uid || !room.players?.includes(uid)) return;
+
+      if (room.cleanupTimeout) clearTimeout(room.cleanupTimeout as NodeJS.Timeout);
+      rooms.delete(roomId);
+      broadcastLobby();
+
+      for (const client of room.clients) {
+        try {
+          client.close();
+        } catch {}
+      }
+      return;
+    }
+
     // ---------- LEAVE / CLEANUP ----------
     if (data.type === "leave" && roomId) {
       const room = rooms.get(roomId);

@@ -278,7 +278,7 @@ export default function GamePage() {
     }
   }, []);
 
-  const { sendMove, sendLeave, sendRematch, sendResign, sendDraw, sendTakeback } = useGameSocket(roomId, onGameUpdate);
+  const { sendMove, sendLeave, sendCancel, sendRematch, sendResign, sendDraw, sendTakeback } = useGameSocket(roomId, onGameUpdate);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -445,6 +445,11 @@ export default function GamePage() {
   const handleLeave = () => {
     sendLeave();
     navigate("/");
+  };
+
+  const handleCancelSeek = () => {
+    sendCancel();
+    navigate("/play");
   };
 
   // move list is always a single mainline in a live game (no branching), so this is
@@ -745,8 +750,9 @@ if (clock) {
 
         {/* Waiting message */}
         {!clock && (
-          <div style={{ textAlign: "center", fontSize: 14, color: "#ccc" }}>
-            Waiting for opponent…
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <div style={{ fontSize: 14, color: "#ccc" }}>Waiting for opponent…</div>
+            {role === "player" && <button onClick={handleCancelSeek}>Cancel</button>}
           </div>
         )}
 
